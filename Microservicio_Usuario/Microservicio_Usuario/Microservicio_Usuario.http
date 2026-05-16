@@ -1,6 +1,6 @@
-@Microservicio_Usuario_HostAddress = http://localhost:5089
+@ServicioUsuario_HostAddress = http://localhost:5292
 
-GET {{Microservicio_Usuario_HostAddress}}/weatherforecast/
+GET {{ServicioUsuario_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###

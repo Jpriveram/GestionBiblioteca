@@ -1,0 +1,506 @@
+html{
+    height:100%;
+    font-size:14px;
+}
+
+@media (min-width:768px){
+    html{
+        font-size:16px;
+    }
+}
+
+body{
+    min-height:100vh;
+    display:grid;
+    grid-template-rows:auto 1fr auto;
+    background:#141414;
+    color:#e5e7eb;
+}
+
+.navbar-nav {
+    gap: 6px;
+}
+
+.navbar .dropdown-menu {
+    animation: fadeInDropdown 0.2s ease;
+}
+
+@keyframes fadeInDropdown {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.nav-btn.active,
+.nav-btn:focus {
+    background: #00A67E;
+    color: #fff !important;
+}
+
+.navbar-toggler:focus {
+    box-shadow: 0 0 0 0.15rem rgba(0, 166, 126, 0.35);
+}
+
+.navbar{
+    background:#282828;
+    border-bottom:1px solid #1e293b;
+    padding:12px 0;
+}
+
+.navbar-brand img{
+    filter:brightness(1.1);
+}
+
+.nav-btn{
+    padding:8px 16px;
+    border-radius:8px;
+    transition:all .25s ease;
+    color:#ffffff !important;
+    font-weight:500;
+}
+
+.nav-link img{
+    filter:brightness(0) invert(1);
+}
+
+.nav-btn:hover{
+    background:#00A67E;
+    color:white !important;
+    transform:translateY(-2px);
+}
+
+.nav-btn:hover img{
+    filter:brightness(0) invert(1);
+}
+
+.navbar-toggler{
+    border:1px solid #1e293b;
+    background:#020617;
+}
+
+/* ===== DROPDOWN ===== */
+
+.dropdown-menu.custom-dropdown-menu{
+    background:#1c1c1c;
+    border:1px solid #1e293b;
+    border-radius:10px;
+    padding:8px;
+    min-width:145px;
+    margin-top:10px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.45);
+}
+
+.dropdown-menu.custom-dropdown-menu .dropdown-item.custom-dropdown-item{
+    color:#e5e7eb;
+    border-radius:8px;
+    padding:10px 14px;
+    font-weight:500;
+    transition:all .2s ease;
+}
+
+.dropdown-menu.custom-dropdown-menu .dropdown-item.custom-dropdown-item:hover,
+.dropdown-menu.custom-dropdown-menu .dropdown-item.custom-dropdown-item:focus{
+    background:#00A67E;
+    color:#ffffff;
+}
+
+.dropdown-menu.custom-dropdown-menu .dropdown-item.custom-dropdown-item:active{
+    background:#008f6c;
+    color:#ffffff;
+}
+
+/* Hace que el botón Biblioteca quede marcado mientras el dropdown está abierto */
+.nav-item.dropdown.show .nav-btn,
+.nav-item.dropdown .nav-link.show{
+    background:#00A67E;
+    color:#ffffff !important;
+}
+
+.nav-item.dropdown.show .nav-btn img,
+.nav-item.dropdown .nav-link.show img{
+    filter:brightness(0) invert(1);
+}
+
+/* Quita el fondo blanco raro del dropdown de Bootstrap */
+.dropdown-menu{
+    --bs-dropdown-bg:#1c1c1c;
+    --bs-dropdown-border-color:#1e293b;
+    --bs-dropdown-link-hover-bg:#00A67E;
+    --bs-dropdown-link-hover-color:#ffffff;
+    --bs-dropdown-link-active-bg:#008f6c;
+    --bs-dropdown-link-active-color:#ffffff;
+    --bs-dropdown-color:#e5e7eb;
+}
+
+/* Flechita del dropdown en blanco */
+.dropdown-toggle::after{
+    vertical-align:middle;
+    margin-left:6px;
+    border-top-color:#ffffff;
+}
+
+.main-content{
+    padding-top:30px;
+    padding-bottom:30px;
+}
+
+.tabla-container,
+.privacy-card,
+.error-card,
+.info-section{
+    background:#020617;
+    border:1px solid #1e293b;
+    border-radius:10px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.4);
+    padding:20px;
+}
+
+table{
+    color:#e5e7eb;
+}
+
+thead{
+    background:#141414;
+}
+
+.footer-custom{
+    background:#141414;
+    border-top:1px solid #1e293b;
+    color:#A0A0A0;
+    padding:20px 0;
+}
+
+.footer-content{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.footer-right a{
+    color:#00A67E;
+    text-decoration:none;
+}
+
+.footer-right a:hover{
+    color:#00d49f;
+}
+
+.btn-login-navbar{
+    background:transparent;
+    border:none;
+    outline:none;
+    color:#ffffff !important;
+    font-weight:500;
+    cursor:pointer;
+}
+
+.btn-login-navbar img{
+    filter:brightness(0) invert(1);
+}
+
+.btn-login-navbar:hover{
+    background:#00A67E;
+    color:#ffffff !important;
+    transform:translateY(-2px);
+}
+
+
+.password-wrapper{
+    position:relative;
+    width:100%;
+}
+
+.password-input{
+    padding-right:48px !important;
+}
+
+.toggle-password-btn{
+    position:absolute;
+    top:50%;
+    right:14px;
+    transform:translateY(-50%);
+    background:transparent;
+    border:none;
+    padding:0;
+    margin:0;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.toggle-password-btn:focus{
+    outline:none;
+    box-shadow:none;
+}
+
+.toggle-password-btn img{
+    width:22px;
+    height:22px;
+    filter:brightness(0) invert(1);
+    opacity:.8;
+    transition:.2s ease;
+}
+
+.toggle-password-btn:hover img{
+    opacity:1;
+}
+
+.text-error-summary{
+    display:block;
+    background:rgba(239,68,68,.12);
+    border:1px solid rgba(239,68,68,.35);
+    color:#fca5a5;
+    padding:12px 14px;
+    border-radius:12px;
+    margin-bottom:12px;
+    font-weight:500;
+}
+
+/* ===== MODAL LOGIN - ESTILO HOME ===== */
+
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(6px);
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+}
+
+.modal-box {
+    width: 100%;
+    max-width: 520px;
+    background: linear-gradient(135deg, rgba(18, 18, 18, 0.98), rgba(25, 25, 25, 0.98));
+    border: 1px solid #272727;
+    border-radius: 28px;
+    padding: 34px;
+    box-shadow: 0 18px 55px rgba(0, 0, 0, 0.45);
+}
+
+.modal-login-box {
+    text-align: center;
+}
+
+.modal-icon.login {
+    width: 92px;
+    height: 92px;
+    margin: 0 auto 20px;
+    border-radius: 24px;
+    background: radial-gradient(circle at top, rgba(16, 163, 127, 0.22), rgba(16, 163, 127, 0.05) 65%), #151515;
+    border: 1px solid rgba(16, 163, 127, 0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-icon.login .icono-modal {
+    width: 42px;
+    height: 42px;
+    filter: brightness(0) saturate(100%) invert(54%) sepia(90%) saturate(447%) hue-rotate(116deg) brightness(92%) contrast(91%);
+}
+
+.modal-login-box h2 {
+    color: #f3f4f6;
+    font-size: 38px;
+    line-height: 1.05;
+    font-weight: 800;
+    margin: 0 0 12px;
+}
+
+.modal-login-box p {
+    color: #a1a1aa;
+    font-size: 16px;
+    line-height: 1.6;
+    margin: 0 0 24px;
+}
+
+.modal-login-box form {
+    display: grid;
+    gap: 14px;
+}
+
+.input-form {
+    width: 100%;
+    background: #111111;
+    border: 1px solid #2b2b2b;
+    color: #e5e7eb;
+    border-radius: 16px;
+    padding: 15px 16px;
+    font-size: 15px;
+    outline: none;
+    transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+
+.input-form::placeholder {
+    color: #8f8f99;
+}
+
+.input-form:focus {
+    background: #151515;
+    border-color: rgba(16, 163, 127, 0.55);
+    box-shadow: 0 0 0 4px rgba(16, 163, 127, 0.12);
+}
+
+.password-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.password-input {
+    padding-right: 52px !important;
+}
+
+.toggle-password-btn {
+    position: absolute;
+    top: 50%;
+    right: 16px;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toggle-password-btn img {
+    width: 22px;
+    height: 22px;
+    filter: brightness(0) invert(1);
+    opacity: .75;
+    transition: opacity .2s ease, transform .2s ease;
+}
+
+.toggle-password-btn:hover img {
+    opacity: 1;
+    transform: scale(1.05);
+}
+
+.modal-buttons {
+    display: grid;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.btn-login-modal {
+    background: #10a37f;
+    color: white;
+    padding: 14px;
+    border-radius: 14px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 16px;
+    transition: all .25s ease;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    box-shadow: 0 8px 20px rgba(16, 163, 127, 0.2);
+}
+
+.btn-login-modal:hover {
+    background: #19c37d;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: #374151;
+    color: #e5e7eb;
+    padding: 14px;
+    border-radius: 14px;
+    border: none;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all .25s ease;
+    width: 100%;
+}
+
+.btn-secondary:hover {
+    background: #4b5563;
+    transform: translateY(-2px);
+}
+
+.text-error-summary {
+    display: block;
+    background: rgba(127, 29, 29, 0.72);
+    border: 1px solid rgba(248, 113, 113, 0.42);
+    color: #fecaca;
+    padding: 14px 16px;
+    border-radius: 16px;
+    margin-bottom: 4px;
+    font-weight: 600;
+    text-align: left;
+    line-height: 1.5;
+}
+
+/* Botón login de navbar */
+.btn-login-navbar {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #ffffff !important;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.btn-login-navbar img {
+    filter: brightness(0) invert(1);
+}
+
+.btn-login-navbar:hover {
+    background: #10a37f;
+    color: #ffffff !important;
+    transform: translateY(-2px);
+}
+
+.custom-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(6px);
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .modal {
+        padding: 16px;
+        align-items: center;
+    }
+
+    .modal-box {
+        max-width: 100%;
+        padding: 26px 20px;
+        border-radius: 22px;
+    }
+
+    .modal-login-box h2 {
+        font-size: 32px;
+    }
+
+    .modal-login-box p {
+        font-size: 15px;
+    }
+
+    .input-form,
+    .btn-login-modal,
+    .btn-secondary {
+        padding: 14px;
+        border-radius: 14px;
+    }
+}

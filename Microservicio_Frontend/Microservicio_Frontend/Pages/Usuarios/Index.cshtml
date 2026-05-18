@@ -1,0 +1,444 @@
+﻿@page "/Usuarios"
+@using Frontend.Dtos
+@model Frontend.Pages.Usuarios.IndexModel
+@{
+    ViewData["Title"] = "Gestión de Usuarios";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/usuarios.css" />
+}
+
+<div class="usuarios-container">
+
+    <div class="page-header">
+        <div class="titulo-logo">
+            <h1>Gestión de Usuarios</h1>
+        </div>
+
+        <button type="button" class="btn-nuevo" onclick="abrirModalCrearUsuario()">
+            <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-btn" />
+            Nuevo Usuario
+        </button>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.MensajeOk))
+    {
+        <div class="alert-custom alert-success-custom">
+            @Model.MensajeOk
+        </div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Model.MensajeError))
+    {
+        <div class="alert-custom alert-danger-custom">
+            @Model.MensajeError
+        </div>
+    }
+
+    <div class="tabla-container">
+        <table class="tabla-usuarios">
+            <thead>
+                <tr>
+                    <th>Nombres</th>
+                    <th>Primer apellido</th>
+                    <th>Segundo apellido</th>
+                    <th>Email</th>
+                    <th>Usuario</th>
+                    <th>Rol</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var usuario in Model.Usuarios)
+                {
+                    <tr>
+                        <td>@usuario.Nombres.ToDisplayName()</td>
+                        <td>@usuario.PrimerApellido.ToDisplayName()</td>
+                        <td>@usuario.SegundoApellido.ToDisplayName()</td>
+                        <td>@usuario.Email</td>
+                        <td>@usuario.NombreUsuario</td>
+                        <td>@usuario.Rol</td>
+                        <td>
+                            @if (usuario.Estado)
+                            {
+                                <span class="estado activo">Activo</span>
+                            }
+                            else
+                            {
+                                <span class="estado inactivo">Inactivo</span>
+                            }
+                        </td>
+                        <td class="acciones">
+                            @if (usuario.Estado)
+                            {
+                                <button type="button"
+                                        class="btn-eliminar"
+                                        onclick="abrirModalBajaUsuario('@usuario.UsuarioIdToken', '@Html.Raw((usuario.NombreUsuario ?? "").Replace("'", "\\'"))')">
+                                    <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                                         class="icono-btn" />
+                                    Dar de baja
+                                </button>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Sin acciones</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<!-- MODAL CREAR USUARIO -->
+<div id="modalCrearUsuario" class="modal">
+    <div class="modal-box">
+
+        <div class="modal-icon crear">
+            <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                 class="icono-modal" />
+        </div>
+
+        <h2>Nuevo Usuario</h2>
+        <p>Completa los datos para registrar un nuevo usuario.</p>
+
+        <form method="post" asp-page-handler="Crear" id="formCrearUsuario" autocomplete="off" novalidate>
+            @Html.AntiForgeryToken()
+
+            <div id="mensajeValidacionUsuario" class="text-error-summary" style="display:none;"></div>
+
+            <div class="usuario-form-grid">
+                <div class="field-group">
+                    <label for="CI">Carnet de identidad <span class="required-mark">*</span></label>
+                    <input asp-for="NuevoUsuario.CI" class="input-form" id="CI" placeholder="Ej: 12345678" />
+                    <div id="errorCiUsuario" class="field-error"></div>
+                </div>
+
+                <div class="field-group">
+                    <label for="Complemento">Complemento</label>
+                    <input id="Complemento" name="Complemento" class="input-form" placeholder="Ej: 1P" />
+                </div>
+
+                <div class="field-group field-span-2">
+                    <label for="Nombres">Nombres <span class="required-mark">*</span></label>
+                    <input asp-for="NuevoUsuario.Nombres"
+                           class="input-form"
+                           id="Nombres"
+                           placeholder="Nombre completo"
+                           required />
+                    <div id="errorNombresUsuario" class="field-error"></div>
+                </div>
+
+                <div class="field-group">
+                    <label for="PrimerApellido">Primer apellido <span class="required-mark">*</span></label>
+                    <input asp-for="NuevoUsuario.PrimerApellido"
+                           class="input-form"
+                           id="PrimerApellido"
+                           placeholder="Primer apellido"
+                           required />
+                    <div id="errorPrimerApellidoUsuario" class="field-error"></div>
+                </div>
+
+                <div class="field-group">
+                    <label for="SegundoApellido">Segundo apellido</label>
+                    <input asp-for="NuevoUsuario.SegundoApellido"
+                           class="input-form"
+                           id="SegundoApellido"
+                           placeholder="Opcional" />
+                </div>
+
+                <div class="field-group @(Model.IsAdmin ? string.Empty : "field-span-2")">
+                    <label for="Email">Correo electrónico <span class="required-mark">*</span></label>
+                    <input asp-for="NuevoUsuario.Email"
+                           class="input-form"
+                           id="Email"
+                           type="email"
+                           placeholder="usuario@correo.com"
+                           required />
+                    <div id="errorEmailUsuario" class="field-error"></div>
+                </div>
+
+                @if (Model.IsAdmin)
+                {
+                    <div class="field-group">
+                        <label for="RolNuevoUsuario">Rol <span class="required-mark">*</span></label>
+                        <select asp-for="RolNuevoUsuario"
+                                class="input-form"
+                                id="RolNuevoUsuario">
+                            <option value="@Roles.Bibliotecario">Bibliotecario</option>
+                            <option value="@Roles.Admin">Admin</option>
+                            <option value="@Roles.Lector">Lector</option>
+                        </select>
+                        <div id="errorRolUsuario" class="field-error"></div>
+                    </div>
+                }
+            </div>
+
+                 <input asp-for="NuevoUsuario.NombreUsuario" id="NombreUsuario" type="hidden" />
+                 <input asp-for="NuevoUsuario.PasswordHash" id="PasswordHash" type="hidden" />
+
+            <div class="modal-buttons">
+                <button type="submit" class="btn-success">
+                    Crear usuario
+                </button>
+
+                <button type="button"
+                        class="btn-secondary"
+                        onclick="cerrarModalCrearUsuario()">
+                    Cancelar
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<!-- MODAL BAJA USUARIO -->
+<div id="modalBajaUsuario" class="modal">
+    <div class="modal-box">
+
+        <div class="modal-icon">
+            <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                 class="icono-modal" />
+        </div>
+
+        <h2>Dar de baja usuario</h2>
+        <p id="textoUsuarioBaja">¿Deseas dar de baja este usuario?</p>
+
+        <form method="post" asp-page-handler="Baja">
+            @Html.AntiForgeryToken()
+
+            <input type="hidden" id="usuarioTokenBaja" name="token" />
+
+            <div class="modal-buttons">
+                <button type="submit" class="btn-danger">
+                    Confirmar baja
+                </button>
+
+                <button type="button"
+                        class="btn-secondary"
+                        onclick="cerrarModalBajaUsuario()">
+                    Cancelar
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function abrirModalCrearUsuario() {
+            document.getElementById("modalCrearUsuario").style.display = "flex";
+        }
+
+        function cerrarModalCrearUsuario() {
+            document.getElementById("modalCrearUsuario").style.display = "none";
+        }
+
+        function abrirModalBajaUsuario(token, nombreUsuario) {
+            document.getElementById("usuarioTokenBaja").value = token || "";
+            document.getElementById("textoUsuarioBaja").textContent =
+                "¿Deseas dar de baja al usuario " + (nombreUsuario || "") + "?";
+            document.getElementById("modalBajaUsuario").style.display = "flex";
+        }
+
+        function cerrarModalBajaUsuario() {
+            document.getElementById("modalBajaUsuario").style.display = "none";
+        }
+
+        function mostrarErrorUsuario(mensaje) {
+            var box = document.getElementById("mensajeValidacionUsuario");
+            if (!box) return;
+
+            box.textContent = mensaje;
+            box.style.display = "block";
+
+            clearTimeout(box._hideTimer);
+            box._hideTimer = setTimeout(function () {
+                box.style.display = "none";
+                box.textContent = "";
+            }, 3500);
+        }
+
+        function setFieldErrorUsuario(id, mensaje) {
+            var field = document.getElementById(id);
+            if (!field) return;
+            field.textContent = mensaje || "";
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            var form = document.getElementById("formCrearUsuario");
+
+            if (form) {
+                var nombres = document.getElementById("Nombres");
+                var ci = document.getElementById("CI");
+                var complemento = document.getElementById("Complemento");
+                var primerApellido = document.getElementById("PrimerApellido");
+                var segundoApellido = document.getElementById("SegundoApellido");
+                var email = document.getElementById("Email");
+                var rol = document.getElementById("RolNuevoUsuario");
+                var nombreUsuario = document.getElementById("NombreUsuario");
+                var password = document.getElementById("PasswordHash");
+
+                function esRolConCredenciales() {
+                    if (!rol) return false;
+                    return rol.value === "@Roles.Admin" || rol.value === "@Roles.Bibliotecario";
+                }
+
+                function actualizarCamposCredenciales() {
+                    if (!esRolConCredenciales()) {
+                        if (nombreUsuario) nombreUsuario.value = "";
+                        if (password) password.value = "";
+                    }
+                }
+
+                function buildCredentialSeed(value) {
+                    return (value || "")
+                        .trim()
+                        .normalize("NFD")
+                        .replace(/[\u0300-\u036f]/g, "")
+                        .replace(/[^a-zA-Z0-9]/g, "");
+                }
+
+                function ensureHiddenCredentials() {
+                    if (!esRolConCredenciales()) {
+                        return;
+                    }
+
+                    if (nombreUsuario && !nombreUsuario.value.trim()) {
+                        var seedNombre = buildCredentialSeed(nombres ? nombres.value : "");
+                        var seedApellido = buildCredentialSeed(primerApellido ? primerApellido.value : "");
+                        var base = (seedNombre.slice(0, 3) + seedApellido.slice(0, 3)).toLowerCase();
+                        if (!base) {
+                            base = "usr";
+                        }
+                        nombreUsuario.value = base + Date.now().toString().slice(-6);
+                    }
+
+                    if (password && !password.value.trim()) {
+                        password.value = "tmp" + Date.now().toString().slice(-8);
+                    }
+                }
+
+                function limpiarMensaje() {
+                    var box = document.getElementById("mensajeValidacionUsuario");
+                    if (!box) return;
+                    box.style.display = "none";
+                    box.textContent = "";
+                }
+
+                function limpiarErroresCampo() {
+                    [
+                        "errorNombresUsuario",
+                        "errorCiUsuario",
+                        "errorPrimerApellidoUsuario",
+                        "errorEmailUsuario",
+                        "errorRolUsuario"
+                    ].forEach(function (id) {
+                        setFieldErrorUsuario(id, "");
+                    });
+                }
+
+                [nombres, ci, complemento, primerApellido, segundoApellido, email, rol, nombreUsuario, password].forEach(function (input) {
+                    if (!input) return;
+                    input.addEventListener("input", function () {
+                        limpiarMensaje();
+                        limpiarErroresCampo();
+                    });
+                    input.addEventListener("change", function () {
+                        limpiarMensaje();
+                        limpiarErroresCampo();
+                    });
+                });
+
+                if (rol) {
+                    rol.addEventListener("change", actualizarCamposCredenciales);
+                }
+
+                actualizarCamposCredenciales();
+
+                form.addEventListener("submit", function (e) {
+                    limpiarMensaje();
+                    limpiarErroresCampo();
+
+                    if (!nombres.value.trim()) {
+                        e.preventDefault();
+                        setFieldErrorUsuario("errorNombresUsuario", "Debes ingresar los nombres.");
+                        mostrarErrorUsuario("Debes ingresar los nombres.");
+                        nombres.focus();
+                        return;
+                    }
+
+                    if (!ci.value.trim()) {
+                        e.preventDefault();
+                        setFieldErrorUsuario("errorCiUsuario", "Debes ingresar el carnet de identidad.");
+                        mostrarErrorUsuario("Debes ingresar el carnet de identidad.");
+                        ci.focus();
+                        return;
+                    }
+
+                    if (!primerApellido.value.trim()) {
+                        e.preventDefault();
+                        setFieldErrorUsuario("errorPrimerApellidoUsuario", "Debes ingresar el primer apellido.");
+                        mostrarErrorUsuario("Debes ingresar el primer apellido.");
+                        primerApellido.focus();
+                        return;
+                    }
+
+                    // Segundo apellido es opcional, no validar aquí
+
+                    if (!email.value.trim()) {
+                        e.preventDefault();
+                        setFieldErrorUsuario("errorEmailUsuario", "Debes ingresar el correo electrónico.");
+                        mostrarErrorUsuario("Debes ingresar el correo electrónico.");
+                        email.focus();
+                        return;
+                    }
+
+                    var emailValido = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(email.value.trim());
+                    if (!emailValido) {
+                        e.preventDefault();
+                        setFieldErrorUsuario("errorEmailUsuario", "Debes ingresar un correo electrónico válido.");
+                        mostrarErrorUsuario("Debes ingresar un correo electrónico válido.");
+                        email.focus();
+                        return;
+                    }
+
+                    if (rol && !rol.value.trim()) {
+                        e.preventDefault();
+                        setFieldErrorUsuario("errorRolUsuario", "Debes seleccionar un rol.");
+                        mostrarErrorUsuario("Debes seleccionar un rol.");
+                        rol.focus();
+                        return;
+                    }
+
+                    ensureHiddenCredentials();
+                });
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Model.MensajeError))
+            {
+                <text>abrirModalCrearUsuario();</text>
+            }
+        });
+
+        window.addEventListener("click", function (e) {
+            var modalCrear = document.getElementById("modalCrearUsuario");
+            var modalBaja = document.getElementById("modalBajaUsuario");
+
+            if (e.target === modalCrear) {
+                cerrarModalCrearUsuario();
+            }
+
+            if (e.target === modalBaja) {
+                cerrarModalBajaUsuario();
+            }
+        });
+    </script>
+}

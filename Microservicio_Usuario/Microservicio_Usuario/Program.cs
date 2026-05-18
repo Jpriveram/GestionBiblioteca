@@ -8,10 +8,10 @@ using ServicioUsuario.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
-ConfigurationSingleton.Initialize(builder.Configuration);
-
-// Load local email password (gitignored, each dev creates their own)
+// Local overrides for secrets or machine-specific settings.
 builder.Configuration.AddJsonFile("emailsettings.json", optional: true, reloadOnChange: false);
+
+ConfigurationSingleton.Initialize(builder.Configuration);
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();

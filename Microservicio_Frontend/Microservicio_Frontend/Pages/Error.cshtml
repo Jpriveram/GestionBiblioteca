@@ -1,0 +1,50 @@
+﻿@page
+@model Frontend.Pages.ErrorModel
+@{
+    ViewData["Title"] = "Error";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/Error.css" />
+}
+
+<div class="error-container">
+
+    <div class="error-header">
+
+        <img src="~/assets/icons/error_24dp_1E293B_FILL0_wght400_GRAD0_opsz24.svg"
+                class="icono-error">
+
+        <h1>Error del Sistema</h1>
+
+    </div>
+
+    <div class="error-card">
+
+        <h2>Ocurrió un problema al procesar tu solicitud</h2>
+
+        @if (Model.ShowRequestId)
+        {
+            <p class="request-id">
+                <strong>ID de solicitud:</strong> <code>@Model.RequestId</code>
+            </p>
+        }
+
+        <p>
+            Se produjo un error inesperado dentro del sistema.
+            Por favor intenta nuevamente o contacta con el administrador si el problema persiste.
+        </p>
+
+        <div class="error-actions">
+
+            <a href="/" class="btn-home">
+                <img src="~/assets/icons/home_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                        class="icono-btn icon-white">
+                Volver al inicio
+            </a>
+
+        </div>
+
+    </div>
+
+</div>

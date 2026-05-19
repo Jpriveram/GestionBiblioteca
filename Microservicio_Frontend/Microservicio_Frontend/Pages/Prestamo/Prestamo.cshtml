@@ -1,0 +1,618 @@
+﻿@page "/Prestamo"
+@using System.Linq
+@model Frontend.Pages.Prestamo.PrestamoModel
+@{
+    ViewData["Title"] = "Préstamos realizados";
+
+    var totalPrestamos = Model.PrestamosDetallados.Count;
+    var prestamosActivos = Model.PrestamosDetallados.Count(p => !p.FechaDevolucionReal.HasValue && p.Estado == 1);
+    var prestamosDevueltos = Model.PrestamosDetallados.Count(p => p.FechaDevolucionReal.HasValue);
+    var prestamosAnulados = Model.PrestamosDetallados.Count(p => p.Estado == 0);
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/prestamo.css" />
+}
+
+<div class="prestamo-page">
+    <div class="prestamo-shell">
+        <div class="page-header">
+            <div class="titulo-logo">
+                <div class="page-icon-shell">
+                    <img src="~/assets/icons/library_books_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-header" alt="Préstamos realizados" />
+                </div>
+                <div>
+                    <h1>Préstamos realizados</h1>
+                    <p class="page-subtitle">Consulta el historial, busca por lector o ejemplar y revisa los detalles de cada operación.</p>
+                </div>
+            </div>
+
+            <a class="btn-nuevo" href="/Prestamo/Create">
+                <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-btn" alt="Nuevo préstamo" />
+                Nuevo préstamo
+            </a>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.MensajeOk))
+        {
+            <div class="alert-custom alert-success-custom">@Model.MensajeOk</div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(Model.MensajeError))
+        {
+            <div class="alert-custom alert-danger-custom">@Model.MensajeError</div>
+        }
+
+        <div class="filtros-barra">
+            <div class="filtro-item filtro-buscar">
+                <input id="buscador-prestamo"
+                       type="text"
+                       class="input-filtro"
+                       placeholder="Buscar por lector, libro, código o estado..."
+                       autocomplete="off" />
+            </div>
+        </div>
+
+        <form id="prestamoAntiForgeryForm" method="post" class="prestamo-hidden-token">
+            @Html.AntiForgeryToken()
+        </form>
+
+        @if (!Model.PrestamosDetallados.Any())
+        {
+            <div class="tabla-container empty-table-state">
+                <strong>No hay préstamos registrados en el sistema.</strong>
+                <span>Cuando registres uno, aparecerá aquí con su estado, lector y fechas clave.</span>
+            </div>
+        }
+        else
+        {
+            <div class="tabla-container">
+                <table class="tabla-ejemplar tabla-prestamos-historial">
+                    <thead>
+                        <tr>
+                            <th class="th-numero">N°</th>
+                            <th>Libro</th>
+                            <th>Código</th>
+                            <th>Lector</th>
+                            <th>Estado</th>
+                            <th>Salida</th>
+                            <th>Esperada</th>
+                            <th>Devolución real</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-prestamos-body">
+                        @{ var numeroPrestamo = 1; }
+                        @foreach (var p in Model.PrestamosDetallados)
+                        {
+                            var estadoTexto = p.Estado == 0
+                                ? "Anulado"
+                                : p.FechaDevolucionReal.HasValue
+                                    ? "Devuelto"
+                                    : "Activo";
+
+                            var estadoClase = p.Estado == 0
+                                ? "estado-danger"
+                                : p.FechaDevolucionReal.HasValue
+                                    ? "estado-info"
+                                    : "activo";
+
+                            <tr class="prestamo-row"
+                                data-lector="@p.NombreLector.ToLowerInvariant()"
+                                data-libro="@p.TituloLibro.ToLowerInvariant()"
+                                data-codigo="@p.CodigoInventario.ToLowerInvariant()"
+                                data-estado="@estadoTexto.ToLowerInvariant()">
+                                <td class="td-numero">@(numeroPrestamo++)</td>
+                                <td>
+                                    <strong>@p.TituloLibro</strong>
+                                </td>
+                                <td><span class="badge badge-outline">@p.CodigoInventario</span></td>
+                                <td>@p.NombreLector.ToDisplayName()</td>
+                                <td><span class="estado @estadoClase">@estadoTexto</span></td>
+                                <td>@p.FechaPrestamo.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@p.FechaDevolucionEsperada.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    @if (p.FechaDevolucionReal.HasValue)
+                                    {
+                                        @p.FechaDevolucionReal.Value.ToString("dd/MM/yyyy HH:mm")
+                                    }
+                                    else
+                                    {
+                                        <span class="text-pendiente">Pendiente</span>
+                                    }
+                                </td>
+                                <td class="td-acciones">
+                                    <button type="button"
+                                            class="btn-accion btn-detalles"
+                                            onclick="mostrarDetalles(@p.PrestamoId)"
+                                            title="Ver detalles">
+                                        <img src="~/assets/icons/visibility_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="18" alt="Ver detalles" />
+                                    </button>
+
+                                    @if (p.Estado == 1 && !p.FechaDevolucionReal.HasValue)
+                                    {
+                                        <button type="button"
+                                                class="btn-accion btn-anular"
+                                                onclick="confirmarAnulacion(@p.PrestamoId)"
+                                                title="Anular préstamo">
+                                            <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="18" alt="Anular préstamo" />
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        <div class="estadisticas estadisticas-prestamo">
+            <div class="stat stat-info">
+                Total registrados: @totalPrestamos
+            </div>
+            <div class="stat stat-success">
+                Activos: @prestamosActivos
+            </div>
+            <div class="stat stat-warning">
+                Devueltos: @prestamosDevueltos
+            </div>
+            <div class="stat stat-danger">
+                Anulados: @prestamosAnulados
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-detalles" class="modal modal-details-shell">
+    <div class="modal-box modal-box-details">
+        <div class="modal-icon crear">
+            <img src="~/assets/icons/visibility_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-modal" alt="Detalles" />
+        </div>
+        <h2>Detalles del préstamo</h2>
+        <p>Resumen del lector, el ejemplar y las fechas registradas.</p>
+        <div id="modal-body-content" class="modal-body-custom"></div>
+        <div id="comprobante-preview" class="comprobante-preview" style="display:none;"></div>
+        <div class="modal-buttons">
+            <button type="button" class="btn-ghost-action" onclick="toggleComprobantePreview()">Ver comprobante</button>
+            <button type="button" class="btn-nuevo" onclick="descargarComprobantePdf()">Descargar PDF</button>
+            <button type="button" class="btn-secondary" onclick="descargarComprobanteExcel()">Descargar Excel</button>
+            <button type="button" class="btn-secondary" onclick="cerrarModal()">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-anular-prestamo" class="modal">
+    <div class="modal-box">
+        <div class="modal-icon">
+            <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-modal" alt="Anular préstamo" />
+        </div>
+        <h2>Anular préstamo</h2>
+        <p id="texto-anular-prestamo">¿Deseas anular este préstamo? Los ejemplares volverán a estar disponibles.</p>
+
+        <form method="post" action="?handler=AnularPrestamo">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="prestamo-id-anular" name="prestamoId" />
+
+            <div class="modal-buttons">
+                <button type="submit" class="btn-danger">Confirmar anulación</button>
+                <button type="button" class="btn-secondary" onclick="cerrarModalAnulacion()">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        let comprobanteActual = null;
+
+        function formatearFecha(fecha, incluirHora = false) {
+            if (!fecha) return 'No registrado';
+
+            const valor = new Date(fecha);
+            return incluirHora
+                ? valor.toLocaleString()
+                : valor.toLocaleDateString();
+        }
+
+        function escapeHtml(texto) {
+            return (texto ?? '')
+                .toString()
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+        }
+
+        function renderComprobantePreview(comprobante) {
+            const contenedor = document.getElementById('comprobante-preview');
+            if (!contenedor || !comprobante) {
+                return;
+            }
+
+            const fechaDevolucion = comprobante.fechaDevolucion ?? comprobante.fechaEntrega;
+            const ci = comprobante.ci ?? comprobante.clave;
+            const bibliotecario = comprobante.bibliotecario ?? comprobante.usuarioNombre;
+            const totalLibros = comprobante.totalLibros ?? (comprobante.libros || []).length;
+
+            const librosRows = (comprobante.libros || [])
+                .map((libro, idx) => `
+                    <tr>
+                        <td>${idx + 1}</td>
+                        <td>${escapeHtml(libro.titulo || 'Sin título')}</td>
+                        <td>${escapeHtml(libro.codigo || 'S/C')}</td>
+                    </tr>`)
+                .join('');
+
+            contenedor.innerHTML = `
+                <article class="comprobante-sheet">
+                    <header class="comprobante-header">
+                        <img src="/assets/images/blackLogoR.png" class="comprobante-logo" alt="Logo StarBook" />
+                        <div class="comprobante-heading">
+                            <h3>RECIBO DE PRÉSTAMO</h3>
+                            <p>Biblioteca StarBook</p>
+                        </div>
+                    </header>
+
+                    <section class="comprobante-grid comprobante-grid-rows">
+                        <div class="comprobante-row">
+                            <strong>Préstamo</strong>
+                            <span>${escapeHtml((comprobante.prestamoId ?? '').toString())}</span>
+                        </div>
+                        <div class="comprobante-row comprobante-row-dual">
+                            <div class="comprobante-campo-linea">
+                                <strong>Nombre de lector</strong>
+                                <span>${escapeHtml(comprobante.nombreLector || 'No registrado')}</span>
+                            </div>
+                            <div class="comprobante-campo-linea">
+                                <strong>CI</strong>
+                                <span>${escapeHtml(ci || 'No registrado')}</span>
+                            </div>
+                        </div>
+                        <div class="comprobante-row comprobante-row-dual">
+                            <div class="comprobante-campo-linea">
+                                <strong>Fecha de préstamo</strong>
+                                <span>${formatearFecha(comprobante.fechaPrestamo, false)}</span>
+                            </div>
+                            <div class="comprobante-campo-linea">
+                                <strong>Fecha de devolución</strong>
+                                <span>${formatearFecha(fechaDevolucion, false)}</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="comprobante-libros">
+                        <h4>Libros prestados</h4>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Título</th>
+                                    <th>Código</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${librosRows || '<tr><td colspan="3">Sin libros registrados.</td></tr>'}
+                            </tbody>
+                        </table>
+                        <div class="comprobante-total-right">
+                            <strong>Total de libros</strong> ${escapeHtml(String(totalLibros))}
+                        </div>
+                    </section>
+
+                    <footer class="comprobante-footer-right">
+                        <span>${formatearFecha(comprobante.fechaEmision, false)} - ${escapeHtml(bibliotecario || 'No registrado')}</span>
+                    </footer>
+                </article>`;
+        }
+
+        function toggleComprobantePreview() {
+            const preview = document.getElementById('comprobante-preview');
+            if (!preview || !comprobanteActual) {
+                return;
+            }
+
+            const estaVisible = preview.style.display !== 'none';
+            preview.style.display = estaVisible ? 'none' : 'block';
+        }
+
+        async function obtenerComprobante(prestamoId) {
+            const base = window.location.pathname;
+            const response = await fetch(`${base}?handler=ComprobantePrestamo&id=${prestamoId}`);
+            const data = await response.json();
+
+            if (!data.success || !data.data) {
+                throw new Error('No se pudo generar el comprobante.');
+            }
+
+            comprobanteActual = data.data;
+            renderComprobantePreview(comprobanteActual);
+        }
+
+        async function logoToDataUrl(url) {
+            const imagen = new Image();
+            imagen.crossOrigin = 'anonymous';
+            imagen.src = url;
+
+            await new Promise((resolve, reject) => {
+                imagen.onload = resolve;
+                imagen.onerror = reject;
+            });
+
+            const canvas = document.createElement('canvas');
+            canvas.width = imagen.width;
+            canvas.height = imagen.height;
+            canvas.getContext('2d')?.drawImage(imagen, 0, 0);
+            return canvas.toDataURL('image/png');
+        }
+
+        async function descargarComprobantePdf() {
+            if (!comprobanteActual) {
+                alert('Primero abre un préstamo para generar el comprobante.');
+                return;
+            }
+
+            const jsPdfNamespace = window.jspdf;
+            if (!jsPdfNamespace || !jsPdfNamespace.jsPDF) {
+                alert('No se pudo cargar el generador de PDF.');
+                return;
+            }
+
+            if (!window.html2canvas) {
+                alert('No se pudo cargar el generador visual del PDF.');
+                return;
+            }
+
+            const { jsPDF } = jsPdfNamespace;
+            const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+
+            const stage = document.createElement('div');
+            stage.style.position = 'fixed';
+            stage.style.left = '-10000px';
+            stage.style.top = '0';
+            stage.style.width = '842px';
+            stage.style.background = '#ffffff';
+            stage.style.padding = '0';
+            stage.style.zIndex = '-1';
+
+            const original = document.querySelector('#comprobante-preview .comprobante-sheet');
+            if (!original) {
+                alert('No se encontró el comprobante para exportar.');
+                return;
+            }
+
+            stage.appendChild(original.cloneNode(true));
+            document.body.appendChild(stage);
+
+            const elemento = stage.firstElementChild;
+            if (!elemento) {
+                stage.remove();
+                alert('No se pudo preparar el comprobante para exportar.');
+                return;
+            }
+
+            const canvas = await window.html2canvas(elemento, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#ffffff'
+            });
+
+            stage.remove();
+
+            const imgData = canvas.toDataURL('image/png');
+            const margen = 10;
+            const anchoPdf = 210 - (margen * 2);
+            const altoPdf = (canvas.height * anchoPdf) / canvas.width;
+            const altoMaximo = 297 - (margen * 2);
+            const renderWidth = altoPdf > altoMaximo ? (anchoPdf * altoMaximo) / altoPdf : anchoPdf;
+            const renderHeight = altoPdf > altoMaximo ? altoMaximo : altoPdf;
+
+            doc.addImage(imgData, 'PNG', margen, margen, renderWidth, renderHeight);
+
+            const nombreArchivo = `comprobante-prestamo-${comprobanteActual.prestamoId || 'biblioteca'}.pdf`;
+            doc.save(nombreArchivo);
+        }
+
+        function descargarComprobanteExcel() {
+            if (!comprobanteActual) {
+                alert('Primero abre un préstamo para generar el comprobante.');
+                return;
+            }
+
+            if (!window.XLSX) {
+                alert('No se pudo cargar el generador de Excel.');
+                return;
+            }
+
+            const fechaDevolucion = comprobanteActual.fechaDevolucion ?? comprobanteActual.fechaEntrega;
+            const ci = comprobanteActual.ci ?? comprobanteActual.clave ?? 'No registrado';
+            const bibliotecario = comprobanteActual.bibliotecario ?? comprobanteActual.usuarioNombre ?? 'No registrado';
+            const totalLibros = comprobanteActual.totalLibros ?? (comprobanteActual.libros || []).length;
+            const fechaEmision = comprobanteActual.fechaEmision ? new Date(comprobanteActual.fechaEmision).toLocaleString() : 'No registrado';
+
+            const resumen = [
+                ['Campo', 'Valor'],
+                ['Préstamo', comprobanteActual.prestamoId ?? ''],
+                ['Nombre de lector', comprobanteActual.nombreLector || 'No registrado'],
+                ['CI', ci],
+                ['Fecha de préstamo', comprobanteActual.fechaPrestamo ? new Date(comprobanteActual.fechaPrestamo).toLocaleString() : 'No registrado'],
+                ['Fecha de devolución', fechaDevolucion ? new Date(fechaDevolucion).toLocaleString() : 'No registrado'],
+                ['Fecha de emisión', fechaEmision],
+                ['Bibliotecario', bibliotecario],
+                ['Total de libros', totalLibros]
+            ];
+
+            const libros = [
+                ['#', 'Título', 'Código']
+            ].concat((comprobanteActual.libros || []).map((libro, indice) => [
+                indice + 1,
+                libro.titulo || 'Sin título',
+                libro.codigo || 'S/C'
+            ]));
+
+            const libroExcel = window.XLSX.utils.book_new();
+            const hojaResumen = window.XLSX.utils.aoa_to_sheet(resumen);
+            const hojaLibros = window.XLSX.utils.aoa_to_sheet(libros);
+
+            hojaResumen['!cols'] = [{ wch: 24 }, { wch: 40 }];
+            hojaLibros['!cols'] = [{ wch: 8 }, { wch: 50 }, { wch: 20 }];
+
+            window.XLSX.utils.book_append_sheet(libroExcel, hojaResumen, 'Resumen');
+            window.XLSX.utils.book_append_sheet(libroExcel, hojaLibros, 'Libros');
+
+            const nombreArchivo = `comprobante-prestamo-${comprobanteActual.prestamoId || 'biblioteca'}.xlsx`;
+            window.XLSX.writeFile(libroExcel, nombreArchivo);
+        }
+
+        function mostrarDetalles(prestamoId) {
+            const base = window.location.pathname;
+            fetch(`${base}?handler=DetallesPrestamo&id=${prestamoId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success || !data.data) {
+                        return;
+                    }
+
+                    const p = data.data;
+                    const estadoTexto = p.estado === 0
+                        ? 'Anulado'
+                        : p.fechaDevolucionReal
+                            ? 'Devuelto'
+                            : 'Activo';
+
+                    const listaLibros = (p.libros || []);
+                    const listaCodigos = (p.codigos || []);
+                    const listaObservaciones = (p.observacionesPorLibro || []);
+                    const librosHtml = listaLibros.length
+                        ? `<ul>${listaLibros.map((libro, idx) => `<li>${escapeHtml(libro)} <small>(${escapeHtml(listaCodigos[idx] || 'S/C')})</small></li>`).join('')}</ul>`
+                        : `<span>${escapeHtml(p.tituloLibro || 'Sin ejemplares')}</span>`;
+
+                    const observacionesPorLibroHtml = listaLibros.length
+                        ? `<ul>${listaLibros.map((libro, idx) => `<li><strong>${escapeHtml(libro)}:</strong> ${escapeHtml(listaObservaciones[idx] || 'Sin observaciones')}</li>`).join('')}</ul>`
+                        : '';
+
+                    const html = `
+                        <div class="detalles-grid">
+                            <div class="detalle-item">
+                                <strong>Préstamo número</strong>
+                                <span>${p.prestamoId}</span>
+                            </div>
+                            <div class="detalle-item">
+                                <strong>Estado</strong>
+                                <span>${estadoTexto}</span>
+                            </div>
+                            <div class="detalle-item detalle-item-wide">
+                                <strong>Libros</strong>
+                                ${librosHtml}
+                            </div>
+                            <div class="detalle-item detalle-item-wide">
+                                <strong>Lector</strong>
+                                <span>${escapeHtml(p.nombreLector || 'Desconocido')}</span>
+                            </div>
+                            <div class="detalle-item">
+                                <strong>Salida</strong>
+                                <span>${formatearFecha(p.fechaPrestamo, true)}</span>
+                            </div>
+                            <div class="detalle-item">
+                                <strong>Esperada</strong>
+                                <span>${formatearFecha(p.fechaDevolucionEsperada, false)}</span>
+                            </div>
+                            <div class="detalle-item">
+                                <strong>Devolución real</strong>
+                                <span>${p.fechaDevolucionReal ? formatearFecha(p.fechaDevolucionReal, true) : 'Pendiente'}</span>
+                            </div>
+                            ${observacionesPorLibroHtml ? `
+                                <div class="detalle-obs">
+                                    <strong>Observaciones por ejemplar</strong>
+                                    ${observacionesPorLibroHtml}
+                                </div>` : ''}
+                            ${!observacionesPorLibroHtml && p.observacionesSalida ? `
+                                <div class="detalle-obs">
+                                    <strong>Observaciones de salida</strong>
+                                    <p>${escapeHtml(p.observacionesSalida)}</p>
+                                </div>` : ''}
+                            ${p.observacionesEntrada ? `
+                                <div class="detalle-obs">
+                                    <strong>Observaciones de entrada</strong>
+                                    <p>${escapeHtml(p.observacionesEntrada)}</p>
+                                </div>` : ''}
+                        </div>`;
+
+                    document.getElementById('modal-body-content').innerHTML = html;
+                    const preview = document.getElementById('comprobante-preview');
+                    if (preview) {
+                        preview.style.display = 'none';
+                        preview.innerHTML = '';
+                    }
+                    obtenerComprobante(prestamoId).catch(() => {
+                        comprobanteActual = null;
+                    });
+                    document.getElementById('modal-detalles').style.display = 'flex';
+                });
+        }
+
+        function cerrarModal() {
+            document.getElementById('modal-detalles').style.display = 'none';
+            comprobanteActual = null;
+            const preview = document.getElementById('comprobante-preview');
+            if (preview) {
+                preview.style.display = 'none';
+                preview.innerHTML = '';
+            }
+        }
+
+        window.confirmarAnulacion = function (prestamoId) {
+            const inputId = document.getElementById('prestamo-id-anular');
+            if (inputId) {
+                inputId.value = prestamoId;
+            }
+
+            const texto = document.getElementById('texto-anular-prestamo');
+            if (texto) {
+                texto.textContent = `¿Deseas anular el préstamo #${prestamoId}? Los ejemplares volverán a estar disponibles.`;
+            }
+
+            const modal = document.getElementById('modal-anular-prestamo');
+            if (modal) {
+                modal.style.display = 'flex';
+            }
+        }
+
+        function cerrarModalAnulacion() {
+            const modal = document.getElementById('modal-anular-prestamo');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        document.getElementById('buscador-prestamo')?.addEventListener('input', function (e) {
+            const termino = (e.target.value || '').toLowerCase().trim();
+            let numeroVisible = 1;
+            document.querySelectorAll('#tabla-prestamos-body tr').forEach(row => {
+                const texto = row.innerText.toLowerCase();
+                const visible = texto.includes(termino);
+                row.style.display = visible ? '' : 'none';
+                if (visible) {
+                    const numeroCelda = row.querySelector('.td-numero');
+                    if (numeroCelda) {
+                        numeroCelda.textContent = numeroVisible++;
+                    }
+                }
+            });
+        });
+
+        window.addEventListener('click', function (e) {
+            if (e.target === document.getElementById('modal-detalles')) {
+                cerrarModal();
+            }
+
+            if (e.target === document.getElementById('modal-anular-prestamo')) {
+                cerrarModalAnulacion();
+            }
+        });
+    </script>
+}

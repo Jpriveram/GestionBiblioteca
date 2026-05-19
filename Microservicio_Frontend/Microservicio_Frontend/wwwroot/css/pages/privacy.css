@@ -1,0 +1,56 @@
+.privacy-container{
+    padding:30px 20px;
+}
+
+/* HEADER */
+
+.page-header{
+    display:flex;
+    align-items:center;
+    margin-bottom:25px;
+}
+
+.titulo-logo{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.page-header h1{
+    font-size:28px;
+    font-weight:600;
+    color:#e5e7eb;
+}
+
+/* ICONO */
+
+.icono-header{
+    width:26px;
+    filter:brightness(0) invert(1);
+}
+
+/* CARD */
+
+.privacy-card{
+    background:#171717;
+    padding:30px;
+    border-radius:12px;
+    border:1px solid #282828;
+    box-shadow:0 6px 16px rgba(0,0,0,0.35);
+    line-height:1.7;
+    font-size:15px;
+    color:#e5e7eb;
+}
+
+/* PÁRRAFOS */
+
+.privacy-card p{
+    margin-bottom:16px;
+    color:#9ca3af;
+}
+
+/* TEXTO IMPORTANTE */
+
+.privacy-card strong{
+    color:#10a37f;
+}

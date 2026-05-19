@@ -1,0 +1,119 @@
+﻿@page
+@using Frontend.Helpers
+@using Microsoft.AspNetCore.Http
+@model Frontend.Pages.IndexModel
+@{
+    ViewData["Title"] = "Inicio";
+
+    var haySesion = !string.IsNullOrWhiteSpace(HttpContext.Session.GetString(SessionKeys.UsuarioId));
+    var nombreUsuario = HttpContext.Session.GetString(SessionKeys.NombreUsuario) ?? "Usuario";
+    var rolSesion = HttpContext.Session.GetString(SessionKeys.Rol) ?? "Bibliotecario";
+    var esAdmin = string.Equals(rolSesion, "Admin", StringComparison.OrdinalIgnoreCase);
+    var esBibliotecario = string.Equals(rolSesion, "Bibliotecario", StringComparison.OrdinalIgnoreCase);
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/index.css" />
+}
+
+<div class="home-container">
+    @if (!haySesion)
+    {
+        <section class="home-hero home-hero-public">
+            <div class="hero-copy">
+                <span class="hero-kicker">StarBook Library</span>
+                <h1>Gestión bibliotecaria con acceso controlado</h1>
+                <p class="hero-description">
+                    Plataforma interna para registrar préstamos, administrar ejemplares y mantener trazabilidad operativa
+                    sin exponer opciones del sistema antes de iniciar sesión.
+                </p>
+
+                <div class="hero-actions">
+                    <button type="button" class="btn-hero-login" onclick="abrirModalLogin()">Iniciar sesión</button>
+                </div>
+            </div>
+
+            <div class="hero-brand-card">
+                <img src="~/assets/images/whiiteLogoR.png" class="hero-logo" alt="StarBook Library" />
+                <div class="brand-pill">Acceso auditado</div>
+            </div>
+        </section>
+
+        <section class="info-grid">
+            <article class="info-card">
+                <h2>Acceso protegido</h2>
+                <p>
+                    Hasta que no exista una sesión válida, el sistema no muestra módulos operativos ni accesos internos.
+                </p>
+            </article>
+
+            <article class="info-card">
+                <h2>Trazabilidad</h2>
+                <p>
+                    El flujo prioriza control y consistencia para respaldar el seguimiento de operaciones bibliotecarias.
+                </p>
+            </article>
+
+            <article class="info-card">
+                <h2>Uso institucional</h2>
+                <p>
+                    Pensado para bibliotecarios y administradores que necesitan un panel simple, rápido y seguro.
+                </p>
+            </article>
+        </section>
+    }
+    else
+    {
+        <section class="home-hero home-hero-session">
+            <div class="hero-copy">
+                <span class="hero-kicker">Panel principal</span>
+                <h1>Hola, @nombreUsuario.ToDisplayName()</h1>
+                <p class="hero-description">
+                    Accede rápido a las operaciones más importantes del sistema y continúa tu trabajo desde el módulo que necesites.
+                </p>
+            </div>
+
+            <div class="hero-status-card">
+                <span class="status-label">Sesión activa</span>
+                <strong>@rolSesion</strong>
+                <small>Acceso listo para operar en biblioteca.</small>
+            </div>
+        </section>
+
+        <section class="quick-actions">
+            @if (esBibliotecario)
+            {
+                <a href="/Prestamo/Create" class="quick-card quick-card-primary">
+                    <img src="~/assets/icons/sync_alt_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="modulo-icon" alt="Registrar préstamo" />
+                    <h2>Registrar préstamo</h2>
+                    <p>Inicia una nueva circulación y asigna ejemplares al lector.</p>
+                    <span>Ir al módulo</span>
+                </a>
+
+                <a href="/Prestamo" class="quick-card">
+                    <img src="~/assets/icons/library_books_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="modulo-icon" alt="Préstamos realizados" />
+                    <h2>Préstamos realizados</h2>
+                    <p>Consulta operaciones registradas, estados y movimientos recientes.</p>
+                    <span>Ver historial</span>
+                </a>
+            }
+
+            <a href="/Ejemplar" class="quick-card">
+                <img src="~/assets/icons/inventory_2_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="modulo-icon" alt="Gestionar ejemplares" />
+                <h2>Gestionar ejemplares</h2>
+                <p>Revisa disponibilidad, conservación y control físico del inventario.</p>
+                <span>Abrir inventario</span>
+            </a>
+
+            @if (esAdmin)
+            {
+                <a href="/Usuarios" class="quick-card">
+                    <img src="~/assets/icons/groups_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="modulo-icon" alt="Usuarios" />
+                    <h2>Usuarios</h2>
+                    <p>Administra accesos, roles y altas del personal del sistema.</p>
+                    <span>Administrar usuarios</span>
+                </a>
+            }
+        </section>
+    }
+</div>

@@ -1,0 +1,946 @@
+﻿@page "/Ejemplar"
+@using System.Linq
+@model Frontend.Pages.EjemplarModel
+@{
+    ViewData["Title"] = "Gestión de Ejemplares";
+
+    bool ObtenerCheckDesdeModelState(string key)
+    {
+        if (!ViewData.ModelState.ContainsKey(key))
+        {
+            return false;
+        }
+
+        var attemptedValue = ViewData.ModelState[key]?.AttemptedValue;
+        if (string.IsNullOrWhiteSpace(attemptedValue))
+        {
+            return false;
+        }
+
+        var valores = attemptedValue.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        return valores.Any(v =>
+            v.Equals("true", StringComparison.OrdinalIgnoreCase)
+            || v.Equals("on", StringComparison.OrdinalIgnoreCase)
+            || v == "1");
+    }
+
+    string editCodigo = ViewData.ModelState.ContainsKey("CodigoInventario")
+        ? ViewData.ModelState["CodigoInventario"]?.AttemptedValue ?? ""
+        : "";
+
+    string editCodigoInventarioNumero = editCodigo;
+    if (!string.IsNullOrWhiteSpace(editCodigo))
+    {
+        var partesCodigo = editCodigo.Trim().ToUpperInvariant().Split('-', StringSplitOptions.RemoveEmptyEntries);
+        if (partesCodigo.Length == 3 && partesCodigo[0] == "INV")
+        {
+            editCodigoInventarioNumero = partesCodigo[1];
+        }
+    }
+
+    string editCodigoInventarioCompleto = string.Empty;
+    if (!string.IsNullOrWhiteSpace(editCodigoInventarioNumero))
+    {
+        var numeroLimpio = new string(editCodigoInventarioNumero.Where(char.IsDigit).ToArray());
+        if (!string.IsNullOrWhiteSpace(numeroLimpio))
+        {
+            editCodigoInventarioCompleto = $"INV-{numeroLimpio.PadLeft(3, '0')}-{DateTime.Now.Year}";
+        }
+    }
+
+    string editEstadoConservacion = ViewData.ModelState.ContainsKey("EstadoConservacion")
+        ? ViewData.ModelState["EstadoConservacion"]?.AttemptedValue ?? ""
+        : "";
+
+    string editUbicacion = ViewData.ModelState.ContainsKey("Ubicacion")
+        ? ViewData.ModelState["Ubicacion"]?.AttemptedValue ?? ""
+        : "";
+
+    string editMotivoBaja = ViewData.ModelState.ContainsKey("MotivoBaja")
+        ? ViewData.ModelState["MotivoBaja"]?.AttemptedValue ?? ""
+        : "";
+
+    string editLibroId = ViewData.ModelState.ContainsKey("LibroId")
+        ? ViewData.ModelState["LibroId"]?.AttemptedValue ?? ""
+        : "";
+
+    bool editDisponibleChecked = ObtenerCheckDesdeModelState("Disponible");
+
+    bool editDadoDeBajaChecked = ObtenerCheckDesdeModelState("DadoDeBaja");
+
+    bool editEstadoChecked = ObtenerCheckDesdeModelState("Estado");
+
+    string createCodigo = ViewData.ModelState.ContainsKey("EjemplarDto.CodigoInventario")
+        ? ViewData.ModelState["EjemplarDto.CodigoInventario"]?.AttemptedValue ?? ""
+        : "";
+
+    string createEstadoConservacion = ViewData.ModelState.ContainsKey("EjemplarDto.EstadoConservacion")
+        ? ViewData.ModelState["EjemplarDto.EstadoConservacion"]?.AttemptedValue ?? ""
+        : "";
+
+    string createUbicacion = ViewData.ModelState.ContainsKey("EjemplarDto.Ubicacion")
+        ? ViewData.ModelState["EjemplarDto.Ubicacion"]?.AttemptedValue ?? ""
+        : "";
+
+    string createMotivoBaja = ViewData.ModelState.ContainsKey("EjemplarDto.MotivoBaja")
+        ? ViewData.ModelState["EjemplarDto.MotivoBaja"]?.AttemptedValue ?? ""
+        : "";
+
+    string createLibroId = ViewData.ModelState.ContainsKey("EjemplarDto.LibroId")
+        ? ViewData.ModelState["EjemplarDto.LibroId"]?.AttemptedValue ?? ""
+        : "";
+
+    string createCodigoInventarioValor = ViewData.ModelState.ContainsKey("EjemplarDto.CodigoInventario")
+        ? ViewData.ModelState["EjemplarDto.CodigoInventario"]?.AttemptedValue ?? ""
+        : "";
+
+    string createCodigoInventarioNumero = createCodigoInventarioValor;
+    if (!string.IsNullOrWhiteSpace(createCodigoInventarioValor))
+    {
+        var partesCodigo = createCodigoInventarioValor.Trim().ToUpperInvariant().Split('-', StringSplitOptions.RemoveEmptyEntries);
+        if (partesCodigo.Length == 3 && partesCodigo[0] == "INV")
+        {
+            createCodigoInventarioNumero = partesCodigo[1];
+        }
+    }
+
+    string createCodigoInventarioCompleto = string.Empty;
+    if (!string.IsNullOrWhiteSpace(createCodigoInventarioNumero))
+    {
+        var numeroLimpio = new string(createCodigoInventarioNumero.Where(char.IsDigit).ToArray());
+        if (!string.IsNullOrWhiteSpace(numeroLimpio))
+        {
+            createCodigoInventarioCompleto = $"INV-{numeroLimpio.PadLeft(3, '0')}-{DateTime.Now.Year}";
+        }
+    }
+
+    bool createDisponibleChecked = !ViewData.ModelState.ContainsKey("EjemplarDto.Disponible")
+        || ObtenerCheckDesdeModelState("EjemplarDto.Disponible");
+
+    bool createDadoDeBajaChecked = ObtenerCheckDesdeModelState("EjemplarDto.DadoDeBaja");
+
+    bool createEstadoChecked = !ViewData.ModelState.ContainsKey("EjemplarDto.Estado")
+        || ObtenerCheckDesdeModelState("EjemplarDto.Estado");
+
+    string createLibroTexto = "";
+    if (!string.IsNullOrWhiteSpace(createLibroId))
+    {
+        var libroMatch = Model.Libros.FirstOrDefault(l => l.LibroId.ToString() == createLibroId);
+        if (libroMatch != null)
+        {
+            var editorialTxt = string.IsNullOrWhiteSpace(libroMatch.Editorial) ? "Sin editorial" : libroMatch.Editorial;
+            createLibroTexto = $"{libroMatch.Titulo} ({editorialTxt})";
+        }
+    }
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/ejemplar.css" />
+}
+
+<div class="ejemplar-container">
+
+    <div class="page-header">
+        <div class="titulo-logo">
+            <h1>Gestión de Ejemplares</h1>
+        </div>
+
+        <button type="button" class="btn-nuevo" onclick="abrirModalCrear()">
+            <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-btn">
+            Nuevo Ejemplar
+        </button>
+    </div>
+
+    <div class="filtros-barra">
+        <div class="filtro-item filtro-buscar">
+            <input id="buscador-ejemplar"
+                   type="text"
+                   class="input-filtro"
+                   placeholder="Buscar por código, libro, ubicación o estado..."
+                   autocomplete="off" />
+        </div>
+    </div>
+
+@if (!Model.Ejemplares.Any())
+{
+    <div class="alert alert-info">
+        No hay ejemplares registrados.
+    </div>
+}
+else
+{
+    var total = Model.Ejemplares.Count;
+    var disponibles = Model.Ejemplares.Count(e => e.Disponible && !e.DadoDeBaja);
+    var noDisponibles = Model.Ejemplares.Count(e => !e.Disponible && !e.DadoDeBaja);
+    var dadosDeBaja = Model.Ejemplares.Count(e => e.DadoDeBaja);
+
+    <div class="tabla-container">
+        <table id="tabla-ejemplar" class="tabla-ejemplar">
+
+            <thead>
+                <tr>
+                    <th>Libro</th>
+                    <th>Código Ejemplar</th>
+                    <th>Estado de Conservación</th>
+                    <th>Disponible</th>
+                    <th>Dado de Baja</th>
+                    <th>Ubicación</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody>
+            @foreach (var ejemplar in Model.Ejemplares)
+            {
+                <tr class="@(ejemplar.DadoDeBaja ? "fila-baja" : "")">
+
+                    <td>
+                        @if (Model.LibrosTitulos.TryGetValue(ejemplar.LibroId, out var tituloLibro))
+                        {
+                            <span>@tituloLibro</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Libro #@ejemplar.LibroId</span>
+                        }
+                    </td>
+
+                    <td><strong>@ejemplar.CodigoInventario</strong></td>
+                    <td>@(ejemplar.EstadoConservacion ?? "N/A")</td>
+
+                    <td>
+                        @if (ejemplar.Disponible)
+                        {
+                            <span class="estado activo">Disponible</span>
+                        }
+                        else
+                        {
+                            <span class="estado inactivo">No disponible</span>
+                        }
+                    </td>
+
+                    <td>
+                        @if (ejemplar.DadoDeBaja)
+                        {
+                            <span class="estado baja">Baja</span>
+                            @if (!string.IsNullOrEmpty(ejemplar.MotivoBaja))
+                            {
+                                <br />
+                                <small class="text-muted">@ejemplar.MotivoBaja</small>
+                            }
+                        }
+                        else
+                        {
+                            <span class="estado activo">No</span>
+                        }
+                    </td>
+
+                    <td>@(ejemplar.Ubicacion ?? "N/A")</td>
+
+                    <td>
+                        @if (ejemplar.Estado)
+                        {
+                            <span class="estado activo">Activo</span>
+                        }
+                        else
+                        {
+                            <span class="estado inactivo">Inactivo</span>
+                        }
+                    </td>
+
+<td class="acciones">
+    <button type="button"
+            class="btn-editar"
+            onclick="abrirModalEditar(
+                '@ejemplar.RouteToken',
+                '@ejemplar.LibroId',
+                '@Html.Raw((ejemplar.CodigoInventario ?? "").Replace("'", "\\'"))',
+                '@Html.Raw((ejemplar.EstadoConservacion ?? "").Replace("'", "\\'"))',
+                '@ejemplar.Disponible',
+                '@ejemplar.DadoDeBaja',
+                '@Html.Raw((ejemplar.MotivoBaja ?? "").Replace("'", "\\'"))',
+                '@Html.Raw((ejemplar.Ubicacion ?? "").Replace("'", "\\'"))',
+                '@ejemplar.Estado'
+            )">
+
+        <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+             class="icono-btn">
+        Editar
+    </button>
+
+@if (ejemplar.Estado)
+{
+    <button type="button"
+            class="btn-eliminar"
+            onclick="abrirModalEliminar('@ejemplar.RouteToken')">
+
+        <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+             class="icono-btn">
+        Eliminar
+    </button>
+}
+else
+{
+    <span class="estado eliminado-label">Eliminado</span>
+}
+</td>
+
+                </tr>
+            }
+
+                <tr id="fila-sin-resultados" style="display:none;">
+                    <td colspan="8" style="text-align:center; padding:20px; color:#9ca3af;">
+                        No hay ejemplares que coincidan con la búsqueda.
+                    </td>
+                </tr>
+            </tbody>
+
+        </table>
+    </div>
+
+    <div class="estadisticas">
+        <div class="stat stat-info">Total ejemplares: @total</div>
+        <div class="stat stat-success">Disponibles: @disponibles</div>
+        <div class="stat stat-warning">No disponibles: @noDisponibles</div>
+        <div class="stat stat-danger">Dados de baja: @dadosDeBaja</div>
+    </div>
+}
+
+</div>
+
+<!-- MODAL ELIMINAR -->
+<div id="modalEliminar" class="modal">
+    <div class="modal-box">
+
+        <div class="modal-icon">
+            <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                 class="icono-modal">
+        </div>
+
+        <h2>¿Estás seguro de que quieres eliminar este ejemplar?</h2>
+        <p>Esta acción no se puede deshacer.</p>
+
+        <form method="post" asp-page-handler="Eliminar">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="ejemplarTokenInput" name="token" />
+
+            <div class="modal-buttons">
+                <button type="submit" class="btn-danger">Sí, eliminar</button>
+                <button type="button" class="btn-secondary" onclick="cerrarModalEliminar()">Cancelar</button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<!-- MODAL EDITAR -->
+<div id="modalEditar" class="modal">
+    <div class="modal-box">
+
+        <div class="modal-icon editar">
+            <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                 class="icono-modal">
+        </div>
+
+        <h2>Editar ejemplar</h2>
+        <p>Modifica la información del ejemplar.</p>
+
+        <form method="post" asp-page-handler="Editar">
+            @Html.AntiForgeryToken()
+
+            <input type="hidden" id="editToken" name="token" value="@(ViewData.ModelState.ContainsKey("token") ? ViewData.ModelState["token"]?.AttemptedValue : "")" />
+
+            @if (ViewData.ModelState.ContainsKey(string.Empty))
+            {
+                <div class="text-error-summary">
+                    @foreach (var error in ViewData.ModelState[string.Empty]!.Errors)
+                    {
+                        <div>• @error.ErrorMessage</div>
+                    }
+                </div>
+            }
+
+            <select id="editLibroId" name="LibroId" class="input-form" required>
+                <option value="">Seleccione un libro...</option>
+                @foreach (var libro in Model.LibrosTitulos)
+                {
+                    <option value="@libro.Key" selected="@(editLibroId == libro.Key.ToString() ? "selected" : null)">
+                        @libro.Value
+                    </option>
+                }
+            </select>
+            @if (ViewData.ModelState.ContainsKey("LibroId"))
+            {
+                <span class="text-error">
+                    @ViewData.ModelState["LibroId"]?.Errors.FirstOrDefault()?.ErrorMessage
+                </span>
+            }
+                 <div class="codigo-inventario-wrapper">
+                  <span class="codigo-inventario-prefijo">INV-</span>
+                  <input type="text"
+                      id="editCodigoInventarioNumero"
+                      class="input-form codigo-inventario-numero"
+                      inputmode="numeric"
+                      autocomplete="off"
+                      placeholder="001"
+                      required
+                      value="@editCodigoInventarioNumero" />
+                  <span class="codigo-inventario-sufijo">-@DateTime.Now.Year</span>
+                 </div>
+                 <input type="hidden"
+                     id="editCodigoInventario"
+                     name="CodigoInventario"
+                     value="@editCodigoInventarioCompleto" />
+            @if (ViewData.ModelState.ContainsKey("CodigoInventario"))
+            {
+                <span class="text-error">
+                    @ViewData.ModelState["CodigoInventario"]?.Errors.FirstOrDefault()?.ErrorMessage
+                </span>
+            }
+
+            <select id="editEstadoConservacion" name="EstadoConservacion" class="input-form">
+                <option value="">Seleccione...</option>
+                <option value="Excelente" selected="@(editEstadoConservacion == "Excelente" ? "selected" : null)">Excelente</option>
+                <option value="Muy Bueno" selected="@(editEstadoConservacion == "Muy Bueno" ? "selected" : null)">Muy Bueno</option>
+                <option value="Bueno" selected="@(editEstadoConservacion == "Bueno" ? "selected" : null)">Bueno</option>
+                <option value="Regular" selected="@(editEstadoConservacion == "Regular" ? "selected" : null)">Regular</option>
+                <option value="Malo" selected="@(editEstadoConservacion == "Malo" ? "selected" : null)">Malo</option>
+            </select>
+
+            <input type="text"
+                   id="editUbicacion"
+                   name="Ubicacion"
+                   class="input-form"
+                   placeholder="Ubicación"
+                   value="@editUbicacion" />
+
+            <div class="form-check modal-check">
+                <input type="checkbox"
+                       id="editDisponible"
+                       name="Disponible"
+                       value="true"
+                       class="check-input"
+                       checked="@(editDisponibleChecked ? "checked" : null)" />
+
+                <input type="hidden" name="Disponible" value="false" />
+
+                <label for="editDisponible">Disponible para préstamo</label>
+            </div>
+
+            <div class="form-check modal-check">
+                <input type="checkbox"
+                       id="editDadoDeBaja"
+                       name="DadoDeBaja"
+                       value="true"
+                       class="check-input"
+                       onchange="toggleMotivoBajaModal()"
+                       checked="@(editDadoDeBajaChecked ? "checked" : null)" />
+
+                <input type="hidden" name="DadoDeBaja" value="false" />
+
+                <label for="editDadoDeBaja">Dado de baja</label>
+            </div>
+
+            <div id="editMotivoBajaDiv" style="display:@(editDadoDeBajaChecked ? "block" : "none")">
+                <textarea id="editMotivoBaja"
+                          name="MotivoBaja"
+                          class="input-form"
+                          rows="3"
+                          placeholder="Motivo de baja">@editMotivoBaja</textarea>
+            </div>
+
+            <div class="form-check modal-check">
+                <input type="checkbox"
+                       id="editEstado"
+                       name="Estado"
+                       value="true"
+                       class="check-input"
+                       checked="@(editEstadoChecked ? "checked" : null)" />
+                <label for="editEstado">Activo en el sistema</label>
+            </div>
+            <input type="hidden" name="Estado" value="false" />
+
+            <div class="modal-buttons">
+                <button type="submit" class="btn-warning">Guardar cambios</button>
+                <button type="button" class="btn-secondary" onclick="cerrarModalEditar()">Cancelar</button>
+            </div>
+        </form>
+
+    </div>  
+</div>
+
+<!-- MODAL CREAR -->
+<div id="modalCrear" class="modal">
+    <div class="modal-box">
+
+        <div class="modal-icon crear">
+            <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                 class="icono-modal">
+        </div>
+
+        <h2>Nuevo ejemplar</h2>
+        <p>Ingresa la información del ejemplar.</p>
+
+        <form method="post" asp-page-handler="Crear">
+            @Html.AntiForgeryToken()
+
+            @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+            {
+                <div class="text-error-summary">@Model.ErrorMessage</div>
+            }
+
+            @if (ViewData.ModelState.ContainsKey(string.Empty))
+{
+    <div class="text-error-summary">
+        @foreach (var error in ViewData.ModelState[string.Empty]!.Errors)
+        {
+            <div>• @error.ErrorMessage</div>
+        }
+    </div>
+}
+
+            <input type="hidden" id="createLibroIdHidden" name="EjemplarDto.LibroId" value="@createLibroId" />
+
+            <div class="libro-search-wrapper">
+                <input type="text"
+                       id="createBuscarLibro"
+                       class="input-form"
+                       placeholder="Escribe para buscar un libro..."
+                       autocomplete="off"
+                       value="@createLibroTexto" />
+
+                <ul id="createListaLibros" class="libro-dropdown" style="display:none;">
+                    @foreach (var libro in Model.Libros)
+                    {
+                        var editorialTexto = string.IsNullOrWhiteSpace(libro.Editorial) ? "Sin editorial" : libro.Editorial;
+                        <li class="libro-opcion"
+                            data-id="@libro.LibroId"
+                            data-texto="@($"{libro.Titulo} ({editorialTexto})")">
+                            @libro.Titulo <span class="libro-editorial">(@editorialTexto)</span>
+                        </li>
+                    }
+                </ul>
+            </div>
+
+            <small class="text-muted" id="createLibroSeleccionadoTexto"></small>
+
+                 <div class="codigo-inventario-wrapper">
+                  <span class="codigo-inventario-prefijo">INV-</span>
+                  <input type="text"
+                      id="createCodigoInventarioNumero"
+                      class="input-form codigo-inventario-numero"
+                      inputmode="numeric"
+                      autocomplete="off"
+                      placeholder="001"
+                      value="@createCodigoInventarioNumero" />
+                  <span class="codigo-inventario-sufijo">-@DateTime.Now.Year</span>
+                 </div>
+                 <input type="hidden"
+                     name="EjemplarDto.CodigoInventario"
+                     id="createCodigoInventario"
+                     value="@createCodigoInventarioCompleto" />
+            @if (ViewData.ModelState.ContainsKey("EjemplarDto.CodigoInventario"))
+            {
+                <span class="text-error">
+                    @ViewData.ModelState["EjemplarDto.CodigoInventario"]?.Errors.FirstOrDefault()?.ErrorMessage
+                </span>
+            }
+
+            <select name="EjemplarDto.EstadoConservacion"
+                    id="createEstadoConservacion"
+                    class="input-form">
+                <option value="">Seleccione...</option>
+                <option value="Excelente" selected="@(createEstadoConservacion == "Excelente" ? "selected" : null)">Excelente</option>
+                <option value="Muy Bueno" selected="@(createEstadoConservacion == "Muy Bueno" ? "selected" : null)">Muy Bueno</option>
+                <option value="Bueno" selected="@(createEstadoConservacion == "Bueno" ? "selected" : null)">Bueno</option>
+                <option value="Regular" selected="@(createEstadoConservacion == "Regular" ? "selected" : null)">Regular</option>
+                <option value="Malo" selected="@(createEstadoConservacion == "Malo" ? "selected" : null)">Malo</option>
+            </select>
+
+            <div class="custom-select-wrapper">
+                <input type="hidden" name="EjemplarDto.Ubicacion" id="createUbicacionValue" value="@createUbicacion" />
+
+                <div class="custom-select" id="custom-select-ubicacion-create">
+                    <div class="select-trigger">
+                        <span id="createUbicacionText">@(string.IsNullOrWhiteSpace(createUbicacion) ? "-- Seleccione una ubicación --" : createUbicacion)</span>
+                        <svg class="select-arrow" viewBox="0 0 24 24">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
+
+                    <div class="select-dropdown">
+                        <input type="text"
+                               class="select-search"
+                               id="createUbicacionSearch"
+                               placeholder="Buscar ubicación..." />
+
+                        <div class="select-options">
+                            <div class="option" data-value="Estantería A1">A1</div>
+                            <div class="option" data-value="Estantería A2">A2</div>
+                            <div class="option" data-value="Estantería A3">A3</div>
+                            <div class="option" data-value="Estantería B1">B1</div>
+                            <div class="option" data-value="Estantería B2">B2</div>
+                            <div class="option" data-value="Estantería B3">B3</div>
+                            <div class="option" data-value="Estantería C1">C1</div>
+                            <div class="option" data-value="Estantería C2">C2</div>
+                            <div class="option" data-value="Estantería C3">C3</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-check modal-check">
+                <input type="checkbox"
+                       id="createDisponible"
+                       name="EjemplarDto.Disponible"
+                       value="true"
+                       class="check-input"
+                       checked="@(createDisponibleChecked ? "checked" : null)" />
+                <label for="createDisponible">Disponible para préstamo</label>
+            </div>
+            <input type="hidden" name="EjemplarDto.Disponible" value="false" />
+
+            <div class="form-check modal-check">
+                <input type="checkbox"
+                       id="createDadoBajaCheck"
+                       name="EjemplarDto.DadoDeBaja"
+                       value="true"
+                       class="check-input"
+                       onchange="toggleMotivoBajaCrear()"
+                       checked="@(createDadoDeBajaChecked ? "checked" : null)" />
+                <label for="createDadoBajaCheck">Dado de baja</label>
+            </div>
+            <input type="hidden" name="EjemplarDto.DadoDeBaja" value="false" />
+
+            <div id="createMotivoBajaDiv" style="display:@(createDadoDeBajaChecked ? "block" : "none")">
+                <textarea name="EjemplarDto.MotivoBaja"
+                          id="createMotivoBaja"
+                          class="input-form"
+                          rows="3"
+                          placeholder="Motivo de baja">@createMotivoBaja</textarea>
+            </div>
+
+            <div class="form-check modal-check">
+                <input type="checkbox"
+                       id="createEstado"
+                       name="EjemplarDto.Estado"
+                       value="true"
+                       class="check-input"
+                       checked="@(createEstadoChecked ? "checked" : null)" />
+                <label for="createEstado">Activo en el sistema</label>
+            </div>
+            <input type="hidden" name="EjemplarDto.Estado" value="false" />
+
+            <div class="modal-buttons">
+                <button type="submit" class="btn-success">Crear ejemplar</button>
+                <button type="button" class="btn-secondary" onclick="cerrarModalCrear()">Cancelar</button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function abrirModalEliminar(token) {
+    document.getElementById("ejemplarTokenInput").value = token;
+    document.getElementById("modalEliminar").style.display = "flex";
+}
+
+function cerrarModalEliminar() {
+    document.getElementById("modalEliminar").style.display = "none";
+}
+
+function abrirModalEditar(token, libroId, codigo, estadoConservacion, disponible, dadoDeBaja, motivoBaja, ubicacion, estado) {
+    const editToken = document.getElementById("editToken");
+    const editLibroId = document.getElementById("editLibroId");
+    const editCodigoInventario = document.getElementById("editCodigoInventario");
+    const editCodigoInventarioNumero = document.getElementById("editCodigoInventarioNumero");
+    const editEstadoConservacion = document.getElementById("editEstadoConservacion");
+    const editUbicacion = document.getElementById("editUbicacion");
+    const editMotivoBaja = document.getElementById("editMotivoBaja");
+    const editDisponible = document.getElementById("editDisponible");
+    const editDadoDeBaja = document.getElementById("editDadoDeBaja");
+    const editEstado = document.getElementById("editEstado");
+    const modalEditar = document.getElementById("modalEditar");
+
+    if (!editToken || !editLibroId || !editCodigoInventario || !editCodigoInventarioNumero || !editEstadoConservacion ||
+        !editUbicacion || !editMotivoBaja || !editDisponible || !editDadoDeBaja || !editEstado || !modalEditar) {
+        return;
+    }
+
+    editToken.value = token || "";
+    editLibroId.value = libroId || "";
+    const codigoOriginal = (codigo || "").toString();
+    const partesCodigo = codigoOriginal.trim().toUpperCase().split("-");
+    let numeroCodigo = "";
+
+    if (partesCodigo.length === 3 && partesCodigo[0] === "INV") {
+        numeroCodigo = (partesCodigo[1] || "").replace(/\D/g, "");
+    } else {
+        numeroCodigo = codigoOriginal.replace(/\D/g, "");
+    }
+
+    editCodigoInventarioNumero.value = numeroCodigo;
+    sincronizarCodigoInventarioEditar();
+    editEstadoConservacion.value = estadoConservacion || "";
+    editUbicacion.value = ubicacion || "";
+    editMotivoBaja.value = motivoBaja || "";
+
+    editDisponible.checked = (disponible === true || disponible === "True" || disponible === "true");
+    editDadoDeBaja.checked = (dadoDeBaja === true || dadoDeBaja === "True" || dadoDeBaja === "true");
+    editEstado.checked = (estado === true || estado === "True" || estado === "true");
+
+    toggleMotivoBajaModal();
+    modalEditar.style.display = "flex";
+}
+
+function cerrarModalEditar() {
+    document.getElementById("modalEditar").style.display = "none";
+}
+
+function toggleMotivoBajaModal() {
+    const checkbox = document.getElementById("editDadoDeBaja");
+    const div = document.getElementById("editMotivoBajaDiv");
+    const motivo = document.getElementById("editMotivoBaja");
+
+    if (!checkbox || !div) return;
+
+    div.style.display = checkbox.checked ? "block" : "none";
+
+    if (!checkbox.checked && motivo) {
+        motivo.value = "";
+    }
+}
+
+function abrirModalCrear() {
+    document.getElementById("modalCrear").style.display = "flex";
+}
+
+function cerrarModalCrear() {
+    document.getElementById("modalCrear").style.display = "none";
+}
+
+function toggleMotivoBajaCrear() {
+    const checkbox = document.getElementById("createDadoBajaCheck");
+    const div = document.getElementById("createMotivoBajaDiv");
+    const motivo = document.getElementById("createMotivoBaja");
+
+    if (!checkbox || !div) return;
+
+    div.style.display = checkbox.checked ? "block" : "none";
+
+    if (!checkbox.checked && motivo) {
+        motivo.value = "";
+    }
+}
+
+function sincronizarCodigoInventarioCrear() {
+    const numeroInput = document.getElementById("createCodigoInventarioNumero");
+    const codigoHidden = document.getElementById("createCodigoInventario");
+
+    if (!numeroInput || !codigoHidden) return;
+
+    const numeroLimpio = (numeroInput.value || "").replace(/\D/g, "");
+    numeroInput.value = numeroLimpio;
+
+    if (!numeroLimpio) {
+        codigoHidden.value = "";
+        return;
+    }
+
+    codigoHidden.value = `INV-${numeroLimpio.padStart(3, "0")}-${new Date().getFullYear()}`;
+}
+
+function sincronizarCodigoInventarioEditar() {
+    const numeroInput = document.getElementById("editCodigoInventarioNumero");
+    const codigoHidden = document.getElementById("editCodigoInventario");
+
+    if (!numeroInput || !codigoHidden) return;
+
+    const numeroLimpio = (numeroInput.value || "").replace(/\D/g, "");
+    numeroInput.value = numeroLimpio;
+
+    if (!numeroLimpio) {
+        codigoHidden.value = "";
+        return;
+    }
+
+    codigoHidden.value = `INV-${numeroLimpio.padStart(3, "0")}-${new Date().getFullYear()}`;
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const inputBuscador = document.getElementById("buscador-ejemplar");
+    const tabla = document.getElementById("tabla-ejemplar");
+    const filaSinResultados = document.getElementById("fila-sin-resultados");
+
+    if (inputBuscador && tabla) {
+        const filas = tabla.getElementsByTagName("tr");
+
+        inputBuscador.addEventListener("keyup", function () {
+            const texto = inputBuscador.value.toLowerCase();
+            let hayResultados = false;
+
+            for (let i = 1; i < filas.length; i++) {
+                const fila = filas[i];
+                if (fila.id === "fila-sin-resultados") continue;
+
+                const contenido = fila.textContent.toLowerCase();
+
+                if (contenido.includes(texto)) {
+                    fila.style.display = "";
+                    hayResultados = true;
+                } else {
+                    fila.style.display = "none";
+                }
+            }
+
+            if (filaSinResultados) {
+                filaSinResultados.style.display = hayResultados ? "none" : "";
+            }
+        });
+    }
+
+    const customCreate = document.getElementById("custom-select-ubicacion-create");
+    if (customCreate) {
+        const trigger = customCreate.querySelector(".select-trigger");
+        const options = customCreate.querySelectorAll(".option");
+        const search = document.getElementById("createUbicacionSearch");
+        const hidden = document.getElementById("createUbicacionValue");
+        const text = document.getElementById("createUbicacionText");
+
+        trigger.addEventListener("click", function () {
+            customCreate.classList.toggle("active");
+            if (customCreate.classList.contains("active")) {
+                search.focus();
+            }
+        });
+
+        options.forEach(function (option) {
+            option.addEventListener("click", function () {
+                const value = option.getAttribute("data-value");
+                hidden.value = value;
+                text.textContent = value;
+                customCreate.classList.remove("active");
+                search.value = "";
+                options.forEach(function (o) { o.style.display = ""; });
+            });
+        });
+
+        search.addEventListener("input", function () {
+            const filtro = search.value.toLowerCase().trim();
+
+            options.forEach(function (option) {
+                const texto = option.textContent.toLowerCase();
+                option.style.display = texto.includes(filtro) ? "" : "none";
+            });
+        });
+
+        document.addEventListener("click", function (e) {
+            if (!customCreate.contains(e.target)) {
+                customCreate.classList.remove("active");
+            }
+        });
+    }
+
+    const numeroCodigoInventario = document.getElementById("createCodigoInventarioNumero");
+    if (numeroCodigoInventario) {
+        numeroCodigoInventario.addEventListener("input", sincronizarCodigoInventarioCrear);
+        sincronizarCodigoInventarioCrear();
+    }
+
+    const numeroCodigoInventarioEditar = document.getElementById("editCodigoInventarioNumero");
+    if (numeroCodigoInventarioEditar) {
+        numeroCodigoInventarioEditar.addEventListener("input", sincronizarCodigoInventarioEditar);
+        sincronizarCodigoInventarioEditar();
+    }
+
+    (function () {
+        var input = document.getElementById("createBuscarLibro");
+        var lista = document.getElementById("createListaLibros");
+        var hidden = document.getElementById("createLibroIdHidden");
+        var textoSel = document.getElementById("createLibroSeleccionadoTexto");
+        var opciones = lista ? Array.from(lista.querySelectorAll(".libro-opcion")) : [];
+
+        if (!input || !lista) return;
+
+        function normalizar(s) {
+            return (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+        }
+
+        function mostrar() {
+            var termino = normalizar(input.value);
+            var visibles = 0;
+
+            opciones.forEach(function (li) {
+                var coincide = termino === "" || normalizar(li.dataset.texto).includes(termino);
+                li.style.display = coincide ? "" : "none";
+                if (coincide) visibles++;
+            });
+
+            lista.style.display = visibles > 0 ? "" : "none";
+        }
+
+        function seleccionar(li) {
+            hidden.value = li.dataset.id;
+            input.value = li.dataset.texto;
+            textoSel.textContent = "";
+            lista.style.display = "none";
+        }
+
+        input.addEventListener("input", mostrar);
+
+        input.addEventListener("focus", function () {
+            if (input.value.trim() === "") mostrar();
+        });
+
+        opciones.forEach(function (li) {
+            li.addEventListener("mousedown", function (e) {
+                e.preventDefault();
+                seleccionar(li);
+            });
+        });
+
+        document.addEventListener("click", function (e) {
+            if (!input.contains(e.target) && !lista.contains(e.target)) {
+                lista.style.display = "none";
+            }
+        });
+    })();
+});
+
+window.onclick = function (e) {
+    var modalEliminar = document.getElementById("modalEliminar");
+    var modalEditar = document.getElementById("modalEditar");
+    var modalCrear = document.getElementById("modalCrear");
+
+    if (e.target === modalEliminar) cerrarModalEliminar();
+    if (e.target === modalEditar) cerrarModalEditar();
+    if (e.target === modalCrear) cerrarModalCrear();
+};
+</script>
+
+@if (!ViewData.ModelState.IsValid || !string.IsNullOrWhiteSpace(Model.ErrorMessage))
+{
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var errorCrear =
+                @Html.Raw((ViewData.ModelState.Keys.Any(k => k.StartsWith("EjemplarDto.")) || !string.IsNullOrWhiteSpace(Model.ErrorMessage)).ToString().ToLower());
+
+            var errorEditar =
+                @Html.Raw((ViewData.ModelState.ContainsKey("CodigoInventario") || ViewData.ModelState.ContainsKey(string.Empty)).ToString().ToLower());
+
+            if (errorCrear) {
+                abrirModalCrear();
+            }
+                
+            if (errorEditar) {
+                document.getElementById("modalEditar").style.display = "flex";
+                toggleMotivoBajaModal();
+            }
+        });
+    </script>
+}
+}

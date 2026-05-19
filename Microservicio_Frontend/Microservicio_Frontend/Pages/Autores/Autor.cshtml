@@ -1,0 +1,504 @@
+﻿@page "/Autor"
+@using System.Linq
+@model Frontend.Pages.AutorModel
+@{
+    ViewData["Title"] = "Gestión de Autores";
+
+    string editToken = ViewData.ModelState.ContainsKey("token")
+        ? ViewData.ModelState["token"]?.AttemptedValue ?? ""
+        : "";
+
+    string editNombres = ViewData.ModelState.ContainsKey("Nombres")
+        ? ViewData.ModelState["Nombres"]?.AttemptedValue ?? ""
+        : "";
+
+    string editApellidos = ViewData.ModelState.ContainsKey("Apellidos")
+        ? ViewData.ModelState["Apellidos"]?.AttemptedValue ?? ""
+        : "";
+
+    string editNacionalidad = ViewData.ModelState.ContainsKey("Nacionalidad")
+        ? ViewData.ModelState["Nacionalidad"]?.AttemptedValue ?? ""
+        : "";
+
+    string editFechaNacimiento = ViewData.ModelState.ContainsKey("FechaNacimiento")
+        ? ViewData.ModelState["FechaNacimiento"]?.AttemptedValue ?? ""
+        : "";
+
+    bool editEstadoSeleccionado = !ViewData.ModelState.ContainsKey("Estado")
+        || ViewData.ModelState["Estado"]?.AttemptedValue == "true"
+        || ViewData.ModelState["Estado"]?.AttemptedValue == "True"
+        || ViewData.ModelState["Estado"]?.AttemptedValue == "on";
+
+    string createNombres = ViewData.ModelState.ContainsKey("AutorDto.Nombres")
+        ? ViewData.ModelState["AutorDto.Nombres"]?.AttemptedValue ?? ""
+        : "";
+
+    string createApellidos = ViewData.ModelState.ContainsKey("AutorDto.Apellidos")
+        ? ViewData.ModelState["AutorDto.Apellidos"]?.AttemptedValue ?? ""
+        : "";
+
+    string createNacionalidad = ViewData.ModelState.ContainsKey("AutorDto.Nacionalidad")
+        ? ViewData.ModelState["AutorDto.Nacionalidad"]?.AttemptedValue ?? ""
+        : "";
+
+    string createFechaNacimiento = ViewData.ModelState.ContainsKey("AutorDto.FechaNacimiento")
+        ? ViewData.ModelState["AutorDto.FechaNacimiento"]?.AttemptedValue ?? ""
+        : "";
+
+    bool createEstadoSeleccionado = !ViewData.ModelState.ContainsKey("AutorDto.Estado")
+        || ViewData.ModelState["AutorDto.Estado"]?.AttemptedValue == "true"
+        || ViewData.ModelState["AutorDto.Estado"]?.AttemptedValue == "True"
+        || ViewData.ModelState["AutorDto.Estado"]?.AttemptedValue == "on";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/Autores.css" />
+}
+
+<div class="autores-container">
+
+    <div class="page-header">
+        <div class="titulo-logo">
+            <h1>Gestión de Autores</h1>
+        </div>
+
+        <button type="button" class="btn-nuevo" onclick="abrirModalCrear()">
+            <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-btn">
+            Nuevo Autor
+        </button>
+    </div>
+
+    <div class="filtros-barra">
+        <div class="filtro-item filtro-buscar">
+            <input id="buscador-autor"
+                   type="text"
+                   class="input-filtro"
+                   placeholder="Buscar..."
+                   autocomplete="off" />
+        </div>
+    </div>
+
+    <div class="tabla-container">
+
+        <table id="tabla-autores" class="tabla-autores">
+            <thead>
+                <tr>
+                    <th>Nombres</th>
+                    <th>Apellidos</th>
+                    <th>Nacionalidad</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var autor in Model.Autores)
+                {
+                    var token = autor.RouteToken;
+                    var nombres = autor.Nombres ?? "";
+                    var apellidos = autor.Apellidos ?? "";
+                    var nombresDisplay = nombres.ToDisplayName();
+                    var apellidosDisplay = apellidos.ToDisplayName();
+                    var nacionalidad = autor.Nacionalidad ?? "";
+                    var fecha = autor.FechaNacimiento?.ToString("yyyy-MM-dd") ?? "";
+                    var estado = autor.Estado;
+
+                    <tr>
+                        <td>@nombresDisplay</td>
+                        <td>@apellidosDisplay</td>
+                        <td>@nacionalidad</td>
+                        <td>@fecha</td>
+
+                        <td>
+                            @if (estado)
+                            {
+                                <span class="estado activo">Activo</span>
+                            }
+                            else
+                            {
+                                <span class="estado inactivo">Inactivo</span>
+                            }
+                        </td>
+
+<td class="acciones">
+    <button type="button"
+            class="btn-editar"
+            onclick="abrirModalEditar(
+                    '@token',
+                    '@Html.Raw(nombres.Replace("'", "\\'"))',
+                    '@Html.Raw(apellidos.Replace("'", "\\'"))',
+                    '@Html.Raw(nacionalidad.Replace("'", "\\'"))',
+                    '@fecha',
+                    '@(estado.ToString().ToLower())'
+                )">
+        <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+             class="icono-btn">
+        Editar
+    </button>
+
+    @if (estado)
+    {
+        <button type="button"
+                class="btn-eliminar"
+                onclick="abrirModal('@token')">
+            <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                 class="icono-btn">
+            Eliminar
+        </button>
+    }
+    else
+    {
+        <span class="estado eliminado-label">Eliminado</span>
+    }
+</td>
+                    </tr>
+                }
+
+                <tr id="fila-sin-resultados" style="display:none;">
+                    <td colspan="6" style="text-align:center; padding:20px; color:#9ca3af;">
+                        No hay autores que coincidan con la búsqueda.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+</div>
+
+<!-- MODAL ELIMINAR -->
+<div id="modalEliminar" class="modal">
+    <div class="modal-box">
+
+        <div class="modal-icon">
+            <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                 class="icono-modal">
+        </div>
+
+        <h2>¿Eliminar autor?</h2>
+        <p>No se puede deshacer.</p>
+
+        <form method="post" asp-page-handler="Eliminar">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="autorTokenInput" name="token" />
+
+            <div class="modal-buttons">
+                <button type="submit" class="btn-danger">Eliminar</button>
+                <button type="button" class="btn-secondary" onclick="cerrarModal()">Cancelar</button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<!-- MODAL EDITAR -->
+<div id="modalEditar" class="modal">
+    <div class="modal-box">
+        <h2>Editar Autor</h2>
+
+        <form method="post" asp-page-handler="Editar" id="editAutorForm">
+            @Html.AntiForgeryToken()
+
+            <input type="hidden" id="editToken" name="token" value="@editToken" />
+
+            <input type="text"
+                   id="editNombres"
+                   name="Nombres"
+                   placeholder="Nombres"
+                   required
+                   value="@editNombres" />
+            @if (ViewData.ModelState.ContainsKey("Nombres"))
+            {
+                <span class="text-error">@ViewData.ModelState["Nombres"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
+            }
+
+            <input type="text"
+                   id="editApellidos"
+                   name="Apellidos"
+                   placeholder="Apellidos"
+                   value="@editApellidos" />
+            @if (ViewData.ModelState.ContainsKey("Apellidos"))
+            {
+                <span class="text-error">@ViewData.ModelState["Apellidos"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
+            }
+
+            <input type="text"
+                   id="editNacionalidad"
+                   name="Nacionalidad"
+                   placeholder="Nacionalidad"
+                   list="paises-lista"
+                   autocomplete="off"
+                   value="@editNacionalidad" />
+            @if (ViewData.ModelState.ContainsKey("Nacionalidad"))
+            {
+                <span class="text-error">@ViewData.ModelState["Nacionalidad"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
+            }
+
+            <input type="date"
+                   id="editFechaNacimiento"
+                   name="FechaNacimiento"
+                   value="@editFechaNacimiento" />
+            @if (ViewData.ModelState.ContainsKey("FechaNacimiento"))
+            {
+                <span class="text-error">@ViewData.ModelState["FechaNacimiento"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
+            }
+
+            <input type="hidden"
+                   id="editEstadoHidden"
+                   value="@(editEstadoSeleccionado ? "true" : "false")" />
+
+            <select id="editEstado" name="Estado">
+                <option value="true" selected="@(editEstadoSeleccionado ? "selected" : null)">Activo</option>
+                <option value="false" selected="@(!editEstadoSeleccionado ? "selected" : null)">Inactivo</option>
+            </select>
+
+            <div class="modal-buttons">
+                <button type="submit" class="btn-warning">Guardar</button>
+                <button type="button" class="btn-secondary" onclick="cerrarModalEditar()">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- MODAL CREAR -->
+<div id="modalCrear" class="modal">
+    <div class="modal-box">
+        <h2>Nuevo Autor</h2>
+
+        <form method="post" asp-page-handler="Crear">
+            @Html.AntiForgeryToken()
+
+            <input type="text"
+                   name="AutorDto.Nombres"
+                   placeholder="Nombres"
+                   required
+                   value="@createNombres" />
+            @if (ViewData.ModelState.ContainsKey("AutorDto.Nombres"))
+            {
+                <span class="text-error">@ViewData.ModelState["AutorDto.Nombres"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
+            }
+
+            <input type="text"
+                   name="AutorDto.Apellidos"
+                   placeholder="Apellidos"
+                   value="@createApellidos" />
+            @if (ViewData.ModelState.ContainsKey("AutorDto.Apellidos"))
+            {
+                <span class="text-error">@ViewData.ModelState["AutorDto.Apellidos"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
+            }
+
+            <input type="text"
+                   name="AutorDto.Nacionalidad"
+                   placeholder="Nacionalidad"
+                   list="paises-lista"
+                   autocomplete="off"
+                   value="@createNacionalidad" />
+            @if (ViewData.ModelState.ContainsKey("AutorDto.Nacionalidad"))
+            {
+                <span class="text-error">@ViewData.ModelState["AutorDto.Nacionalidad"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
+            }
+
+            <input type="date"
+                   name="AutorDto.FechaNacimiento"
+                   value="@createFechaNacimiento" />
+            @if (ViewData.ModelState.ContainsKey("AutorDto.FechaNacimiento"))
+            {
+                <span class="text-error">@ViewData.ModelState["AutorDto.FechaNacimiento"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
+            }
+
+            <select name="AutorDto.Estado">
+                <option value="true" selected="@(createEstadoSeleccionado ? "selected" : null)">Activo</option>
+                <option value="false" selected="@(!createEstadoSeleccionado ? "selected" : null)">Inactivo</option>
+            </select>
+
+            <div class="modal-buttons">
+                <button type="submit" class="btn-success">Crear</button>
+                <button type="button" class="btn-secondary" onclick="cerrarModalCrear()">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+@if (!ViewData.ModelState.IsValid)
+{
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var modalActivo = '@Model.ModalActivo';
+
+            if (modalActivo === "crear") {
+                abrirModalCrear();
+            }
+
+            if (modalActivo === "editar") {
+                document.getElementById("modalEditar").style.display = "flex";
+            }
+        });
+    </script>
+}
+
+@section Scripts {
+    <script>
+        function abrirModal(token){document.getElementById("autorTokenInput").value=token;modalEliminar.style.display="flex";}
+        function cerrarModal(){modalEliminar.style.display="none";}
+        function abrirModalEditar(t,n,a,na,f,e){
+            editToken.value = t;
+            editNombres.value = n || "";
+            editApellidos.value = a || "";
+            editNacionalidad.value = na || ""; 
+            editFechaNacimiento.value = f || "";
+
+            editEstado.value = (e === "true") ? "true" : "false";
+            editEstadoHidden.value = editEstado.value;
+
+            modalEditar.style.display = "flex";
+        }
+        function cerrarModalEditar(){modalEditar.style.display="none";}
+        function abrirModalCrear(){modalCrear.style.display="flex";}
+        function cerrarModalCrear(){modalCrear.style.display="none";}
+
+        document.addEventListener("DOMContentLoaded", function(){
+            const sel = document.getElementById("editEstado");
+            const hid = document.getElementById("editEstadoHidden");
+            if (sel && hid) {
+                sel.addEventListener("change", () => {
+                    hid.value = sel.value; // "true" o "false"
+                });
+            }
+        });
+
+       window.onclick = function(event) {
+            if (event.target === modalEliminar) cerrarModal();
+            if (event.target === modalEditar) cerrarModalEditar();
+            if (event.target === modalCrear) cerrarModalCrear();
+        }
+        function cerrarModalCrear(){
+            modalCrear.style.display = "none";
+        }
+    </script>
+
+    <script>
+        (function () {
+            const input = document.getElementById('buscador-autor');
+            const tabla = document.getElementById('tabla-autores');
+            const filaSinResultados = document.getElementById('fila-sin-resultados');
+
+            if (!input || !tabla) return;
+
+            input.addEventListener('input', function () {
+                const filtro = input.value.toLowerCase().trim();
+                const filas = tabla.querySelectorAll('tbody tr:not(#fila-sin-resultados)');
+                let hayResultados = false;
+
+                filas.forEach(fila => {
+                    const textoFila = fila.textContent.toLowerCase();
+                    const coincide = textoFila.includes(filtro);
+
+                    fila.style.display = coincide ? "" : "none";
+
+                    if (coincide) {
+                        hayResultados = true;
+                    }
+                });
+
+                if (filaSinResultados) {
+                    filaSinResultados.style.display = hayResultados ? "none" : "";
+                }
+            });
+        })();
+    </script>
+
+
+    <datalist id="paises-lista">
+
+        <!-- América -->
+        <option value="Argentina" />
+        <option value="Bolivia" />
+        <option value="Brasil" />
+        <option value="Chile" />
+        <option value="Colombia" />
+        <option value="Costa Rica" />
+        <option value="Cuba" />
+        <option value="Ecuador" />
+        <option value="El Salvador" />
+        <option value="Guatemala" />
+        <option value="Honduras" />
+        <option value="México" />
+        <option value="Nicaragua" />
+        <option value="Panamá" />
+        <option value="Paraguay" />
+        <option value="Perú" />
+        <option value="República Dominicana" />
+        <option value="Uruguay" />
+        <option value="Venezuela" />
+        <option value="Estados Unidos" />
+        <option value="Canadá" />
+
+        <!-- Europa -->
+        <option value="España" />
+        <option value="Francia" />
+        <option value="Alemania" />
+        <option value="Italia" />
+        <option value="Reino Unido" />
+        <option value="Irlanda" />
+        <option value="Portugal" />
+        <option value="Países Bajos" />
+        <option value="Bélgica" />
+        <option value="Suiza" />
+        <option value="Austria" />
+        <option value="Suecia" />
+        <option value="Noruega" />
+        <option value="Dinamarca" />
+        <option value="Finlandia" />
+        <option value="Polonia" />
+        <option value="Hungría" />
+        <option value="República Checa" />
+        <option value="Eslovaquia" />
+        <option value="Rusia" />
+        <option value="Ucrania" />
+        <option value="Grecia" />
+        <option value="Turquía" />
+        <option value="Rumania" />
+        <option value="Bulgaria" />
+        <option value="Serbia" />
+
+        <!-- Asia -->
+        <option value="China" />
+        <option value="Japón" />
+        <option value="Corea del Sur" />
+        <option value="Corea del Norte" />
+        <option value="India" />
+        <option value="Pakistán" />
+        <option value="Bangladés" />
+        <option value="Indonesia" />
+        <option value="Tailandia" />
+        <option value="Vietnam" />
+        <option value="Filipinas" />
+        <option value="Malasia" />
+        <option value="Singapur" />
+        <option value="Arabia Saudita" />
+        <option value="Emiratos Árabes Unidos" />
+        <option value="Israel" />
+        <option value="Irán" />
+        <option value="Irak" />
+        <option value="Qatar" />
+        <option value="Kuwait" />
+
+        <!-- África -->
+        <option value="Egipto" />
+        <option value="Marruecos" />
+        <option value="Argelia" />
+        <option value="Túnez" />
+        <option value="Sudáfrica" />
+        <option value="Nigeria" />
+        <option value="Kenia" />
+        <option value="Etiopía" />
+        <option value="Ghana" />
+        <option value="Senegal" />
+        <option value="Camerún" />
+        <option value="Costa de Marfil" />
+
+        <!-- Oceanía -->
+        <option value="Australia" />
+        <option value="Nueva Zelanda" />
+        <option value="Fiyi" />
+
+    </datalist>
+}

@@ -1,0 +1,46 @@
+﻿@page
+@model Frontend.Pages.Libros.CreateModel
+@{
+    ViewData["Title"] = "Crear libro";
+}
+
+<h1>Crear libro</h1>
+
+<form method="post">
+    <div asp-validation-summary="ModelOnly"></div>
+
+    <div>
+        <label asp-for="Libro.AutorId"></label>
+        <input asp-for="Libro.AutorId" />
+    </div>
+
+    <div>
+        <label asp-for="Libro.Titulo"></label>
+        <input asp-for="Libro.Titulo" />
+    </div>
+
+    <div>
+        <label asp-for="Libro.ISBN"></label>
+        <input asp-for="Libro.ISBN" />
+    </div>
+
+    <div>
+        <label asp-for="Libro.Editorial"></label>
+        <input asp-for="Libro.Editorial" />
+    </div>
+
+    <div>
+        <label asp-for="Libro.Estado"></label>
+        <select asp-for="Libro.Estado">
+            <option value="true">Activo</option>
+            <option value="false">Inactivo</option>
+        </select>
+    </div>
+
+    <button type="submit">Guardar</button>
+    <a asp-page="Index">Volver</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

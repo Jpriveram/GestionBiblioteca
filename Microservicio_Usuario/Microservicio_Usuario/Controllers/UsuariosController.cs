@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ServicioUsuario.Application.Dtos;
 using ServicioUsuario.Application.Services;
+using ServicioUsuario.Application.Interfaces;
 
 namespace ServicioUsuario.Controllers;
 
@@ -8,9 +9,9 @@ namespace ServicioUsuario.Controllers;
 [Route("api/[controller]")]
 public class UsuariosController : ControllerBase
 {
-    private readonly IUsuarioService _usuarioService;
+    private readonly IUsuarioServicio _usuarioService;
 
-    public UsuariosController(IUsuarioService usuarioService)
+    public UsuariosController(IUsuarioServicio usuarioService)
     {
         _usuarioService = usuarioService;
     }
@@ -93,12 +94,17 @@ public class UsuariosController : ControllerBase
     }
 
     [HttpPost("login")]
-    public async Task<ActionResult<UsuarioDto>> Login([FromBody] LoginDto dto)
+    public async Task<ActionResult> Login([FromBody] LoginDto dto)
     {
-        var usuario = await _usuarioService.LoginAsync(dto.NombreUsuario, dto.Password);
-        if (usuario == null)
+        var result = await _usuarioService.LoginAsync(dto.NombreUsuario, dto.Password);
+        
+        if (result.Usuario == null)
             return Unauthorized(new { message = "Credenciales inválidas" });
-        return Ok(usuario);
+            
+        return Ok(new { 
+            usuario = result.Usuario,
+            token = result.Token
+        });
     }
 
     [HttpPost("{id}/cambiar-password")]

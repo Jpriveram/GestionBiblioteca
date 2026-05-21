@@ -1,17 +1,17 @@
-using System.Collections.Generic;
-using ServicioUsuario.Domain.Common;
-using ServicioUsuario.Domain.Entities;
 using ServicioUsuario.Application.Dtos;
-
+using System.Collections.Generic;
+using System.Threading.Tasks;
 namespace ServicioUsuario.Application.Interfaces;
 
 public interface IUsuarioServicio
 {
-    IEnumerable<UsuarioDto> Select();
-    Result<Usuario> Login(string nombreUsuario, string passwordPlano);
-    Task<Result> CrearUsuarioAsync(UsuarioDto usuarioDto, int usuarioSesionId, CancellationToken cancellationToken = default);
-    Result CrearLector(LectorDto dto, int usuarioSesionId);
-    IEnumerable<LectorDto> ObtenerLectores();
-    Result DarDeBaja(int usuarioId, int usuarioSesionId);
-    string JoinCiComp(string ci, string complemento);
+    Task<List<UsuarioDto>> GetAllAsync();
+    Task<UsuarioDto?> GetByIdAsync(int id);
+    Task<UsuarioDto?> GetByEmailAsync(string email);
+    Task<UsuarioDto?> GetByCIAsync(string ci);
+    Task<UsuarioDto> CreateAsync(CreateUsuarioDto dto);
+    Task<UsuarioDto?> UpdateAsync(int id, UpdateUsuarioDto dto);
+    Task<bool> DeleteAsync(int id);
+    Task<(UsuarioDto? Usuario, string? Token)> LoginAsync(string nombreUsuario, string password);
+    Task CambiarPasswordAsync(int usuarioId, string passwordActual, string passwordNueva, string passwordConfirmacion);
 }

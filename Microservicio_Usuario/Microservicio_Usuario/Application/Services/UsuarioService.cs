@@ -10,28 +10,17 @@ using System.Text;
 
 namespace ServicioUsuario.Application.Services;
 
-public interface IUsuarioService
-{
-    Task<List<UsuarioDto>> GetAllAsync();
-    Task<UsuarioDto?> GetByIdAsync(int id);
-    Task<UsuarioDto?> GetByEmailAsync(string email);
-    Task<UsuarioDto?> GetByCIAsync(string ci);
-    Task<UsuarioDto> CreateAsync(CreateUsuarioDto dto);
-    Task<UsuarioDto?> UpdateAsync(int id, UpdateUsuarioDto dto);
-    Task<bool> DeleteAsync(int id);
-    Task<UsuarioDto?> LoginAsync(string nombreUsuario, string password);
-    Task CambiarPasswordAsync(int usuarioId, string passwordActual, string passwordNueva, string passwordConfirmacion);
-}
-
-public class UsuarioService : IUsuarioService
+public class UsuarioService : IUsuarioServicio
 {
     private readonly UsuarioRepository _repositorio;
     private readonly IUserCredentialProvisioningService _credentialProvisioning;
 
-    public UsuarioService(UsuarioRepository repositorio, IUserCredentialProvisioningService credentialProvisioning)
+    private readonly IJwtTokenGenerator _jwtTokenGenerator;
+    public UsuarioService(UsuarioRepository repositorio, IUserCredentialProvisioningService credentialProvisioning, IJwtTokenGenerator jwtTokenGenerator)
     {
         _repositorio = repositorio;
         _credentialProvisioning = credentialProvisioning;
+        _jwtTokenGenerator = jwtTokenGenerator;
     }
 
     public Task<List<UsuarioDto>> GetAllAsync()
@@ -155,23 +144,26 @@ public class UsuarioService : IUsuarioService
         return Task.FromResult(true);
     }
 
-    public Task<UsuarioDto?> LoginAsync(string nombreUsuario, string password)
+   public Task<(UsuarioDto? Usuario, string? Token)> LoginAsync(string nombreUsuario, string password)
     {
         var normalizedUserName = nombreUsuario?.Trim() ?? string.Empty;
         var normalizedPassword = password?.Trim() ?? string.Empty;
 
         if (string.IsNullOrWhiteSpace(normalizedUserName) || string.IsNullOrWhiteSpace(normalizedPassword))
-            return Task.FromResult<UsuarioDto?>(null);
+            return Task.FromResult<(UsuarioDto?, string?)>((null, null));
 
         var usuario = _repositorio.GetByNombreUsuario(normalizedUserName);
 
         if (usuario == null || !usuario.Estado || usuario.PasswordHash == null)
-            return Task.FromResult<UsuarioDto?>(null);
+            return Task.FromResult<(UsuarioDto?, string?)>((null, null));
 
         if (!VerifyPassword(normalizedPassword, usuario.PasswordHash))
-            return Task.FromResult<UsuarioDto?>(null);
+            return Task.FromResult<(UsuarioDto?, string?)>((null, null));
 
-        return Task.FromResult<UsuarioDto?>(MapToDto(usuario));
+        var token = _jwtTokenGenerator.GenerateToken(usuario);
+        var usuarioDto = MapToDto(usuario);
+
+        return Task.FromResult<(UsuarioDto?, string?)>((usuarioDto, token));
     }
 
     public Task CambiarPasswordAsync(int usuarioId, string passwordActual, string passwordNueva, string passwordConfirmacion)

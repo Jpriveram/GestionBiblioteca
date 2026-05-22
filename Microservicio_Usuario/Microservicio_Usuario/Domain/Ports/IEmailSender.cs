@@ -1,5 +1,4 @@
-namespace ServicioUsuario.Application.Interfaces;
-
+namespace ServicioUsuario.Domain.Ports;
 public class EmailMessage
 {
     public string To { get; set; } = string.Empty;

@@ -1,7 +1,7 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Microsoft.Extensions.Options;
-using ServicioUsuario.Application.Interfaces;
+using ServicioUsuario.Domain.Ports;
 using ServicioUsuario.Infrastructure.Configuration;
 
 namespace ServicioUsuario.Infrastructure.Email;

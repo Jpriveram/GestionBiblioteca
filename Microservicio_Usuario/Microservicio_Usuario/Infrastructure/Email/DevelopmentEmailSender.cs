@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Logging;
-using ServicioUsuario.Application.Interfaces;
-
+using ServicioUsuario.Domain.Ports;
 namespace ServicioUsuario.Infrastructure.Email;
 
 public class DevelopmentEmailSender : IEmailSender

@@ -1,0 +1,138 @@
+.libro-delete-container{
+    padding:30px 20px;
+}
+
+/* HEADER */
+
+.page-header{
+    display:flex;
+    align-items:center;
+    margin-bottom:25px;
+}
+
+.titulo-logo{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.page-header h1{
+    font-size:28px;
+    font-weight:600;
+    color:#e5e7eb;
+}
+
+.icono-header{
+    width:26px;
+    filter:brightness(0) invert(1);
+}
+
+
+/* ALERTA */
+
+.warning-box{
+    background:#f59e0b22;
+    border:1px solid #f59e0b;
+    padding:18px;
+    border-radius:10px;
+    margin-bottom:20px;
+}
+
+.warning-box h3{
+    color:#f59e0b;
+    margin-bottom:6px;
+}
+
+.warning-box p{
+    color:#9ca3af;
+}
+
+
+/* CARD */
+
+.detalle-card{
+    background:#171717;
+    padding:25px;
+    border-radius:12px;
+    border:1px solid #282828;
+    box-shadow:0 6px 16px rgba(0,0,0,0.35);
+}
+
+
+/* GRID */
+
+.detalle-grid{
+    display:grid;
+    grid-template-columns:200px 1fr;
+    row-gap:14px;
+}
+
+.detalle-grid dt{
+    color:#9ca3af;
+}
+
+.detalle-grid dd{
+    color:#e5e7eb;
+}
+
+
+/* ESTADOS */
+
+.estado{
+    padding:4px 10px;
+    border-radius:6px;
+    font-size:12px;
+    font-weight:500;
+}
+
+.activo{
+    background:#10a37f33;
+    color:#10a37f;
+}
+
+.inactivo{
+    background:#374151;
+    color:#9ca3af;
+}
+
+
+/* BOTONES */
+
+.form-actions{
+    margin-top:20px;
+    display:flex;
+    gap:10px;
+}
+
+.btn-desactivar{
+    background:#f59e0b;
+    color:white;
+    padding:10px 16px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:6px;
+}
+
+.btn-desactivar:hover{
+    background:#d97706;
+}
+
+.btn-cancelar{
+    background:#374151;
+    color:#e5e7eb;
+    padding:10px 16px;
+    border-radius:8px;
+    text-decoration:none;
+}
+
+.btn-cancelar:hover{
+    background:#4b5563;
+}
+
+.icono-btn{
+    width:16px;
+    filter:brightness(0) invert(1);
+}

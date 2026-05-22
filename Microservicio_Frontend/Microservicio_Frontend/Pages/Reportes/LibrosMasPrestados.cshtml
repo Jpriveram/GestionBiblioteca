@@ -1,0 +1,138 @@
+﻿@page "/Reportes/LibrosMasPrestados"
+@model Frontend.Pages.Reportes.LibrosMasPrestadosModel
+
+@{
+    ViewData["Title"] = "Libros Más Prestados";
+}
+
+<div class="container mt-4">
+
+    <h1>Reporte - Libros Más Prestados</h1>
+
+    <form method="get" class="mb-4">
+
+        <label>Fecha Inicio</label>
+        <input type="date" asp-for="FechaInicio" />
+
+        <label>Fecha Fin</label>
+        <input type="date" asp-for="FechaFin" />
+
+        <button type="submit">
+            Generar Reporte
+        </button>
+
+        <button type="button" onclick="descargarPDF()">
+            Descargar PDF
+        </button>
+
+        <button type="button" onclick="descargarExcel()">
+            Descargar Excel
+        </button>
+
+    </form>
+
+    <div id="reporte-container">
+
+        <table class="table table-bordered">
+
+            <thead>
+                <tr>
+                    <th>Libro</th>
+                    <th>Cantidad de préstamos</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var item in Model.Reporte)
+                {
+                    <tr>
+                        <td>@item.TituloLibro</td>
+                        <td>@item.CantidadPrestamos</td>
+                    </tr>
+                }
+            </tbody>
+
+        </table>
+
+        <hr />
+
+        <div style="height:350px; max-width:900px; margin:30px auto;">
+            <canvas id="graficoLibros"></canvas>
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <script>
+        const labels = [
+            @Html.Raw(string.Join(",", Model.Reporte.Select(x => $"'{x.TituloLibro.Replace("'", "\\'")}'")))
+        ];
+
+        const data = [
+            @string.Join(",", Model.Reporte.Select(x => x.CantidadPrestamos))
+        ];
+
+        new Chart(document.getElementById('graficoLibros'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Cantidad de préstamos',
+                    data: data
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+
+        async function descargarPDF() {
+            const { jsPDF } = window.jspdf;
+            const elemento = document.getElementById('reporte-container');
+
+            const canvas = await html2canvas(elemento, {
+                scale: 2,
+                backgroundColor: '#ffffff'
+            });
+
+            const imgData = canvas.toDataURL('image/png');
+
+            const pdf = new jsPDF('p', 'mm', 'a4');
+
+            const margen = 10;
+            const anchoPdf = 210 - (margen * 2);
+            const altoPdf = (canvas.height * anchoPdf) / canvas.width;
+
+            pdf.addImage(imgData, 'PNG', margen, margen, anchoPdf, altoPdf);
+            pdf.save('LibrosMasPrestados.pdf');
+        }
+
+        function descargarExcel() {
+            const datos = [
+                ['Libro', 'Cantidad de préstamos']
+            ];
+
+            @foreach (var item in Model.Reporte)
+            {
+                    @:datos.push(['@item.TituloLibro.Replace("'", "\\'")', @item.CantidadPrestamos]);
+            }
+
+            const hoja = XLSX.utils.aoa_to_sheet(datos);
+            hoja['!cols'] = [{ wch: 45 }, { wch: 25 }];
+
+            const libro = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(libro, hoja, "Libros más prestados");
+
+            XLSX.writeFile(libro, "LibrosMasPrestados.xlsx");
+        }
+    </script>
+}

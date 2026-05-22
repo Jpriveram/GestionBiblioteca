@@ -1,0 +1,713 @@
+@using Frontend.Helpers
+@using Microsoft.AspNetCore.Http
+@{
+    var nombreUsuarioSesion = Context.Session.GetString(SessionKeys.NombreUsuario);
+    var rolSesion = Context.Session.GetString(SessionKeys.Rol);
+    var haySesion = !string.IsNullOrWhiteSpace(Context.Session.GetString(SessionKeys.UsuarioId));
+    var debeCambiarPassword = string.Equals(Context.Session.GetString(SessionKeys.DebeCambiarPassword), "true", StringComparison.OrdinalIgnoreCase);
+    var changePasswordError = TempData["ChangePasswordError"]?.ToString();
+    var changePasswordOk = TempData["ChangePasswordOk"]?.ToString();
+    var changePasswordOkVisible = !string.IsNullOrWhiteSpace(changePasswordOk);
+    var esAdmin = string.Equals(rolSesion, "Admin", StringComparison.OrdinalIgnoreCase);
+    var esBibliotecario = string.Equals(rolSesion, "Bibliotecario", StringComparison.OrdinalIgnoreCase);
+    var esLector = string.Equals(rolSesion, "Lector", StringComparison.OrdinalIgnoreCase);
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <script type="importmap"></script>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/gestion_bibliotecaria.styles.css" asp-append-version="true" />
+
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+
+<body>
+
+<header>
+    <nav class="navbar navbar-expand-sm">
+        <div class="container">
+
+            <a class="navbar-brand d-flex align-items-center" href="/">
+                <img src="~/assets/images/whiiteLogoR.png"
+                    height="60"
+                    width="100"
+                    class="me-2">
+            </a>
+
+            <button class="navbar-toggler"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target=".navbar-collapse">
+                <img src="~/assets/icons/menu_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                    width="24">
+            </button>
+
+            <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+
+                <ul class="navbar-nav flex-grow-1">
+                    @if (haySesion){
+                    <li class="nav-item">
+                        <a class="nav-link nav-btn d-flex align-items-center gap-2" href="/">
+                            <img src="~/assets/icons/home_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
+                            Inicio
+                        </a>
+                    </li>
+                    }
+                    @if (esAdmin || esBibliotecario)
+                    {
+                    <li class="nav-item dropdown">
+                        <a class="nav-link nav-btn dropdown-toggle d-flex align-items-center gap-2"
+                            href="#"
+                            role="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                            <img src="~/assets/icons/inventory_2_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
+                            Biblioteca
+                        </a>
+
+                        <ul class="dropdown-menu custom-dropdown-menu">
+                            <li><a class="dropdown-item custom-dropdown-item" href="/Libro">Libros</a></li>
+                            <li><a class="dropdown-item custom-dropdown-item" href="/Autor">Autores</a></li>
+                            <li><a class="dropdown-item custom-dropdown-item" href="/Ejemplar">Ejemplares</a></li>
+                            <li><a class="dropdown-item custom-dropdown-item" href="#">Categorías</a></li>
+                            <li><a class="dropdown-item custom-dropdown-item" href="#">Editoriales</a></li>
+                        </ul>
+                    </li>
+                    }
+                    @if (esBibliotecario)
+                    {
+                    <li class="nav-item dropdown">
+                        <a class="nav-link nav-btn dropdown-toggle d-flex align-items-center gap-2"
+                            href="#"
+                            role="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                            <img src="~/assets/icons/sync_alt_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
+                            Circulación
+                        </a>
+
+                        <ul class="dropdown-menu custom-dropdown-menu">
+                            <li><a class="dropdown-item custom-dropdown-item" href="#">Préstamos</a></li>
+                            <li><a class="dropdown-item custom-dropdown-item" href="#">Devoluciones</a></li>
+                            <li><a class="dropdown-item custom-dropdown-item" href="#">Reservas</a></li>
+                            <li><a class="dropdown-item custom-dropdown-item" href="#">Historial</a></li>
+                            <li><a class="dropdown-item custom-dropdown-item" href="#">Multas</a></li>
+                        </ul>
+                    </li>
+                    }
+
+                    @if (esAdmin)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link nav-btn d-flex align-items-center gap-2" href="/Usuarios">
+                                <img src="~/assets/icons/groups_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
+                                Usuarios
+                            </a>
+                        </li>
+                    }
+                    @if (esAdmin || esBibliotecario)
+                    {
+                    <li class="nav-item dropdown">
+                        <a class="nav-link nav-btn dropdown-toggle d-flex align-items-center gap-2"
+                            href="#"
+                            role="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                            <img src="~/assets/icons/bar_chart_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
+                            Reportes
+                        </a>
+
+                        <ul class="dropdown-menu custom-dropdown-menu">
+                            @if (esBibliotecario)
+                            {
+                                <li><a class="dropdown-item custom-dropdown-item" href="#">Préstamos realizados</a></li>
+                            }
+                                    <li><a class="dropdown-item custom-dropdown-item" href="#">Libros más prestados</a></li>
+                                    <li><a class="dropdown-item custom-dropdown-item" href="#">Préstamos ordenados</a></li>
+                            <li><a class="dropdown-item custom-dropdown-item" href="#">Ejemplares disponibles</a></li>
+                            <li><a class="dropdown-item custom-dropdown-item" href="#">Usuarios con retraso</a></li>
+                        </ul>
+                    </li>
+                    }
+                </ul>
+
+                <ul class="navbar-nav">
+                    @if (!haySesion)
+                    {
+                        <li class="nav-item">
+                            <button type="button"
+                                    class="nav-link nav-btn d-flex align-items-center gap-2 btn-login-navbar"
+                                    onclick="abrirModalLogin()">
+                                <img src="~/assets/icons/person_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
+                                Iniciar sesión
+                            </button>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item dropdown">
+                            <a class="nav-link nav-btn dropdown-toggle d-flex align-items-center gap-2"
+                                href="#"
+                                role="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                <img src="~/assets/icons/person_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
+                                @nombreUsuarioSesion.ToDisplayName()
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end custom-dropdown-menu">
+                                <li>
+                                    <button type="button" class="dropdown-item custom-dropdown-item" onclick="abrirModalCambiarPassword()">
+                                        Cambiar contrasena
+                                    </button>
+                                </li>
+                                <li>
+                                    <form method="post" action="/Login?handler=Logout">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="dropdown-item custom-dropdown-item">
+                                            Cerrar sesión
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    }
+                </ul>
+
+            </div>
+        </div>
+    </nav>
+</header>
+
+<main class="container-fluid main-content">
+    @RenderBody()
+</main>
+
+@if (!haySesion)
+{
+    <div id="modalLogin" class="custom-modal">
+        <div class="modal-box modal-login-box">
+
+            <div class="modal-icon login">
+                <img src="~/assets/icons/person_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                    class="icono-modal" />
+            </div>
+
+            <h2>Iniciar sesión</h2>
+            <p>Ingresa tus credenciales para acceder al sistema.</p>
+
+                <form method="post" action="/Login" id="formLoginModal" autocomplete="off" novalidate>
+                    @Html.AntiForgeryToken()
+
+                    <div id="mensajeLoginModal" class="text-error-summary" style="display:none;"></div>
+
+                    @if (TempData["LoginError"] != null)
+                    {
+                        <div id="mensajeLoginServidor" class="text-error-summary">
+                            @TempData["LoginError"]
+                        </div>
+                    }
+
+                    <input type="text"
+                            name="NombreUsuario"
+                            id="loginNombreUsuario"
+                            class="input-form"
+                            placeholder="Nombre de usuario" />
+
+                    <div class="password-wrapper">
+                        <input type="password"
+                                name="Password"
+                                id="loginPassword"
+                                class="input-form password-input"
+                                placeholder="Contraseña" />
+
+                        <button type="button"
+                                class="toggle-password-btn"
+                                onclick="togglePasswordLogin()"
+                                aria-label="Mostrar u ocultar contraseña">
+                            <img id="togglePasswordIcon"
+                                src="~/assets/icons/visibility_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                                alt="Ver contraseña" />
+                        </button>
+                    </div>
+
+                    <div class="modal-buttons">
+                        <button type="submit" class="btn-login-modal">
+                            Ingresar
+                        </button>
+
+                        <button type="button"
+                                class="btn-secondary"
+                                onclick="cerrarModalLogin()">
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+
+        </div>
+    </div>
+}
+
+@if (haySesion)
+{
+    <div id="modalCambiarPassword" class="custom-modal">
+        <div class="modal-box modal-login-box">
+            <div class="modal-icon login">
+                <img src="~/assets/icons/privacy_tip_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                     class="icono-modal" />
+            </div>
+
+            <h2>Cambiar contrasena</h2>
+            <p>
+                @if (debeCambiarPassword)
+                {
+                    <text>Primer inicio detectado. Debes cambiar tu contrasena para continuar.</text>
+                }
+                else
+                {
+                    <text>Ingresa tu contrasena actual y define una nueva contrasena segura.</text>
+                }
+            </p>
+
+            <form method="post" action="/Login?handler=CambiarPasswordModal" id="formCambiarPasswordModal" autocomplete="off" novalidate>
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="returnUrl" value="@(Context.Request.Path + Context.Request.QueryString)" />
+
+                <div id="mensajeCambiarPasswordModal" class="text-error-summary" style="display:none;"></div>
+
+                @if (!string.IsNullOrWhiteSpace(changePasswordError))
+                {
+                    <div id="mensajeCambiarPasswordServidor" class="text-error-summary">
+                        @changePasswordError
+                    </div>
+                }
+
+                  <div class="password-wrapper">
+                      <input type="password"
+                          name="passwordActualModal"
+                          id="passwordActualModal"
+                          class="input-form password-input"
+                          placeholder="Contrasena actual"
+                          required />
+
+                      <button type="button"
+                        class="toggle-password-btn"
+                        onclick="togglePasswordField('passwordActualModal', 'togglePasswordActualModalIcon')"
+                        aria-label="Mostrar u ocultar contrasena actual">
+                       <img id="togglePasswordActualModalIcon"
+                         src="~/assets/icons/visibility_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                         alt="Ver contrasena" />
+                      </button>
+                  </div>
+
+                  <div class="password-wrapper">
+                      <input type="password"
+                          name="passwordNuevaModal"
+                          id="passwordNuevaModal"
+                          class="input-form password-input"
+                          placeholder="Nueva contrasena"
+                          required />
+
+                      <button type="button"
+                        class="toggle-password-btn"
+                        onclick="togglePasswordField('passwordNuevaModal', 'togglePasswordNuevaModalIcon')"
+                        aria-label="Mostrar u ocultar nueva contrasena">
+                       <img id="togglePasswordNuevaModalIcon"
+                         src="~/assets/icons/visibility_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                         alt="Ver contrasena" />
+                      </button>
+                  </div>
+
+                  <div class="password-wrapper">
+                      <input type="password"
+                          name="passwordConfirmacionModal"
+                          id="passwordConfirmacionModal"
+                          class="input-form password-input"
+                          placeholder="Confirmar nueva contrasena"
+                          required />
+
+                      <button type="button"
+                        class="toggle-password-btn"
+                        onclick="togglePasswordField('passwordConfirmacionModal', 'togglePasswordConfirmacionModalIcon')"
+                        aria-label="Mostrar u ocultar confirmacion de contrasena">
+                       <img id="togglePasswordConfirmacionModalIcon"
+                         src="~/assets/icons/visibility_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                         alt="Ver contrasena" />
+                      </button>
+                  </div>
+
+                <div class="modal-buttons" style="margin-top:12px;">
+                    <button type="submit" class="btn-login-modal">Actualizar</button>
+
+                    @if (!debeCambiarPassword)
+                    {
+                        <button type="button" class="btn-secondary" onclick="cerrarModalCambiarPassword()">Cancelar</button>
+                    }
+                </div>
+            </form>
+        </div>
+    </div>
+}
+
+@if (changePasswordOkVisible)
+{
+    <div id="modalCambioPasswordExito" class="custom-modal">
+        <div class="modal-box modal-login-box">
+            <div class="modal-icon login">
+                <img src="~/assets/icons/check_circle_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                     class="icono-modal"
+                     alt="Cambio exitoso" />
+            </div>
+
+            <h2>Contraseña actualizada</h2>
+            <p>@changePasswordOk</p>
+
+            <div class="modal-buttons" style="margin-top:12px;">
+                <button type="button" class="btn-login-modal" onclick="cerrarModalCambioPasswordExito()">Entendido</button>
+            </div>
+        </div>
+    </div>
+}
+
+<footer class="footer-custom">
+    <div class="container footer-content">
+        <div class="footer-left">
+            <img src="~/assets/images/whiiteLogoR.png"
+                height="60"
+                width="100">
+        </div>
+
+        <div class="footer-center">
+            © 2026 StarBook Library
+        </div>
+
+        <div class="footer-right">
+            <a href="/Privacy">Privacidad</a>
+        </div>
+    </div>
+</footer>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+
+@await RenderSectionAsync("Scripts", required: false)
+<script>
+    var primerInicioForzado = @(debeCambiarPassword ? "true" : "false");
+    var cambioPasswordExitoVisible = @(changePasswordOkVisible ? "true" : "false");
+
+    function abrirModalLogin() {
+        var modal = document.getElementById("modalLogin");
+        if (modal) {
+            modal.style.display = "flex";
+        }
+    }
+
+    function cerrarModalLogin() {
+        var modal = document.getElementById("modalLogin");
+        if (modal) {
+            modal.style.display = "none";
+        }
+    }
+
+    function abrirModalCambiarPassword() {
+        var modal = document.getElementById("modalCambiarPassword");
+        if (modal) {
+            modal.style.display = "flex";
+        }
+    }
+
+    function cerrarModalCambiarPassword() {
+        if (primerInicioForzado) {
+            return;
+        }
+
+        var modal = document.getElementById("modalCambiarPassword");
+        if (modal) {
+            modal.style.display = "none";
+        }
+    }
+
+    function abrirModalCambioPasswordExito() {
+        var modal = document.getElementById("modalCambioPasswordExito");
+        if (modal) {
+            modal.style.display = "flex";
+        }
+    }
+
+    function cerrarModalCambioPasswordExito() {
+        var modal = document.getElementById("modalCambioPasswordExito");
+        if (modal) {
+            modal.style.display = "none";
+        }
+    }
+
+    function togglePasswordLogin() {
+        var input = document.getElementById("loginPassword");
+        var icon = document.getElementById("togglePasswordIcon");
+
+        if (!input || !icon) return;
+
+        if (input.type === "password") {
+            input.type = "text";
+            icon.src = "/assets/icons/visibility_off_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg";
+        } else {
+            input.type = "password";
+            icon.src = "/assets/icons/visibility_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg";
+        }
+    }
+
+    function togglePasswordField(inputId, iconId) {
+        var input = document.getElementById(inputId);
+        var icon = document.getElementById(iconId);
+
+        if (!input || !icon) return;
+
+        if (input.type === "password") {
+            input.type = "text";
+            icon.src = "/assets/icons/visibility_off_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg";
+        } else {
+            input.type = "password";
+            icon.src = "/assets/icons/visibility_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg";
+        }
+    }
+
+    function mostrarErrorLogin(mensaje) {
+        var box = document.getElementById("mensajeLoginModal");
+        if (!box) return;
+
+        box.textContent = mensaje;
+        box.style.display = "block";
+
+        clearTimeout(box._hideTimer);
+        box._hideTimer = setTimeout(function () {
+            box.style.display = "none";
+            box.textContent = "";
+        }, 3500);
+    }
+
+    function mostrarErrorCambiarPassword(mensaje) {
+        var box = document.getElementById("mensajeCambiarPasswordModal");
+        if (!box) return;
+
+        box.textContent = mensaje;
+        box.style.display = "block";
+    }
+
+    function limpiarErrorCambiarPassword() {
+        var box = document.getElementById("mensajeCambiarPasswordModal");
+        if (!box) return;
+
+        box.style.display = "none";
+        box.textContent = "";
+        box.style.whiteSpace = "normal";
+    }
+
+    function validarPasswordSegura(password) {
+        var errores = [];
+
+        if (password.length < 8) {
+            errores.push("Mínimo 8 caracteres");
+        }
+
+        if (!/[A-Z]/.test(password)) {
+            errores.push("Al menos 1 mayúscula");
+        }
+
+        if (!/[a-z]/.test(password)) {
+            errores.push("Al menos 1 minúscula");
+        }
+
+        if (!/[0-9]/.test(password)) {
+            errores.push("Al menos 1 número");
+        }
+
+        if (!/[^a-zA-Z0-9]/.test(password)) {
+            errores.push("Al menos 1 carácter especial");
+        }
+
+        return errores;
+    }
+
+    function mostrarRequisitosPassword(mensajes) {
+        var box = document.getElementById("mensajeCambiarPasswordModal");
+        if (!box) return;
+
+        if (!mensajes || !mensajes.length) {
+            box.style.display = "none";
+            box.textContent = "";
+            box.style.whiteSpace = "normal";
+            return;
+        }
+
+        box.textContent = "La nueva contrasena no cumple:\n- " + mensajes.join("\n- ");
+        box.style.display = "block";
+        box.style.whiteSpace = "pre-line";
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        var form = document.getElementById("formLoginModal");
+        var usuario = document.getElementById("loginNombreUsuario");
+        var password = document.getElementById("loginPassword");
+        var mensajeServidor = document.getElementById("mensajeLoginServidor");
+
+        if (mensajeServidor) {
+            abrirModalLogin();
+        }
+
+        var formCambiarPassword = document.getElementById("formCambiarPasswordModal");
+        var passwordActualModal = document.getElementById("passwordActualModal");
+        var passwordNuevaModal = document.getElementById("passwordNuevaModal");
+        var passwordConfirmacionModal = document.getElementById("passwordConfirmacionModal");
+        var mensajeCambiarPasswordServidor = document.getElementById("mensajeCambiarPasswordServidor");
+
+        if (primerInicioForzado || mensajeCambiarPasswordServidor) {
+            abrirModalCambiarPassword();
+        }
+
+        if (cambioPasswordExitoVisible) {
+            abrirModalCambioPasswordExito();
+        }
+
+        function limpiarMensajes() {
+            var box = document.getElementById("mensajeLoginModal");
+            if (box) {
+                box.style.display = "none";
+                box.textContent = "";
+            }
+
+            if (mensajeServidor) {
+                mensajeServidor.style.display = "none";
+            }
+        }
+
+        if (usuario) usuario.addEventListener("input", limpiarMensajes);
+        if (password) password.addEventListener("input", limpiarMensajes);
+
+        if (form) {
+            form.addEventListener("submit", function (e) {
+                if (!usuario.value.trim()) {
+                    e.preventDefault();
+                    mostrarErrorLogin("Debes ingresar el nombre de usuario.");
+                    usuario.focus();
+                    return;
+                }
+
+                if (!password.value.trim()) {
+                    e.preventDefault();
+                    mostrarErrorLogin("Debes ingresar la contraseña.");
+                    password.focus();
+                    return;
+                }
+            });
+        }
+
+        if (formCambiarPassword) {
+            formCambiarPassword.addEventListener("submit", function (e) {
+                var actual = (passwordActualModal && passwordActualModal.value ? passwordActualModal.value : "").trim();
+                var nueva = (passwordNuevaModal && passwordNuevaModal.value ? passwordNuevaModal.value : "").trim();
+                var confirmacion = (passwordConfirmacionModal && passwordConfirmacionModal.value ? passwordConfirmacionModal.value : "").trim();
+
+                if (!actual || !nueva || !confirmacion) {
+                    e.preventDefault();
+                    mostrarErrorCambiarPassword("Debes completar todos los campos.");
+                    return;
+                }
+
+                if (nueva !== confirmacion) {
+                    e.preventDefault();
+                    mostrarErrorCambiarPassword("La nueva contrasena y su confirmacion no coinciden.");
+                    return;
+                }
+
+                var erroresPassword = validarPasswordSegura(nueva);
+
+                if (erroresPassword.length > 0) {
+                    e.preventDefault();
+                    mostrarRequisitosPassword(erroresPassword);
+                    return;
+                }
+
+                limpiarErrorCambiarPassword();
+            });
+
+            if (passwordNuevaModal) {
+                passwordNuevaModal.addEventListener("input", function () {
+                    var nueva = (passwordNuevaModal.value || "").trim();
+                    var erroresPassword = validarPasswordSegura(nueva);
+
+                    if (!nueva) {
+                        limpiarErrorCambiarPassword();
+                        return;
+                    }
+
+                    mostrarRequisitosPassword(erroresPassword);
+                });
+            }
+
+            if (passwordActualModal) {
+                passwordActualModal.addEventListener("input", function () {
+                    var box = document.getElementById("mensajeCambiarPasswordModal");
+                    if (box && box.textContent === "Debes completar todos los campos.") {
+                        limpiarErrorCambiarPassword();
+                    }
+                });
+            }
+
+            if (passwordConfirmacionModal) {
+                passwordConfirmacionModal.addEventListener("input", function () {
+                    var nueva = (passwordNuevaModal && passwordNuevaModal.value ? passwordNuevaModal.value : "").trim();
+                    var confirmacion = (passwordConfirmacionModal.value || "").trim();
+
+                    if (!nueva || !confirmacion) {
+                        return;
+                    }
+
+                    if (nueva !== confirmacion) {
+                        mostrarErrorCambiarPassword("La nueva contrasena y su confirmacion no coinciden.");
+                    } else {
+                        limpiarErrorCambiarPassword();
+                    }
+                });
+            }
+        }
+    });
+
+    window.addEventListener("click", function (e) {
+        var modal = document.getElementById("modalLogin");
+        if (modal && e.target === modal) {
+            cerrarModalLogin();
+        }
+
+        var modalCambiarPassword = document.getElementById("modalCambiarPassword");
+        if (modalCambiarPassword && e.target === modalCambiarPassword) {
+            cerrarModalCambiarPassword();
+        }
+
+        var modalCambioPasswordExito = document.getElementById("modalCambioPasswordExito");
+        if (modalCambioPasswordExito && e.target === modalCambioPasswordExito) {
+            cerrarModalCambioPasswordExito();
+        }
+    });
+
+    window.addEventListener("pageshow", function (event) {
+    var navigation = performance.getEntriesByType("navigation")[0];
+
+    var vieneDeAtras =
+        event.persisted ||
+        (navigation && navigation.type === "back_forward");
+
+    if (vieneDeAtras) {
+        window.location.reload();
+    }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,10 @@
+@HostAddress = http://localhost:5292
+
+### 2. Hacer Login para obtener el Token
+POST {{HostAddress}}/api/Usuarios/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "admin",
+  "password": "admin"
+}

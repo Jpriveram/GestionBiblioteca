@@ -1,0 +1,97 @@
+.error-container{
+    padding:30px 20px;
+}
+
+/* HEADER */
+
+.error-header{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:25px;
+}
+
+.error-header h1{
+    font-size:28px;
+    font-weight:600;
+    color:#e5e7eb;
+}
+
+/* ICONO ERROR */
+
+.icono-error{
+    width:30px;
+    filter:brightness(0) invert(1);
+}
+
+/* CARD ERROR */
+
+.error-card{
+    background:#171717;
+    padding:35px;
+    border-radius:12px;
+    border:1px solid #282828;
+    box-shadow:0 6px 16px rgba(0,0,0,0.35);
+    max-width:650px;
+}
+
+/* TITULO ERROR */
+
+.error-card h2{
+    color:#ef4444;
+    margin-bottom:18px;
+}
+
+/* TEXTO */
+
+.error-card p{
+    margin-bottom:16px;
+    color:#9ca3af;
+    line-height:1.6;
+}
+
+/* REQUEST ID */
+
+.request-id{
+    background:#1b1c1d;
+    padding:10px;
+    border-radius:6px;
+    color:#e5e7eb;
+    border:1px solid #282828;
+}
+
+/* ACCIONES */
+
+.error-actions{
+    margin-top:25px;
+}
+
+/* BOTON HOME */
+
+.btn-home{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background:#10a37f;
+    color:white;
+    padding:10px 16px;
+    border-radius:8px;
+    text-decoration:none;
+    font-weight:500;
+    transition:.25s;
+}
+
+.btn-home:hover{
+    background:#19c37d;
+    transform:translateY(-2px);
+}
+
+/* ICONOS */
+
+.icono-btn{
+    width:16px;
+}
+
+.icon-white{
+    filter:brightness(0) invert(1);
+}

@@ -72,7 +72,8 @@ public class UsuarioAdapter : IUsuarioServicio
                 Email = d.Email,
                 CI = ciCompleto,
                 Rol = "Lector",
-                Estado = true
+                Estado = true,
+                UsuarioSesionId = uid
             };
 
             var response = _http.PostAsJsonAsync("api/usuarios", createUsuarioDto).Result;
@@ -101,6 +102,7 @@ public class UsuarioAdapter : IUsuarioServicio
             if (usuario == null) return Result.Failure(new Error("NotFound", "Usuario no encontrado"));
 
             usuario.Estado = false;
+            usuario.UsuarioSesionId = sid;
             var response = _http.PutAsJsonAsync($"api/usuarios/{uid}", usuario).Result;
             return response.IsSuccessStatusCode ? Result.Success() : Result.Failure(new Error("Update", "Error al dar de baja"));
         }
@@ -114,6 +116,7 @@ public class UsuarioAdapter : IUsuarioServicio
     {
         try
         {
+            d.UsuarioSesionId = uid;
             var response = await _http.PostAsJsonAsync("api/usuarios", d, ct);
             return response.IsSuccessStatusCode
                 ? Result.Success()

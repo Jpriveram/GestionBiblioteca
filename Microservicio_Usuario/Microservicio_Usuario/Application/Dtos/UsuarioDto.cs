@@ -3,6 +3,7 @@ namespace ServicioUsuario.Application.Dtos;
 public class UsuarioDto
 {
     public int UsuarioId { get; set; }
+    public int? UsuarioSesionId { get; set; }
     public string CI { get; set; } = string.Empty;
     public string Nombres { get; set; } = string.Empty;
     public string PrimerApellido { get; set; } = string.Empty;
@@ -23,6 +24,7 @@ public class CambiarPasswordDto
 
 public class CreateUsuarioDto
 {
+    public int? UsuarioSesionId { get; set; }
     public string CI { get; set; } = string.Empty;
     public string Nombres { get; set; } = string.Empty;
     public string PrimerApellido { get; set; } = string.Empty;
@@ -35,6 +37,7 @@ public class CreateUsuarioDto
 
 public class UpdateUsuarioDto
 {
+    public int? UsuarioSesionId { get; set; }
     public string CI { get; set; } = string.Empty;
     public string Nombres { get; set; } = string.Empty;
     public string PrimerApellido { get; set; } = string.Empty;

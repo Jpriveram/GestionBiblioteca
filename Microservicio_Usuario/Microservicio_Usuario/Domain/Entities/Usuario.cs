@@ -3,6 +3,7 @@ namespace ServicioUsuario.Domain.Entities;
 public class Usuario
 {
     public int UsuarioId { get; set; }
+    public int? UsuarioSesionId { get; set; }
     public string CI { get; set; } = string.Empty;
     public string Nombres { get; set; } = string.Empty;
     public string PrimerApellido { get; set; } = string.Empty;

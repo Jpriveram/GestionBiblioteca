@@ -65,6 +65,7 @@ public class IndexModel : PageModel
         }
 
         NuevoUsuario.Rol = RolNuevoUsuario;
+        NuevoUsuario.UsuarioSesionId = usuarioSesionId.Value;
         NuevoUsuario.Nombres = NuevoUsuario.Nombres.ToDisplayName();
         NuevoUsuario.PrimerApellido = NuevoUsuario.PrimerApellido.ToDisplayName();
         NuevoUsuario.SegundoApellido = NuevoUsuario.SegundoApellido.ToDisplayName();

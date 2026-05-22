@@ -218,8 +218,8 @@ public class UsuarioRepository : IRepository<Usuario, int>
             using (var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection())
             {
                 connection.Open();
-                string query = @"INSERT INTO usuario (Nombres, PrimerApellido, SegundoApellido, Email, NombreUsuario, PasswordHash, Rol, Estado, CI, UsuarioSesionId) 
-                                VALUES (@Nombres, @PrimerApellido, @SegundoApellido, @Email, @NombreUsuario, @PasswordHash, @Rol, @Estado, @CI, @UsuarioSesionId);";
+                string query = @"INSERT INTO usuario (Nombres, PrimerApellido, SegundoApellido, Email, NombreUsuario, PasswordHash, Rol, Estado, CI, UsuarioSesionId, UltimaActualizacion) 
+                                VALUES (@Nombres, @PrimerApellido, @SegundoApellido, @Email, @NombreUsuario, @PasswordHash, @Rol, @Estado, @CI, @UsuarioSesionId, @UltimaActualizacion);";
                 using (MySqlCommand command = new MySqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@Nombres", entity.Nombres);
@@ -232,6 +232,7 @@ public class UsuarioRepository : IRepository<Usuario, int>
                     command.Parameters.AddWithValue("@Estado", entity.Estado);
                     command.Parameters.AddWithValue("@CI", entity.CI ?? (object)DBNull.Value);
                     command.Parameters.AddWithValue("@UsuarioSesionId", entity.UsuarioSesionId ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@UltimaActualizacion", entity.FechaActualizacion ?? DateTime.UtcNow);
                     command.ExecuteNonQuery();
                     entity.UsuarioId = Convert.ToInt32(command.LastInsertedId);
                 }
@@ -252,7 +253,7 @@ public class UsuarioRepository : IRepository<Usuario, int>
             {
                 connection.Open();
                 string query = @"UPDATE usuario SET Nombres = @Nombres, PrimerApellido = @PrimerApellido, SegundoApellido = @SegundoApellido, 
-                                Email = @Email, NombreUsuario = @NombreUsuario, PasswordHash = @PasswordHash, Rol = @Rol, Estado = @Estado, CI = @CI, UsuarioSesionId = @UsuarioSesionId 
+                                Email = @Email, NombreUsuario = @NombreUsuario, PasswordHash = @PasswordHash, Rol = @Rol, Estado = @Estado, CI = @CI, UsuarioSesionId = @UsuarioSesionId, UltimaActualizacion = @UltimaActualizacion 
                                 WHERE UsuarioId = @UsuarioId;";
                 using (MySqlCommand command = new MySqlCommand(query, connection))
                 {
@@ -267,6 +268,7 @@ public class UsuarioRepository : IRepository<Usuario, int>
                     command.Parameters.AddWithValue("@Estado", entity.Estado);
                     command.Parameters.AddWithValue("@CI", entity.CI ?? (object)DBNull.Value);
                     command.Parameters.AddWithValue("@UsuarioSesionId", entity.UsuarioSesionId ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@UltimaActualizacion", entity.FechaActualizacion ?? DateTime.UtcNow);
                     command.ExecuteNonQuery();
                 }
             }

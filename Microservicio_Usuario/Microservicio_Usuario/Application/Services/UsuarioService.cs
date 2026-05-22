@@ -83,7 +83,8 @@ public class UsuarioService : IUsuarioServicio
             PasswordHash = null,
             Rol = dto.Rol,
             Estado = true,
-            FechaCreacion = DateTime.UtcNow
+            FechaCreacion = DateTime.UtcNow,
+            FechaActualizacion = DateTime.UtcNow
         };
 
         if (ShouldAutoProvisionCredentials(dto.Rol))
@@ -203,6 +204,7 @@ public class UsuarioService : IUsuarioServicio
         }
 
         usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(nueva);
+        usuario.UsuarioSesionId = usuarioId;
         usuario.FechaActualizacion = DateTime.UtcNow;
 
         _repositorio.Update(usuario);

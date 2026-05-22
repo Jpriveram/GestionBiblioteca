@@ -24,6 +24,7 @@ builder.Services.AddScoped<IUsuarioServicio, UsuarioAdapter>();
 // builder.Services.AddScoped<IAnulacionFachada, AnulacionFachadaAdapter>();
 // builder.Services.AddScoped<IEjemplarDisponibilidadFachada, EjemplarDisponibilidadFachadaAdapter>();
 builder.Services.AddScoped<RouteTokenService>();
+builder.Services.AddHttpContextAccessor();
 
 // Sesión
 builder.Services.AddDistributedMemoryCache();

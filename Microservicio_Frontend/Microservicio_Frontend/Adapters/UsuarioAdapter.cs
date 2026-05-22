@@ -4,20 +4,28 @@ using Frontend.Dtos;
 using Frontend.Adapters;
 using Frontend.Helpers;
 using Frontend.Dtos;
+using Microsoft.AspNetCore.Http;
+using System.Net.Http.Headers;
 
 namespace Frontend.Adapters;
 
 public class UsuarioAdapter : IUsuarioServicio
 {
     private readonly HttpClient _http;
+    private readonly IHttpContextAccessor _httpContextAccessor;
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
-    public UsuarioAdapter(IHttpClientFactory f) => _http = f.CreateClient("ServicioUsuario");
+    public UsuarioAdapter(IHttpClientFactory f, IHttpContextAccessor httpContextAccessor)
+    {
+        _http = f.CreateClient("ServicioUsuario");
+        _httpContextAccessor = httpContextAccessor;
+    }
 
     public IEnumerable<UsuarioDto> Select()
     {
         try
         {
+            EnsureAuthorizationHeader();
             var response = _http.GetAsync("api/usuarios").Result;
             if (!response.IsSuccessStatusCode)
             {
@@ -40,6 +48,7 @@ public class UsuarioAdapter : IUsuarioServicio
     {
         try
         {
+            EnsureAuthorizationHeader();
             d.Nombres = d.Nombres.ToDisplayName();
             d.PrimerApellido = d.PrimerApellido.ToDisplayName();
             d.SegundoApellido = d.SegundoApellido.ToDisplayName();
@@ -60,6 +69,7 @@ public class UsuarioAdapter : IUsuarioServicio
     {
         try
         {
+            EnsureAuthorizationHeader();
             var ciCompleto = JoinCiComp(d.CI ?? string.Empty, d.Complemento ?? string.Empty);
             var createUsuarioDto = new UsuarioDto
             {
@@ -98,6 +108,7 @@ public class UsuarioAdapter : IUsuarioServicio
     {
         try
         {
+            EnsureAuthorizationHeader();
             var usuario = CallGet<UsuarioDto>($"api/usuarios/{uid}");
             if (usuario == null) return Result.Failure(new Error("NotFound", "Usuario no encontrado"));
 
@@ -116,6 +127,7 @@ public class UsuarioAdapter : IUsuarioServicio
     {
         try
         {
+            EnsureAuthorizationHeader();
             d.UsuarioSesionId = uid;
             var response = await _http.PostAsJsonAsync("api/usuarios", d, ct);
             return response.IsSuccessStatusCode
@@ -134,6 +146,7 @@ public class UsuarioAdapter : IUsuarioServicio
     {
         try
         {
+            EnsureAuthorizationHeader();
             var payload = new
             {
                 passwordActual = (passwordActual ?? string.Empty).Trim(),
@@ -166,6 +179,9 @@ public class UsuarioAdapter : IUsuarioServicio
             var normalizedUser = (user ?? string.Empty).Trim();
             var normalizedPass = (pass ?? string.Empty).Trim();
 
+            // Clear any existing auth header (we are authenticating)
+            _http.DefaultRequestHeaders.Authorization = null;
+
             var response = _http.PostAsJsonAsync("api/usuarios/login", new { nombreUsuario = normalizedUser, password = normalizedPass }).Result;
             if (!response.IsSuccessStatusCode)
                 return Result<UsuarioDto>.Failure(new Error("Login", "Credenciales inválidas"));
@@ -174,6 +190,17 @@ public class UsuarioAdapter : IUsuarioServicio
             var dto = loginResponse?.Usuario;
             if (dto == null)
                 return Result<UsuarioDto>.Failure(new Error("Login", "Error al leer respuesta"));
+
+            // Store token in server-side session so subsequent adapter calls can attach it
+            var token = loginResponse?.Token;
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                try
+                {
+                    _httpContextAccessor?.HttpContext?.Session?.SetString(SessionKeys.JwtToken, token);
+                }
+                catch { }
+            }
 
             return Result<UsuarioDto>.Success(new UsuarioDto
             {
@@ -202,6 +229,7 @@ public class UsuarioAdapter : IUsuarioServicio
     {
         try
         {
+            EnsureAuthorizationHeader();
             var response = _http.GetAsync(url).Result;
             response.EnsureSuccessStatusCode();
             return response.Content.ReadFromJsonAsync<T>().Result;
@@ -209,6 +237,27 @@ public class UsuarioAdapter : IUsuarioServicio
         catch
         {
             return null;
+        }
+    }
+
+    private void EnsureAuthorizationHeader()
+    {
+        try
+        {
+            var token = _httpContextAccessor?.HttpContext?.Session?.GetString(SessionKeys.JwtToken);
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                if (_http.DefaultRequestHeaders.Authorization == null || _http.DefaultRequestHeaders.Authorization.Parameter != token)
+                    _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+            else
+            {
+                _http.DefaultRequestHeaders.Authorization = null;
+            }
+        }
+        catch
+        {
+            // ignore session/accessor errors
         }
     }
 

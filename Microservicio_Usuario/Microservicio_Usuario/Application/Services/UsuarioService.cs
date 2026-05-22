@@ -7,6 +7,9 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.AspNetCore.Http;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace ServicioUsuario.Application.Services;
 
@@ -16,11 +19,13 @@ public class UsuarioService : IUsuarioServicio
     private readonly IUserCredentialProvisioningService _credentialProvisioning;
 
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
-    public UsuarioService(UsuarioRepository repositorio, IUserCredentialProvisioningService credentialProvisioning, IJwtTokenGenerator jwtTokenGenerator)
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    public UsuarioService(UsuarioRepository repositorio, IUserCredentialProvisioningService credentialProvisioning, IJwtTokenGenerator jwtTokenGenerator, IHttpContextAccessor httpContextAccessor)
     {
         _repositorio = repositorio;
         _credentialProvisioning = credentialProvisioning;
         _jwtTokenGenerator = jwtTokenGenerator;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public Task<List<UsuarioDto>> GetAllAsync()
@@ -73,7 +78,7 @@ public class UsuarioService : IUsuarioServicio
 
         var usuario = new Usuario
         {
-            UsuarioSesionId = dto.UsuarioSesionId,
+            UsuarioSesionId = GetCurrentUserId(),
             CI = dto.CI?.Trim() ?? string.Empty,
             Nombres = NormalizeDisplayName(dto.Nombres),
             PrimerApellido = NormalizeDisplayName(dto.PrimerApellido),
@@ -121,7 +126,7 @@ public class UsuarioService : IUsuarioServicio
         if (usuario == null)
             return Task.FromResult<UsuarioDto?>(null);
 
-        usuario.UsuarioSesionId = dto.UsuarioSesionId;
+        usuario.UsuarioSesionId = GetCurrentUserId();
         usuario.CI = dto.CI;
         usuario.Nombres = NormalizeDisplayName(dto.Nombres);
         usuario.PrimerApellido = NormalizeDisplayName(dto.PrimerApellido);
@@ -204,7 +209,7 @@ public class UsuarioService : IUsuarioServicio
         }
 
         usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(nueva);
-        usuario.UsuarioSesionId = usuarioId;
+        usuario.UsuarioSesionId = GetCurrentUserId();
         usuario.FechaActualizacion = DateTime.UtcNow;
 
         _repositorio.Update(usuario);
@@ -256,6 +261,20 @@ public class UsuarioService : IUsuarioServicio
             Estado = usuario.Estado,
             DebeCambiarPassword = IsTemporaryPasswordHash(usuario.PasswordHash)
         };
+    }
+
+    private int? GetCurrentUserId()
+    {
+        var httpContext = _httpContextAccessor?.HttpContext;
+        if (httpContext?.User?.Identity?.IsAuthenticated != true)
+            return null;
+
+        var sub = httpContext.User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
+                  ?? httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (int.TryParse(sub, out var id))
+            return id;
+        return null;
     }
 
     private static (bool IsValid, string ErrorMessage) ValidatePasswordPolicy(string password)

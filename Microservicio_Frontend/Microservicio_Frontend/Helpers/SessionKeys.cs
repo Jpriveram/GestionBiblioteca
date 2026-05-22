@@ -6,6 +6,7 @@ public static class SessionKeys
     public const string NombreUsuario = "NombreUsuario";
     public const string Rol = "Rol";
     public const string DebeCambiarPassword = "DebeCambiarPassword";
+    public const string JwtToken = "JwtToken";
 }
 
 public class RouteTokenService

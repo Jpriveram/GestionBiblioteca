@@ -73,6 +73,7 @@ public class UsuarioService : IUsuarioServicio
 
         var usuario = new Usuario
         {
+            UsuarioSesionId = dto.UsuarioSesionId,
             CI = dto.CI?.Trim() ?? string.Empty,
             Nombres = NormalizeDisplayName(dto.Nombres),
             PrimerApellido = NormalizeDisplayName(dto.PrimerApellido),
@@ -119,6 +120,7 @@ public class UsuarioService : IUsuarioServicio
         if (usuario == null)
             return Task.FromResult<UsuarioDto?>(null);
 
+        usuario.UsuarioSesionId = dto.UsuarioSesionId;
         usuario.CI = dto.CI;
         usuario.Nombres = NormalizeDisplayName(dto.Nombres);
         usuario.PrimerApellido = NormalizeDisplayName(dto.PrimerApellido);
@@ -129,7 +131,7 @@ public class UsuarioService : IUsuarioServicio
         usuario.Estado = dto.Estado;
         usuario.FechaActualizacion = DateTime.UtcNow;
 
-        // TODO: Implementar actualización en repositorio
+        _repositorio.Update(usuario);
         return Task.FromResult<UsuarioDto?>(MapToDto(usuario));
     }
 
@@ -140,7 +142,7 @@ public class UsuarioService : IUsuarioServicio
             return Task.FromResult(false);
 
         usuario.Estado = false;
-        // TODO: Implementar eliminación lógica en repositorio
+        _repositorio.Update(usuario);
         return Task.FromResult(true);
     }
 
@@ -241,6 +243,7 @@ public class UsuarioService : IUsuarioServicio
         return new UsuarioDto
         {
             UsuarioId = usuario.UsuarioId,
+            UsuarioSesionId = usuario.UsuarioSesionId,
             CI = usuario.CI,
             Nombres = NormalizeDisplayName(usuario.Nombres),
             PrimerApellido = NormalizeDisplayName(usuario.PrimerApellido),

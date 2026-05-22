@@ -7,6 +7,7 @@
     var debeCambiarPassword = string.Equals(Context.Session.GetString(SessionKeys.DebeCambiarPassword), "true", StringComparison.OrdinalIgnoreCase);
     var changePasswordError = TempData["ChangePasswordError"]?.ToString();
     var changePasswordOk = TempData["ChangePasswordOk"]?.ToString();
+    var changePasswordOkVisible = !string.IsNullOrWhiteSpace(changePasswordOk);
     var esAdmin = string.Equals(rolSesion, "Admin", StringComparison.OrdinalIgnoreCase);
     var esBibliotecario = string.Equals(rolSesion, "Bibliotecario", StringComparison.OrdinalIgnoreCase);
     var esLector = string.Equals(rolSesion, "Lector", StringComparison.OrdinalIgnoreCase);
@@ -287,13 +288,6 @@
                     </div>
                 }
 
-                @if (!string.IsNullOrWhiteSpace(changePasswordOk))
-                {
-                    <div class="alert-custom alert-success-custom" style="margin-bottom:12px;">
-                        @changePasswordOk
-                    </div>
-                }
-
                   <div class="password-wrapper">
                       <input type="password"
                           name="passwordActualModal"
@@ -348,10 +342,6 @@
                       </button>
                   </div>
 
-                <small class="form-text" style="color: #fff;">
-                    Minimo 8 caracteres, al menos 1 mayuscula, 1 minuscula, 1 numero y 1 caracter especial.
-                </small>
-
                 <div class="modal-buttons" style="margin-top:12px;">
                     <button type="submit" class="btn-login-modal">Actualizar</button>
 
@@ -361,6 +351,26 @@
                     }
                 </div>
             </form>
+        </div>
+    </div>
+}
+
+@if (changePasswordOkVisible)
+{
+    <div id="modalCambioPasswordExito" class="custom-modal">
+        <div class="modal-box modal-login-box">
+            <div class="modal-icon login">
+                <img src="~/assets/icons/check_circle_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                     class="icono-modal"
+                     alt="Cambio exitoso" />
+            </div>
+
+            <h2>Contraseña actualizada</h2>
+            <p>@changePasswordOk</p>
+
+            <div class="modal-buttons" style="margin-top:12px;">
+                <button type="button" class="btn-login-modal" onclick="cerrarModalCambioPasswordExito()">Entendido</button>
+            </div>
         </div>
     </div>
 }
@@ -390,6 +400,7 @@
 @await RenderSectionAsync("Scripts", required: false)
 <script>
     var primerInicioForzado = @(debeCambiarPassword ? "true" : "false");
+    var cambioPasswordExitoVisible = @(changePasswordOkVisible ? "true" : "false");
 
     function abrirModalLogin() {
         var modal = document.getElementById("modalLogin");
@@ -418,6 +429,20 @@
         }
 
         var modal = document.getElementById("modalCambiarPassword");
+        if (modal) {
+            modal.style.display = "none";
+        }
+    }
+
+    function abrirModalCambioPasswordExito() {
+        var modal = document.getElementById("modalCambioPasswordExito");
+        if (modal) {
+            modal.style.display = "flex";
+        }
+    }
+
+    function cerrarModalCambioPasswordExito() {
+        var modal = document.getElementById("modalCambioPasswordExito");
         if (modal) {
             modal.style.display = "none";
         }
@@ -475,6 +500,57 @@
         box.style.display = "block";
     }
 
+    function limpiarErrorCambiarPassword() {
+        var box = document.getElementById("mensajeCambiarPasswordModal");
+        if (!box) return;
+
+        box.style.display = "none";
+        box.textContent = "";
+        box.style.whiteSpace = "normal";
+    }
+
+    function validarPasswordSegura(password) {
+        var errores = [];
+
+        if (password.length < 8) {
+            errores.push("Mínimo 8 caracteres");
+        }
+
+        if (!/[A-Z]/.test(password)) {
+            errores.push("Al menos 1 mayúscula");
+        }
+
+        if (!/[a-z]/.test(password)) {
+            errores.push("Al menos 1 minúscula");
+        }
+
+        if (!/[0-9]/.test(password)) {
+            errores.push("Al menos 1 número");
+        }
+
+        if (!/[^a-zA-Z0-9]/.test(password)) {
+            errores.push("Al menos 1 carácter especial");
+        }
+
+        return errores;
+    }
+
+    function mostrarRequisitosPassword(mensajes) {
+        var box = document.getElementById("mensajeCambiarPasswordModal");
+        if (!box) return;
+
+        if (!mensajes || !mensajes.length) {
+            box.style.display = "none";
+            box.textContent = "";
+            box.style.whiteSpace = "normal";
+            return;
+        }
+
+        box.textContent = "La nueva contrasena no cumple:\n- " + mensajes.join("\n- ");
+        box.style.display = "block";
+        box.style.whiteSpace = "pre-line";
+    }
+
     document.addEventListener("DOMContentLoaded", function () {
         var form = document.getElementById("formLoginModal");
         var usuario = document.getElementById("loginNombreUsuario");
@@ -493,6 +569,10 @@
 
         if (primerInicioForzado || mensajeCambiarPasswordServidor) {
             abrirModalCambiarPassword();
+        }
+
+        if (cambioPasswordExitoVisible) {
+            abrirModalCambioPasswordExito();
         }
 
         function limpiarMensajes() {
@@ -545,7 +625,57 @@
                     mostrarErrorCambiarPassword("La nueva contrasena y su confirmacion no coinciden.");
                     return;
                 }
+
+                var erroresPassword = validarPasswordSegura(nueva);
+
+                if (erroresPassword.length > 0) {
+                    e.preventDefault();
+                    mostrarRequisitosPassword(erroresPassword);
+                    return;
+                }
+
+                limpiarErrorCambiarPassword();
             });
+
+            if (passwordNuevaModal) {
+                passwordNuevaModal.addEventListener("input", function () {
+                    var nueva = (passwordNuevaModal.value || "").trim();
+                    var erroresPassword = validarPasswordSegura(nueva);
+
+                    if (!nueva) {
+                        limpiarErrorCambiarPassword();
+                        return;
+                    }
+
+                    mostrarRequisitosPassword(erroresPassword);
+                });
+            }
+
+            if (passwordActualModal) {
+                passwordActualModal.addEventListener("input", function () {
+                    var box = document.getElementById("mensajeCambiarPasswordModal");
+                    if (box && box.textContent === "Debes completar todos los campos.") {
+                        limpiarErrorCambiarPassword();
+                    }
+                });
+            }
+
+            if (passwordConfirmacionModal) {
+                passwordConfirmacionModal.addEventListener("input", function () {
+                    var nueva = (passwordNuevaModal && passwordNuevaModal.value ? passwordNuevaModal.value : "").trim();
+                    var confirmacion = (passwordConfirmacionModal.value || "").trim();
+
+                    if (!nueva || !confirmacion) {
+                        return;
+                    }
+
+                    if (nueva !== confirmacion) {
+                        mostrarErrorCambiarPassword("La nueva contrasena y su confirmacion no coinciden.");
+                    } else {
+                        limpiarErrorCambiarPassword();
+                    }
+                });
+            }
         }
     });
 
@@ -558,6 +688,11 @@
         var modalCambiarPassword = document.getElementById("modalCambiarPassword");
         if (modalCambiarPassword && e.target === modalCambiarPassword) {
             cerrarModalCambiarPassword();
+        }
+
+        var modalCambioPasswordExito = document.getElementById("modalCambioPasswordExito");
+        if (modalCambioPasswordExito && e.target === modalCambioPasswordExito) {
+            cerrarModalCambioPasswordExito();
         }
     });
 

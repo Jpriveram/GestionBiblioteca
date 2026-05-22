@@ -5,6 +5,7 @@ POST {{HostAddress}}/api/Usuarios/login
 Content-Type: application/json
 
 {
-  "nombreUsuario": "JuaPabRiv",
-  "password": "Juan123."
+  "nombreUsuario": "admin",
+  "password": "admin
+  "
 }

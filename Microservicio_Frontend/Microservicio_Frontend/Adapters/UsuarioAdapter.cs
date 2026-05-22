@@ -167,7 +167,8 @@ public class UsuarioAdapter : IUsuarioServicio
             if (!response.IsSuccessStatusCode)
                 return Result<UsuarioDto>.Failure(new Error("Login", "Credenciales inválidas"));
 
-            var dto = response.Content.ReadFromJsonAsync<UsuarioDto>().Result;
+            var loginResponse = response.Content.ReadFromJsonAsync<LoginResponse>(JsonOptions).Result;
+            var dto = loginResponse?.Usuario;
             if (dto == null)
                 return Result<UsuarioDto>.Failure(new Error("Login", "Error al leer respuesta"));
 
@@ -186,6 +187,12 @@ public class UsuarioAdapter : IUsuarioServicio
         {
             return Result<UsuarioDto>.Failure(new Error("Login", ex.Message));
         }
+    }
+
+    private sealed class LoginResponse
+    {
+        public UsuarioDto? Usuario { get; set; }
+        public string? Token { get; set; }
     }
 
     private T? CallGet<T>(string url) where T : class

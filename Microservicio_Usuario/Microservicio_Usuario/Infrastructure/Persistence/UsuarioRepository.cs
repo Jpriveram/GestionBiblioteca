@@ -58,7 +58,8 @@ public class UsuarioRepository : IRepository<Usuario, int>
             using (var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection())
             {
                 connection.Open();
-                string query = "SELECT * FROM usuario;";
+                // Only return active users (Estado = 1) and order by PrimerApellido (then Nombres)
+                string query = "SELECT * FROM usuario WHERE Estado = 1 ORDER BY PrimerApellido ASC, Nombres ASC;";
                 using (MySqlCommand command = new MySqlCommand(query, connection))
                 {
                     using (MySqlDataReader reader = command.ExecuteReader())

@@ -1,6 +1,5 @@
 ﻿using System.Net.Http.Json;
 using Frontend.Dtos;
-using Frontend.Adapters;
 using Frontend.Helpers;
 
 namespace Frontend.Adapters;
@@ -11,7 +10,7 @@ public class AutorAdapter : IAutorServicio
 
     public AutorAdapter(IHttpClientFactory factory)
     {
-        _http = factory.CreateClient("ServicioPrestamo");
+        _http = factory.CreateClient("ServicioAutor");
     }
 
     public IEnumerable<AutorDto> Select(bool todos = false)
@@ -35,9 +34,12 @@ public class AutorAdapter : IAutorServicio
         {
             dto.Nombres = dto.Nombres.ToDisplayName();
             dto.Apellidos = dto.Apellidos.ToDisplayName();
+
             var response = _http.PostAsJsonAsync("api/autores", dto).Result;
+
             if (!response.IsSuccessStatusCode)
                 return Result<AutorDto>.Failure(new Error("Create", "Error al crear AutorDto"));
+
             var created = response.Content.ReadFromJsonAsync<AutorDto>().Result!;
             return Result<AutorDto>.Success(created);
         }
@@ -53,7 +55,9 @@ public class AutorAdapter : IAutorServicio
         {
             dto.Nombres = dto.Nombres.ToDisplayName();
             dto.Apellidos = dto.Apellidos.ToDisplayName();
+
             var response = _http.PutAsJsonAsync($"api/autores/{dto.AutorId}", dto).Result;
+
             return response.IsSuccessStatusCode
                 ? Result<AutorDto>.Success(dto)
                 : Result<AutorDto>.Failure(new Error("Update", "Error al actualizar"));
@@ -69,9 +73,12 @@ public class AutorAdapter : IAutorServicio
         try
         {
             var url = $"api/autores/{id}";
+
             if (usuarioSesionId.HasValue)
                 url += $"?sid={usuarioSesionId.Value}";
+
             var response = _http.DeleteAsync(url).Result;
+
             return response.IsSuccessStatusCode
                 ? Result.Success()
                 : Result.Failure(new Error("Delete", "Error al eliminar"));
@@ -87,10 +94,16 @@ public class AutorAdapter : IAutorServicio
         try
         {
             var response = _http.GetAsync("api/autores/activos").Result;
-            if (!response.IsSuccessStatusCode) return new();
-            return response.Content.ReadFromJsonAsync<Dictionary<int, string>>().Result ?? new();
+
+            if (!response.IsSuccessStatusCode)
+                return new Dictionary<int, string>();
+
+            return response.Content.ReadFromJsonAsync<Dictionary<int, string>>().Result ?? new Dictionary<int, string>();
         }
-        catch { return new(); }
+        catch
+        {
+            return new Dictionary<int, string>();
+        }
     }
 
     public bool ExisteAutorActivo(int autorId)
@@ -98,9 +111,15 @@ public class AutorAdapter : IAutorServicio
         try
         {
             var response = _http.GetAsync($"api/autores/{autorId}/existe").Result;
-            if (!response.IsSuccessStatusCode) return false;
+
+            if (!response.IsSuccessStatusCode)
+                return false;
+
             return response.Content.ReadFromJsonAsync<bool>().Result;
         }
-        catch { return false; }
+        catch
+        {
+            return false;
+        }
     }
 }

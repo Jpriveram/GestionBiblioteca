@@ -36,11 +36,13 @@ public class AutorService : IAutorService
     {
         ValidateCreateDto(dto);
 
+        var apellidos = NormalizeOptional(dto.Apellidos);
+
         var autor = new Autor
         {
             Nombres = NormalizeRequired(dto.Nombres),
-            PrimerApellido = NormalizeOptional(dto.PrimerApellido),
-            SegundoApellido = NormalizeOptional(dto.SegundoApellido),
+            PrimerApellido = apellidos,
+            SegundoApellido = null,
             Nacionalidad = NormalizeOptional(dto.Nacionalidad),
             FechaNacimiento = dto.FechaNacimiento,
             Biografia = NormalizeOptional(dto.Biografia),
@@ -62,9 +64,11 @@ public class AutorService : IAutorService
 
         ValidateUpdateDto(dto);
 
+        var apellidos = NormalizeOptional(dto.Apellidos);
+
         autor.Nombres = NormalizeRequired(dto.Nombres);
-        autor.PrimerApellido = NormalizeOptional(dto.PrimerApellido);
-        autor.SegundoApellido = NormalizeOptional(dto.SegundoApellido);
+        autor.PrimerApellido = apellidos;
+        autor.SegundoApellido = null;
         autor.Nacionalidad = NormalizeOptional(dto.Nacionalidad);
         autor.FechaNacimiento = dto.FechaNacimiento;
         autor.Biografia = NormalizeOptional(dto.Biografia);
@@ -100,6 +104,7 @@ public class AutorService : IAutorService
             Nombres = autor.Nombres,
             PrimerApellido = autor.PrimerApellido,
             SegundoApellido = autor.SegundoApellido,
+            Apellidos = BuildApellidos(autor.PrimerApellido, autor.SegundoApellido),
             Nacionalidad = autor.Nacionalidad,
             FechaNacimiento = autor.FechaNacimiento,
             Biografia = autor.Biografia,
@@ -114,7 +119,12 @@ public class AutorService : IAutorService
         if (dto is null)
             throw new InvalidOperationException(AutorErrors.DatosObligatorios.Message);
 
-        ValidateCommonFields(dto.Nombres, dto.PrimerApellido, dto.SegundoApellido, dto.Nacionalidad, dto.Biografia, dto.FechaNacimiento);
+        ValidateCommonFields(
+            dto.Nombres,
+            dto.Apellidos,
+            dto.Nacionalidad,
+            dto.Biografia,
+            dto.FechaNacimiento);
     }
 
     private static void ValidateUpdateDto(UpdateAutorDto dto)
@@ -122,13 +132,17 @@ public class AutorService : IAutorService
         if (dto is null)
             throw new InvalidOperationException(AutorErrors.DatosObligatorios.Message);
 
-        ValidateCommonFields(dto.Nombres, dto.PrimerApellido, dto.SegundoApellido, dto.Nacionalidad, dto.Biografia, dto.FechaNacimiento);
+        ValidateCommonFields(
+            dto.Nombres,
+            dto.Apellidos,
+            dto.Nacionalidad,
+            dto.Biografia,
+            dto.FechaNacimiento);
     }
 
     private static void ValidateCommonFields(
         string nombres,
-        string? primerApellido,
-        string? segundoApellido,
+        string? apellidos,
         string? nacionalidad,
         string? biografia,
         DateTime? fechaNacimiento)
@@ -137,8 +151,7 @@ public class AutorService : IAutorService
             throw new InvalidOperationException(AutorErrors.DatosObligatorios.Message);
 
         if (!ValidadorEntrada.TextoValido(nombres, 100) ||
-            !ValidadorEntrada.TextoValido(primerApellido, 100) ||
-            !ValidadorEntrada.TextoValido(segundoApellido, 100) ||
+            !ValidadorEntrada.TextoValido(apellidos, 200) ||
             !ValidadorEntrada.TextoValido(nacionalidad, 100) ||
             !ValidadorEntrada.TextoValido(biografia, 1000))
             throw new InvalidOperationException(AutorErrors.DatosInvalidos.Message);
@@ -156,5 +169,11 @@ public class AutorService : IAutorService
     {
         var normalizedValue = ValidadorEntrada.NormalizarEspacios(value);
         return string.IsNullOrWhiteSpace(normalizedValue) ? null : normalizedValue;
+    }
+
+    private static string? BuildApellidos(string? primerApellido, string? segundoApellido)
+    {
+        var apellidos = $"{primerApellido} {segundoApellido}".Trim();
+        return string.IsNullOrWhiteSpace(apellidos) ? null : apellidos;
     }
 }

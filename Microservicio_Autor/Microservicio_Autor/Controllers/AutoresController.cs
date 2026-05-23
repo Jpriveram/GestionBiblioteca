@@ -41,7 +41,7 @@ public class AutoresController : ControllerBase
         try
         {
             var autor = await _autorService.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetByIdAsync), new { id = autor.AutorId }, autor);
+            return Ok(autor);
         }
         catch (InvalidOperationException ex)
         {

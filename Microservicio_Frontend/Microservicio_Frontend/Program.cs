@@ -13,6 +13,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddHttpClient("ServicioUsuario", c =>
     c.BaseAddress = new Uri(builder.Configuration["ApiUrls:ServicioUsuario"] ?? "http://localhost:5292/"));
 
+builder.Services.AddHttpClient("ServicioMultas", c =>
+    c.BaseAddress = new Uri(builder.Configuration["ApiUrls:ServicioMultas"] ?? "http://localhost:5293/"));
+
 // Adapters (implementan interfaces que las páginas esperan)
 builder.Services.AddScoped<IAutorServicio, AutorAdapter>();
 builder.Services.AddScoped<ILibroServicio, LibroAdapter>();
@@ -20,6 +23,7 @@ builder.Services.AddScoped<IEjemplarServicio, EjemplarAdapter>();
 // builder.Services.AddScoped<IPrestamoServicio, PrestamoServicioAdapter>();
 // builder.Services.AddScoped<IDetalleServicio, DetalleServicioAdapter>();
 builder.Services.AddScoped<IUsuarioServicio, UsuarioAdapter>();
+builder.Services.AddScoped<IMultaServicio, MultaAdapter>();
 // builder.Services.AddScoped<IPrestamoFachada, PrestamoFachadaHttpAdapter>();
 // builder.Services.AddScoped<IAnulacionFachada, AnulacionFachadaAdapter>();
 // builder.Services.AddScoped<IEjemplarDisponibilidadFachada, EjemplarDisponibilidadFachadaAdapter>();

@@ -1,0 +1,339 @@
+@page "/Multas"
+@using Frontend.Dtos
+@using Frontend.Helpers
+@model Frontend.Pages.Multas.IndexModel
+@{
+    ViewData["Title"] = "Gestión de Multas";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/usuarios.css" />
+}
+
+<div class="usuarios-container">
+
+    <div class="page-header">
+        <div class="titulo-logo">
+            <h1>Gestión de Multas</h1>
+        </div>
+
+        <button type="button" class="btn-nuevo" onclick="abrirModalCrear()">
+            <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-btn" />
+            Nueva Multa
+        </button>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.MensajeOk))
+    {
+        <div class="alert-custom alert-success-custom">@Model.MensajeOk</div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Model.MensajeError))
+    {
+        <div class="alert-custom alert-danger-custom">@Model.MensajeError</div>
+    }
+
+    <!-- Filtro por usuario -->
+    <div style="margin-bottom:18px;">
+        <form method="get" class="d-flex gap-2 align-items-end">
+            <div style="flex:1; max-width:400px;">
+                <label class="form-label" style="color:#d1d5db; font-size:14px; margin-bottom:4px; display:block;">Buscar por nombre, apellido o CI</label>
+                <input type="text" name="busquedaUsuario" class="input-form" id="busquedaUsuario"
+                       value="@Model.BusquedaUsuario" placeholder="Ej: Juan Pérez o 12345678"
+                       autocomplete="off" />
+                <input type="hidden" name="usuarioIdFiltro" id="usuarioIdFiltro" value="@Model.UsuarioIdFiltro" />
+                <div id="sugerenciasUsuarios" class="sugerencias-lista" style="display:none;"></div>
+            </div>
+            <button type="submit" class="btn-nuevo" style="padding:12px 18px;">Filtrar</button>
+            @if (Model.UsuarioIdFiltro.HasValue)
+            {
+                <a href="/Multas" class="btn-eliminar" style="text-decoration:none; padding:12px 18px;">Limpiar</a>
+            }
+        </form>
+    </div>
+
+    <div class="tabla-container">
+        <table class="tabla-usuarios">
+            <thead>
+                <tr>
+                    <th>Usuario</th>
+                    <th>CI</th>
+                    <th>Monto</th>
+                    <th>Motivo</th>
+                    <th>Estado</th>
+                    <th>Registro</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var m in Model.Multas)
+                {
+                    var usuario = Model.Usuarios.FirstOrDefault(u => u.UsuarioId == m.UsuarioId);
+                    var nombreUsuario = usuario is not null
+                        ? $"{(usuario.Nombres ?? "")} {usuario.PrimerApellido ?? ""}".ToDisplayName()
+                        : $"ID: {m.UsuarioId}";
+                    var ciUsuario = usuario?.CI ?? "—";
+
+                    <tr>
+                        <td>@nombreUsuario</td>
+                        <td>@ciUsuario</td>
+                        <td>@m.Monto.ToString("C")</td>
+                        <td>@m.Motivo</td>
+                        <td>
+                            @if (m.Estado)
+                            {
+                                <span class="estado activo">Pendiente</span>
+                            }
+                            else
+                            {
+                                <span class="estado inactivo">Pagada</span>
+                            }
+                        </td>
+                        <td>@m.FechaRegistro.ToString("dd/MM/yyyy")</td>
+                        <td class="acciones">
+                            <button type="button" class="btn-editar"
+                                    onclick="abrirModalEditar('@m.Id', @m.Monto, '@m.Motivo.Replace("'", "\\'")', @m.Estado.ToString().ToLower())">
+                                <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-btn" />
+                                Editar
+                            </button>
+                            @if (m.Estado)
+                            {
+                                <button type="button" class="btn-eliminar"
+                                        onclick="abrirModalBaja('@m.Id')">
+                                    <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-btn" />
+                                    Baja
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Multas.Any())
+                {
+                    <tr><td colspan="7" style="text-align:center; padding:30px; color:#9ca3af;">No hay multas registradas.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- MODAL CREAR -->
+<div id="modalCrearMulta" class="modal">
+    <div class="modal-box">
+        <div class="modal-icon crear">
+            <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-modal" />
+        </div>
+        <h2>Nueva Multa</h2>
+        <p>Completa los datos para registrar una nueva multa.</p>
+
+        <form method="post" asp-page-handler="Crear" autocomplete="off" novalidate>
+            @Html.AntiForgeryToken()
+
+            <div id="mensajeValidacionCrear" class="text-error-summary" style="display:none;"></div>
+
+            <div class="usuario-form-grid">
+                <div class="field-group field-span-2">
+                    <label>Buscar usuario <span class="required-mark">*</span></label>
+                    <input type="text" class="input-form" id="buscarUsuarioCrear" placeholder="Nombre, apellido o CI" autocomplete="off" />
+                    <input type="hidden" asp-for="UsuarioId" id="usuarioIdCrear" />
+                    <div id="sugerenciasCrear" class="sugerencias-lista" style="display:none;"></div>
+                    <div id="usuarioSeleccionadoCrear" style="color:#6ee7b7; font-size:13px; margin-top:4px; display:none;"></div>
+                </div>
+                <div class="field-group">
+                    <label for="Monto">Monto <span class="required-mark">*</span></label>
+                    <input asp-for="Monto" class="input-form" id="montoCrear" type="number" step="0.01" min="0.01" placeholder="0.00" required />
+                </div>
+                <div class="field-group">
+                    <label for="Motivo">Motivo <span class="required-mark">*</span></label>
+                    <input asp-for="Motivo" class="input-form" id="motivoCrear" placeholder="Ej: Devolución tardía" required />
+                </div>
+            </div>
+
+            <div class="modal-buttons">
+                <button type="submit" class="btn-success">Registrar Multa</button>
+                <button type="button" class="btn-secondary" onclick="cerrarModalCrear()">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL EDITAR -->
+<div id="modalEditarMulta" class="modal">
+    <div class="modal-box">
+        <div class="modal-icon">
+            <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-modal" />
+        </div>
+        <h2>Editar Multa</h2>
+
+        <form method="post" asp-page-handler="Editar" autocomplete="off" novalidate>
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="EditId" id="editId" />
+
+            <div class="usuario-form-grid">
+                <div class="field-group">
+                    <label for="editMonto">Monto <span class="required-mark">*</span></label>
+                    <input asp-for="EditMonto" class="input-form" id="editMonto" type="number" step="0.01" min="0.01" required />
+                </div>
+                <div class="field-group">
+                    <label for="editEstado">Estado</label>
+                    <select asp-for="EditEstado" class="input-form" id="editEstado">
+                        <option value="true">Pendiente</option>
+                        <option value="false">Pagada</option>
+                    </select>
+                </div>
+                <div class="field-group field-span-2">
+                    <label for="editMotivo">Motivo <span class="required-mark">*</span></label>
+                    <input asp-for="EditMotivo" class="input-form" id="editMotivo" required />
+                </div>
+            </div>
+
+            <div class="modal-buttons">
+                <button type="submit" class="btn-success">Guardar Cambios</button>
+                <button type="button" class="btn-secondary" onclick="cerrarModalEditar()">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL BAJA -->
+<div id="modalBajaMulta" class="modal">
+    <div class="modal-box">
+        <div class="modal-icon">
+            <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-modal" />
+        </div>
+        <h2>Dar de baja multa</h2>
+        <p>¿Deseas dar de baja esta multa?</p>
+
+        <form method="post" asp-page-handler="Baja">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="bajaId" name="id" />
+            <div class="modal-buttons">
+                <button type="submit" class="btn-danger">Confirmar baja</button>
+                <button type="button" class="btn-secondary" onclick="cerrarModalBaja()">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // ── Datos de usuarios para autocompletado ──
+        const usuariosData = [
+            @foreach (var u in Model.Usuarios)
+            {
+                var nombre = $"{(u.Nombres ?? "").Trim()} {(u.PrimerApellido ?? "").Trim()} {(u.SegundoApellido ?? "").Trim()}".Trim();
+                var ci = u.CI ?? "";
+                @:{ id: @u.UsuarioId, nombre: "@Html.Raw(nombre.Replace("\"", "\\\""))", ci: "@Html.Raw(ci.Replace("\"", "\\\""))" },
+            }
+        ];
+
+        function buscarUsuarios(texto, contenedorId, callback) {
+            const cont = document.getElementById(contenedorId);
+            if (!texto || texto.length < 2) { cont.style.display = "none"; return; }
+
+            const q = texto.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            const filtrados = usuariosData.filter(u => {
+                const nombre = u.nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                const ci = u.ci.toLowerCase();
+                return nombre.includes(q) || ci.includes(q);
+            }).slice(0, 8);
+
+            if (!filtrados.length) { cont.style.display = "none"; return; }
+
+            cont.innerHTML = filtrados.map(u =>
+                `<div class="sugerencia-item" onclick="${callback}(${u.id}, '${u.nombre.replace(/'/g, "\\'")}', '${u.ci.replace(/'/g, "\\'")}')">${u.nombre} (CI: ${u.ci})</div>`
+            ).join("");
+            cont.style.display = "block";
+        }
+
+        // ── Modal Crear ──
+        function abrirModalCrear() {
+            document.getElementById("modalCrearMulta").style.display = "flex";
+            document.getElementById("buscarUsuarioCrear").focus();
+        }
+        function cerrarModalCrear() {
+            document.getElementById("modalCrearMulta").style.display = "none";
+            document.getElementById("buscarUsuarioCrear").value = "";
+            document.getElementById("usuarioIdCrear").value = "";
+            document.getElementById("usuarioSeleccionadoCrear").style.display = "none";
+            document.getElementById("sugerenciasCrear").style.display = "none";
+        }
+        function seleccionarUsuarioCrear(id, nombre, ci) {
+            document.getElementById("usuarioIdCrear").value = id;
+            document.getElementById("buscarUsuarioCrear").value = nombre;
+            document.getElementById("usuarioSeleccionadoCrear").textContent = "Usuario: " + nombre + " (CI: " + ci + ")";
+            document.getElementById("usuarioSeleccionadoCrear").style.display = "block";
+            document.getElementById("sugerenciasCrear").style.display = "none";
+            document.getElementById("montoCrear").focus();
+        }
+        document.getElementById("buscarUsuarioCrear").addEventListener("input", function() {
+            buscarUsuarios(this.value, "sugerenciasCrear", "seleccionarUsuarioCrear");
+        });
+
+        // ── Modal Editar ──
+        function abrirModalEditar(id, monto, motivo, estado) {
+            document.getElementById("editId").value = id;
+            document.getElementById("editMonto").value = monto;
+            document.getElementById("editMotivo").value = motivo;
+            document.getElementById("editEstado").value = estado ? "true" : "false";
+            document.getElementById("modalEditarMulta").style.display = "flex";
+        }
+        function cerrarModalEditar() { document.getElementById("modalEditarMulta").style.display = "none"; }
+
+        // ── Modal Baja ──
+        function abrirModalBaja(id) {
+            document.getElementById("bajaId").value = id;
+            document.getElementById("modalBajaMulta").style.display = "flex";
+        }
+        function cerrarModalBaja() { document.getElementById("modalBajaMulta").style.display = "none"; }
+
+        // ── Filtro de búsqueda en la página ──
+        document.getElementById("busquedaUsuario").addEventListener("input", function() {
+            buscarUsuarios(this.value, "sugerenciasUsuarios", "seleccionarUsuarioFiltro");
+        });
+        function seleccionarUsuarioFiltro(id, nombre, ci) {
+            document.getElementById("usuarioIdFiltro").value = id;
+            document.getElementById("busquedaUsuario").value = nombre + " (CI: " + ci + ")";
+            document.getElementById("sugerenciasUsuarios").style.display = "none";
+            document.querySelector("form[method='get']").submit();
+        }
+
+        // Cerrar modals al hacer clic fuera
+        window.addEventListener("click", function(e) {
+            if (e.target.classList.contains("modal")) e.target.style.display = "none";
+        });
+        // Cerrar sugerencias al hacer clic fuera
+        document.addEventListener("click", function(e) {
+            if (!e.target.closest(".sugerencias-lista") && !e.target.closest("#busquedaUsuario") && !e.target.closest("#buscarUsuarioCrear")) {
+                document.getElementById("sugerenciasUsuarios").style.display = "none";
+                document.getElementById("sugerenciasCrear").style.display = "none";
+            }
+        });
+    </script>
+}
+
+<style>
+    .btn-editar {
+        display: inline-flex; align-items: center; gap: 4px;
+        background: #2563eb; color: #fff; padding: 5px 8px;
+        border-radius: 6px; border: none; cursor: pointer;
+        font-weight: 600; font-size: 12px; margin-right: 4px;
+    }
+    .btn-editar:hover { background: #3b82f6; }
+    .btn-editar .icono-btn { filter: brightness(0) invert(1); width: 14px; }
+
+    /* Botones mas compactos en la tabla de multas */
+    .tabla-usuarios .btn-eliminar {
+        padding: 5px 8px; font-size: 12px; min-width: auto; gap: 4px;
+    }
+    .tabla-usuarios .btn-eliminar .icono-btn { width: 14px; }
+    .sugerencias-lista {
+        position: absolute; z-index: 1000; background: #1f1f1f;
+        border: 1px solid #333; border-radius: 8px; max-height: 200px;
+        overflow-y: auto; width: 100%; box-shadow: 0 8px 20px rgba(0,0,0,.5);
+    }
+    .sugerencia-item {
+        padding: 10px 14px; cursor: pointer; color: #d1d5db;
+        border-bottom: 1px solid #2a2a2a; font-size: 14px;
+    }
+    .sugerencia-item:hover { background: #10a37f; color: #fff; }
+</style>

@@ -8,7 +8,6 @@ public class Autor
     public string? SegundoApellido { get; set; }
     public string? Nacionalidad { get; set; }
     public DateTime? FechaNacimiento { get; set; }
-    public string? Biografia { get; set; }
     public bool Estado { get; set; } = true;
     public DateTime FechaRegistro { get; set; } = DateTime.UtcNow;
     public DateTime? UltimaActualizacion { get; set; }

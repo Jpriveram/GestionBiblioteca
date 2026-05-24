@@ -50,7 +50,6 @@ public class AutorService : IAutorService
             SegundoApellido = null,
             Nacionalidad = NormalizeOptional(dto.Nacionalidad),
             FechaNacimiento = dto.FechaNacimiento,
-            Biografia = NormalizeOptional(dto.Biografia),
             Estado = true,
             FechaRegistro = DateTime.UtcNow,
             UsuarioSesionId = GetCurrentUserId()
@@ -77,7 +76,6 @@ public class AutorService : IAutorService
         autor.SegundoApellido = null;
         autor.Nacionalidad = NormalizeOptional(dto.Nacionalidad);
         autor.FechaNacimiento = dto.FechaNacimiento;
-        autor.Biografia = NormalizeOptional(dto.Biografia);
         autor.Estado = dto.Estado;
         autor.UltimaActualizacion = DateTime.UtcNow;
         autor.UsuarioSesionId = GetCurrentUserId();
@@ -115,7 +113,6 @@ public class AutorService : IAutorService
             Apellidos = BuildApellidos(autor.PrimerApellido, autor.SegundoApellido),
             Nacionalidad = autor.Nacionalidad,
             FechaNacimiento = autor.FechaNacimiento,
-            Biografia = autor.Biografia,
             Estado = autor.Estado,
             FechaRegistro = autor.FechaRegistro,
             UltimaActualizacion = autor.UltimaActualizacion,
@@ -128,12 +125,7 @@ public class AutorService : IAutorService
         if (dto is null)
             throw new InvalidOperationException(AutorErrors.DatosObligatorios.Message);
 
-        ValidateCommonFields(
-            dto.Nombres,
-            dto.Apellidos,
-            dto.Nacionalidad,
-            dto.Biografia,
-            dto.FechaNacimiento);
+        ValidateCommonFields(dto.Nombres, dto.Apellidos, dto.Nacionalidad, dto.FechaNacimiento);
     }
 
     private static void ValidateUpdateDto(UpdateAutorDto dto)
@@ -141,19 +133,13 @@ public class AutorService : IAutorService
         if (dto is null)
             throw new InvalidOperationException(AutorErrors.DatosObligatorios.Message);
 
-        ValidateCommonFields(
-            dto.Nombres,
-            dto.Apellidos,
-            dto.Nacionalidad,
-            dto.Biografia,
-            dto.FechaNacimiento);
+        ValidateCommonFields(dto.Nombres, dto.Apellidos, dto.Nacionalidad, dto.FechaNacimiento);
     }
 
     private static void ValidateCommonFields(
         string nombres,
         string? apellidos,
         string? nacionalidad,
-        string? biografia,
         DateTime? fechaNacimiento)
     {
         if (string.IsNullOrWhiteSpace(nombres))
@@ -161,8 +147,7 @@ public class AutorService : IAutorService
 
         if (!ValidadorEntrada.TextoValido(nombres, 100) ||
             !ValidadorEntrada.TextoValido(apellidos, 200) ||
-            !ValidadorEntrada.TextoValido(nacionalidad, 100) ||
-            !ValidadorEntrada.TextoValido(biografia, 1000))
+            !ValidadorEntrada.TextoValido(nacionalidad, 100))
             throw new InvalidOperationException(AutorErrors.DatosInvalidos.Message);
 
         if (fechaNacimiento.HasValue && fechaNacimiento.Value.Date > DateTime.UtcNow.Date)
@@ -197,6 +182,7 @@ public class AutorService : IAutorService
 
         if (int.TryParse(sub, out var id))
             return id;
+
         return null;
     }
 }

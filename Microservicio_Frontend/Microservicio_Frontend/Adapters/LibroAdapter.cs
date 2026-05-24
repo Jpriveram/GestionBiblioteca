@@ -10,7 +10,7 @@ namespace Frontend.Adapters;
 public class LibroAdapter : ILibroServicio
 {
     private readonly HttpClient _http;
-    public LibroAdapter(IHttpClientFactory f) => _http = f.CreateClient("ServicioPrestamo");
+    public LibroAdapter(IHttpClientFactory f) => _http = f.CreateClient("ServicioLibroEjemplar");
 
     public IEnumerable<LibroDto> Select(bool todos = false) => CallGet<List<LibroDto>>(todos ? "api/libros?todos=true" : "api/libros") ?? new();
     public LibroDto? GetById(int id) => CallGet<LibroDto>($"api/libros/{id}");

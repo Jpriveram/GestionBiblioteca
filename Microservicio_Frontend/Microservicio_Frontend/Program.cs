@@ -16,6 +16,9 @@ builder.Services.AddHttpClient("ServicioUsuario", c =>
 builder.Services.AddHttpClient("ServicioMultas", c =>
     c.BaseAddress = new Uri(builder.Configuration["ApiUrls:ServicioMultas"] ?? "http://localhost:5293/"));
 
+builder.Services.AddHttpClient("ServicioAutor", c =>
+    c.BaseAddress = new Uri(builder.Configuration["ApiUrls:ServicioAutor"] ?? "http://localhost:5045/"));
+
 // Adapters (implementan interfaces que las páginas esperan)
 builder.Services.AddScoped<IAutorServicio, AutorAdapter>();
 builder.Services.AddScoped<ILibroServicio, LibroAdapter>();

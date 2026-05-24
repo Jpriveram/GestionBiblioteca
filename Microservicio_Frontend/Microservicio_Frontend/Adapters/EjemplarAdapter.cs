@@ -17,18 +17,21 @@ public class EjemplarAdapter : IEjemplarServicio
     public Result<EjemplarDto> Create(EjemplarDto d) => CallPostR<EjemplarDto>("api/ejemplares", d);
     public Result<EjemplarDto> Update(EjemplarDto d) => CallPutR<EjemplarDto>($"api/ejemplares/{d.EjemplarId}", d);
     public Result Delete(EjemplarDto d) => CallDeleteR($"api/ejemplares/{d.EjemplarId}");
-    public Dictionary<int, string> ObtenerTitulosLibros() => CallGet<Dictionary<int, string>>("api/libros/titulos") ?? new();
+    public Dictionary<int, string> ObtenerTitulosLibros()
+    {
+        var libros = CallGet<List<LibroDto>>("api/libros") ?? new();
+
+        return libros.ToDictionary(
+            l => l.LibroId,
+            l => l.Titulo
+        );
+    }
     public IEnumerable<LibroDto> ObtenerLibrosActivos() =>
         (CallGet<List<LibroDto>>("api/libros") ?? new()).Where(l => l.Estado);
     public bool ExisteLibroActivo(int id)
     {
-        try
-        {
-            var r = _http.GetAsync($"api/ejemplares/libro/{id}/existe").Result;
-            if (!r.IsSuccessStatusCode) return false;
-            return r.Content.ReadFromJsonAsync<bool>().Result;
-        }
-        catch { return false; }
+        var libro = CallGet<LibroDto>($"api/libros/{id}");
+        return libro != null && libro.Estado;
     }
     public Dictionary<int, string> ObtenerEjemplaresDisponibles() => CallGet<Dictionary<int, string>>("api/ejemplares/disponibles") ?? new();
     public Result ValidarEjemplar(EjemplarDto e) => Result.Success();

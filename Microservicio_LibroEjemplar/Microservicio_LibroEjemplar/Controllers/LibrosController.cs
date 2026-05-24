@@ -58,7 +58,7 @@ public class LibrosController : ControllerBase
         try
         {
             var libro = await _libroService.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetByIdAsync), new { id = libro.LibroId }, libro);
+            return Ok(libro);
         }
         catch (InvalidOperationException ex)
         {

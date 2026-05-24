@@ -65,7 +65,7 @@ public class EjemplaresController : ControllerBase
         try
         {
             var ejemplar = await _ejemplarService.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetByIdAsync), new { id = ejemplar.EjemplarId }, ejemplar);
+            return Ok(ejemplar);
         }
         catch (InvalidOperationException ex)
         {

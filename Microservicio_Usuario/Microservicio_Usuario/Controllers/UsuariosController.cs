@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using ServicioUsuario.Application.Dtos;
 using ServicioUsuario.Application.Services;
 using ServicioUsuario.Application.Interfaces;
@@ -7,6 +8,7 @@ namespace ServicioUsuario.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class UsuariosController : ControllerBase
 {
     private readonly IUsuarioServicio _usuarioService;
@@ -94,6 +96,7 @@ public class UsuariosController : ControllerBase
     }
 
     [HttpPost("login")]
+    [AllowAnonymous]
     public async Task<ActionResult> Login([FromBody] LoginDto dto)
     {
         var result = await _usuarioService.LoginAsync(dto.NombreUsuario, dto.Password);

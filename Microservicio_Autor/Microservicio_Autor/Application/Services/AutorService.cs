@@ -4,16 +4,21 @@ using Microservicio_Autor.Domain.Entities;
 using Microservicio_Autor.Domain.Errors;
 using Microservicio_Autor.Domain.Validations;
 using Microservicio_Autor.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Http;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace Microservicio_Autor.Application.Services;
 
 public class AutorService : IAutorService
 {
     private readonly AutorRepository _repository;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public AutorService(AutorRepository repository)
+    public AutorService(AutorRepository repository, IHttpContextAccessor httpContextAccessor)
     {
         _repository = repository;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public Task<List<AutorDto>> GetAllAsync()
@@ -47,7 +52,8 @@ public class AutorService : IAutorService
             FechaNacimiento = dto.FechaNacimiento,
             Biografia = NormalizeOptional(dto.Biografia),
             Estado = true,
-            FechaRegistro = DateTime.UtcNow
+            FechaRegistro = DateTime.UtcNow,
+            UsuarioSesionId = GetCurrentUserId()
         };
 
         _repository.Insert(autor);
@@ -74,6 +80,7 @@ public class AutorService : IAutorService
         autor.Biografia = NormalizeOptional(dto.Biografia);
         autor.Estado = dto.Estado;
         autor.UltimaActualizacion = DateTime.UtcNow;
+        autor.UsuarioSesionId = GetCurrentUserId();
 
         _repository.Update(autor);
         _repository.SaveChanges();
@@ -89,6 +96,7 @@ public class AutorService : IAutorService
 
         autor.Estado = false;
         autor.UltimaActualizacion = DateTime.UtcNow;
+        autor.UsuarioSesionId = GetCurrentUserId();
 
         _repository.Update(autor);
         _repository.SaveChanges();
@@ -110,7 +118,8 @@ public class AutorService : IAutorService
             Biografia = autor.Biografia,
             Estado = autor.Estado,
             FechaRegistro = autor.FechaRegistro,
-            UltimaActualizacion = autor.UltimaActualizacion
+            UltimaActualizacion = autor.UltimaActualizacion,
+            UsuarioSesionId = autor.UsuarioSesionId
         };
     }
 
@@ -175,5 +184,19 @@ public class AutorService : IAutorService
     {
         var apellidos = $"{primerApellido} {segundoApellido}".Trim();
         return string.IsNullOrWhiteSpace(apellidos) ? null : apellidos;
+    }
+
+    private int? GetCurrentUserId()
+    {
+        var httpContext = _httpContextAccessor?.HttpContext;
+        if (httpContext?.User?.Identity?.IsAuthenticated != true)
+            return null;
+
+        var sub = httpContext.User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
+                  ?? httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (int.TryParse(sub, out var id))
+            return id;
+        return null;
     }
 }

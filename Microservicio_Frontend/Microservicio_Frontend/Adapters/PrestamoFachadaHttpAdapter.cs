@@ -1,6 +1,8 @@
 using System.Net.Http.Json;
+using System.Net.Http.Headers;
 using Frontend.Dtos;
 using Frontend.Helpers;
+using Microsoft.AspNetCore.Http;
 
 namespace Frontend.Adapters;
 
@@ -9,12 +11,14 @@ public class PrestamoFachadaHttpAdapter : IPrestamoFachada
     private readonly HttpClient _http;
     private readonly IEjemplarServicio _ejemplarServicio;
     private readonly IUsuarioServicio _usuarioServicio;
+    private readonly IHttpContextAccessor? _httpContextAccessor;
 
-    public PrestamoFachadaHttpAdapter(IHttpClientFactory factory, IEjemplarServicio ejemplarServicio, IUsuarioServicio usuarioServicio)
+    public PrestamoFachadaHttpAdapter(IHttpClientFactory factory, IEjemplarServicio ejemplarServicio, IUsuarioServicio usuarioServicio, IHttpContextAccessor httpContextAccessor)
     {
         _http = factory.CreateClient("ServicioPrestamo");
         _ejemplarServicio = ejemplarServicio;
         _usuarioServicio = usuarioServicio;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public IEnumerable<KeyValuePair<int, string>> BuscarEjemplaresActivos(string q)
@@ -56,6 +60,7 @@ public class PrestamoFachadaHttpAdapter : IPrestamoFachada
         {
             var ejemplares = ejemplarIds.Select(id => new { ejemplarId = id, observacionesSalida }).ToList();
 
+            EnsureAuthorizationHeader();
             var response = _http.PostAsJsonAsync("api/prestamos", new
             {
                 lectorId,
@@ -82,6 +87,7 @@ public class PrestamoFachadaHttpAdapter : IPrestamoFachada
         {
             var ejemplares = detallesEjemplares.Select(d => new { ejemplarId = d.EjemplarId, observacionesSalida = d.ObservacionesSalida }).ToList();
 
+            EnsureAuthorizationHeader();
             var response = _http.PostAsJsonAsync("api/prestamos", new
             {
                 lectorId,
@@ -106,6 +112,7 @@ public class PrestamoFachadaHttpAdapter : IPrestamoFachada
     {
         try
         {
+            EnsureAuthorizationHeader();
             var response = _http.PostAsJsonAsync("api/prestamos", p).Result;
             return response.IsSuccessStatusCode ? Result.Success() : Result.Failure(new Error("Prestamo", "Error"));
         }
@@ -119,6 +126,7 @@ public class PrestamoFachadaHttpAdapter : IPrestamoFachada
     {
         try
         {
+            EnsureAuthorizationHeader();
             var response = _http.PostAsJsonAsync("api/prestamos/batch", prestamos).Result;
             return response.IsSuccessStatusCode ? Result.Success() : Result.Failure(new Error("Prestamo", "Error"));
         }
@@ -132,6 +140,7 @@ public class PrestamoFachadaHttpAdapter : IPrestamoFachada
     {
         try
         {
+            EnsureAuthorizationHeader();
             var result = _http.GetAsync($"api/prestamos/activos/count/{lectorId}").Result;
             if (!result.IsSuccessStatusCode) return 0;
             var count = result.Content.ReadFromJsonAsync<int>().Result;
@@ -147,6 +156,7 @@ public class PrestamoFachadaHttpAdapter : IPrestamoFachada
     {
         try
         {
+            EnsureAuthorizationHeader();
             var result = _http.GetAsync($"api/prestamos/{id}").Result;
             if (!result.IsSuccessStatusCode) return null;
             return result.Content.ReadFromJsonAsync<PrestamoDto>().Result;
@@ -209,6 +219,27 @@ public class PrestamoFachadaHttpAdapter : IPrestamoFachada
         catch
         {
             return new List<object>();
+        }
+    }
+
+    private void EnsureAuthorizationHeader()
+    {
+        try
+        {
+            var token = _httpContextAccessor?.HttpContext?.Session?.GetString(SessionKeys.JwtToken);
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                if (_http.DefaultRequestHeaders.Authorization == null || _http.DefaultRequestHeaders.Authorization.Parameter != token)
+                    _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+            else
+            {
+                _http.DefaultRequestHeaders.Authorization = null;
+            }
+        }
+        catch
+        {
+            // ignore
         }
     }
 }

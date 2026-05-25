@@ -1,6 +1,8 @@
 ﻿using System.Net.Http.Json;
+using System.Net.Http.Headers;
 using Frontend.Dtos;
 using Frontend.Helpers;
+using Microsoft.AspNetCore.Http;
 
 namespace Frontend.Adapters;
 
@@ -50,15 +52,19 @@ public class AnulacionFachadaAdapter : IAnulacionFachada
 {
     private readonly HttpClient _http;
 
-    public AnulacionFachadaAdapter(IHttpClientFactory factory)
+    private readonly IHttpContextAccessor? _httpContextAccessor;
+
+    public AnulacionFachadaAdapter(IHttpClientFactory factory, IHttpContextAccessor httpContextAccessor)
     {
         _http = factory.CreateClient("ServicioPrestamo");
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public Result AnularPrestamo(int id, int? uid, string m)
     {
         try
         {
+            EnsureAuthorizationHeader();
             var response = _http.PostAsJsonAsync($"api/prestamos/{id}/anular", new { usuarioSesionId = uid, motivo = m }).Result;
             return response.IsSuccessStatusCode
                 ? Result.Success()
@@ -67,6 +73,27 @@ public class AnulacionFachadaAdapter : IAnulacionFachada
         catch (Exception ex)
         {
             return Result.Failure(new Error("Anulacion", ex.Message));
+        }
+    }
+
+    private void EnsureAuthorizationHeader()
+    {
+        try
+        {
+            var token = _httpContextAccessor?.HttpContext?.Session?.GetString(SessionKeys.JwtToken);
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                if (_http.DefaultRequestHeaders.Authorization == null || _http.DefaultRequestHeaders.Authorization.Parameter != token)
+                    _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+            else
+            {
+                _http.DefaultRequestHeaders.Authorization = null;
+            }
+        }
+        catch
+        {
+            // ignore
         }
     }
 }

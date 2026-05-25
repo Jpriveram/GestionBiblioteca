@@ -1,24 +1,29 @@
 using System.Net.Http.Json;
+using System.Net.Http.Headers;
 using System.Text.Json;
 using Frontend.Dtos;
 using Frontend.Helpers;
+using Microsoft.AspNetCore.Http;
 
 namespace Frontend.Adapters;
 
 public class MultaAdapter : IMultaServicio
 {
     private readonly HttpClient _http;
+    private readonly IHttpContextAccessor? _httpContextAccessor;
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
-    public MultaAdapter(IHttpClientFactory factory)
+    public MultaAdapter(IHttpClientFactory factory, IHttpContextAccessor httpContextAccessor)
     {
         _http = factory.CreateClient("ServicioMultas");
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<IEnumerable<MultaDto>> SelectAsync(int? usuarioId = null)
     {
         try
         {
+            EnsureAuthorizationHeader();
             var url = usuarioId.HasValue ? $"api/multas?usuarioId={usuarioId.Value}" : "api/multas";
             var response = await _http.GetAsync(url);
             if (!response.IsSuccessStatusCode) return new List<MultaDto>();
@@ -35,6 +40,7 @@ public class MultaAdapter : IMultaServicio
     {
         try
         {
+            EnsureAuthorizationHeader();
             var response = await _http.GetAsync($"api/multas/{id}");
             if (!response.IsSuccessStatusCode) return null;
             return await response.Content.ReadFromJsonAsync<MultaDto>(JsonOptions);
@@ -58,6 +64,7 @@ public class MultaAdapter : IMultaServicio
                 usuarioSesionId = dto.UsuarioSesionId
             };
 
+            EnsureAuthorizationHeader();
             var response = await _http.PostAsJsonAsync("api/multas", payload);
             if (!response.IsSuccessStatusCode)
             {
@@ -87,6 +94,7 @@ public class MultaAdapter : IMultaServicio
                 usuarioSesionId = dto.UsuarioSesionId
             };
 
+            EnsureAuthorizationHeader();
             var response = await _http.PutAsJsonAsync($"api/multas/{dto.Id}", payload);
             if (!response.IsSuccessStatusCode)
             {
@@ -108,6 +116,7 @@ public class MultaAdapter : IMultaServicio
     {
         try
         {
+            EnsureAuthorizationHeader();
             var response = await _http.DeleteAsync($"api/multas/{id}");
             return response.IsSuccessStatusCode
                 ? Result.Success()
@@ -116,6 +125,27 @@ public class MultaAdapter : IMultaServicio
         catch (Exception ex)
         {
             return Result.Failure(new Error("Delete", ex.Message));
+        }
+    }
+
+    private void EnsureAuthorizationHeader()
+    {
+        try
+        {
+            var token = _httpContextAccessor?.HttpContext?.Session?.GetString(SessionKeys.JwtToken);
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                if (_http.DefaultRequestHeaders.Authorization == null || _http.DefaultRequestHeaders.Authorization.Parameter != token)
+                    _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+            else
+            {
+                _http.DefaultRequestHeaders.Authorization = null;
+            }
+        }
+        catch
+        {
+            // ignore session/accessor errors
         }
     }
 

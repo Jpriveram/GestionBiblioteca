@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using ServicioMultas.Application.Dtos;
 using ServicioMultas.Application.Interfaces;
 
@@ -6,6 +7,7 @@ namespace ServicioMultas.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class MultasController : ControllerBase
 {
     private readonly IMultaService _multaService;

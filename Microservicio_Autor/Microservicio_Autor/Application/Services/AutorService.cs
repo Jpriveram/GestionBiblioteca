@@ -51,7 +51,7 @@ public class AutorService : IAutorService
             Nacionalidad = NormalizeOptional(dto.Nacionalidad),
             FechaNacimiento = dto.FechaNacimiento,
             Estado = true,
-            FechaRegistro = DateTime.UtcNow,
+            FechaRegistro = DateTime.Now,
             UsuarioSesionId = GetCurrentUserId()
         };
 
@@ -77,7 +77,7 @@ public class AutorService : IAutorService
         autor.Nacionalidad = NormalizeOptional(dto.Nacionalidad);
         autor.FechaNacimiento = dto.FechaNacimiento;
         autor.Estado = dto.Estado;
-        autor.UltimaActualizacion = DateTime.UtcNow;
+        autor.UltimaActualizacion = DateTime.Now;
         autor.UsuarioSesionId = GetCurrentUserId();
 
         _repository.Update(autor);
@@ -93,7 +93,7 @@ public class AutorService : IAutorService
             return Task.FromResult(false);
 
         autor.Estado = false;
-        autor.UltimaActualizacion = DateTime.UtcNow;
+        autor.UltimaActualizacion = DateTime.Now;
         autor.UsuarioSesionId = GetCurrentUserId();
 
         _repository.Update(autor);
@@ -150,7 +150,7 @@ public class AutorService : IAutorService
             !ValidadorEntrada.TextoValido(nacionalidad, 100))
             throw new InvalidOperationException(AutorErrors.DatosInvalidos.Message);
 
-        if (fechaNacimiento.HasValue && fechaNacimiento.Value.Date > DateTime.UtcNow.Date)
+        if (fechaNacimiento.HasValue && fechaNacimiento.Value.Date > DateTime.Now.Date)
             throw new InvalidOperationException(AutorErrors.DatosInvalidos.Message);
     }
 

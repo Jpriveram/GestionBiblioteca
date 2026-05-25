@@ -45,6 +45,11 @@ public class LoginModel : PageModel
         HttpContext.Session.SetString(SessionKeys.Rol, UsuarioDto.Rol);
         HttpContext.Session.SetString(SessionKeys.DebeCambiarPassword, UsuarioDto.DebeCambiarPassword ? "true" : "false");
 
+        if (!string.IsNullOrWhiteSpace(UsuarioDto.Token))
+        {
+            HttpContext.Session.SetString(SessionKeys.JwtToken, UsuarioDto.Token);
+        }
+
         Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0";
         Response.Headers["Pragma"] = "no-cache";
         Response.Headers["Expires"] = "0";

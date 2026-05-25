@@ -1,7 +1,9 @@
 ﻿using System.Net.Http.Json;
+using System.Net.Http.Headers;
 using System.Text.Json;
 using Frontend.Dtos;
 using Frontend.Helpers;
+using Microsoft.AspNetCore.Http;
 
 namespace Frontend.Adapters;
 
@@ -9,11 +11,13 @@ public class LibroAdapter : ILibroServicio
 {
     private readonly HttpClient _http;
     private readonly HttpClient _httpAutor;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public LibroAdapter(IHttpClientFactory f)
+    public LibroAdapter(IHttpClientFactory f, IHttpContextAccessor httpContextAccessor)
     {
         _http = f.CreateClient("ServicioLibroEjemplar");
         _httpAutor = f.CreateClient("ServicioAutor");
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public IEnumerable<LibroDto> Select(bool todos = false) =>
@@ -85,6 +89,7 @@ public class LibroAdapter : ILibroServicio
     {
         try
         {
+            EnsureAuthorizationHeader();
             var r = _http.GetAsync(url).Result;
             r.EnsureSuccessStatusCode();
             return r.Content.ReadFromJsonAsync<T>().Result;
@@ -99,6 +104,7 @@ public class LibroAdapter : ILibroServicio
     {
         try
         {
+            EnsureAuthorizationHeader();
             var r = _http.PostAsJsonAsync(url, d).Result;
             return r.IsSuccessStatusCode
                 ? Result.Success()
@@ -114,6 +120,7 @@ public class LibroAdapter : ILibroServicio
     {
         try
         {
+            EnsureAuthorizationHeader();
             var r = _http.PutAsJsonAsync(url, d).Result;
             return r.IsSuccessStatusCode
                 ? Result.Success()
@@ -129,6 +136,7 @@ public class LibroAdapter : ILibroServicio
     {
         try
         {
+            EnsureAuthorizationHeader();
             var r = _http.DeleteAsync(url).Result;
             return r.IsSuccessStatusCode
                 ? Result.Success()
@@ -137,6 +145,27 @@ public class LibroAdapter : ILibroServicio
         catch (Exception ex)
         {
             return Result.Failure(new Error("Delete", ex.Message));
+        }
+    }
+
+    private void EnsureAuthorizationHeader()
+    {
+        try
+        {
+            var token = _httpContextAccessor?.HttpContext?.Session?.GetString(SessionKeys.JwtToken);
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                if (_http.DefaultRequestHeaders.Authorization == null || _http.DefaultRequestHeaders.Authorization.Parameter != token)
+                    _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+            else
+            {
+                _http.DefaultRequestHeaders.Authorization = null;
+            }
+        }
+        catch
+        {
+            // ignore
         }
     }
 

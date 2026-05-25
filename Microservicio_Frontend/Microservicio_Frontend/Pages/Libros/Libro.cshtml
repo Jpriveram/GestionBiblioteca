@@ -127,7 +127,9 @@ else
             '@(numeroPaginas?.ToString() ?? "")',
             '@Js(idioma)',
             '@Js(paisPublicacion)',
-            '@Js(descripcion)'
+            '@Js(descripcion)',
+            '@Js(row.FechaRegistro.ToString("o"))',
+            '@Js(row.UltimaActualizacion?.ToString("o") ?? "")'
         )">
         Ver más
     </button>
@@ -618,6 +620,17 @@ else
 
         </div>
 
+            <div class="detalle-libro-grid">
+                <div class="detalle-card">
+                    <span class="label">Fecha de registro</span>
+                    <span id="dFechaRegistro" class="value"></span>
+                </div>
+                <div class="detalle-card">
+                    <span class="label">Última actualización</span>
+                    <span id="dUltimaActualizacion" class="value"></span>
+                </div>
+            </div>
+
         <div class="detalle-descripcion">
             <span class="label">Descripción</span>
             <p id="dDescripcion"></p>
@@ -634,7 +647,8 @@ else
 <script>
     function abrirModalDetalle(
     titulo, isbn, editorial, genero, edicion,
-    anio, paginas, idioma, pais, descripcion
+    anio, paginas, idioma, pais, descripcion,
+    fechaRegistroIso, ultimaActualizacionIso
 ){
     document.getElementById("dTitulo").textContent = titulo || "N/A";
     document.getElementById("dISBN").textContent = isbn || "N/A";
@@ -647,8 +661,23 @@ else
     document.getElementById("dPais").textContent = pais || "N/A";
     document.getElementById("dDescripcion").textContent = descripcion || "N/A";
 
+    // mostrar fechas en hora local usando el navegador
+    try {
+        document.getElementById("dFechaRegistro").textContent = formatearFecha(fechaRegistroIso, true);
+    } catch { document.getElementById("dFechaRegistro").textContent = "N/A"; }
+
+    try {
+        document.getElementById("dUltimaActualizacion").textContent = ultimaActualizacionIso ? formatearFecha(ultimaActualizacionIso, true) : "N/A";
+    } catch { document.getElementById("dUltimaActualizacion").textContent = "N/A"; }
+
     document.getElementById("modalDetalle").style.display = "flex";
 }
+
+    function formatearFecha(fechaIso, incluirHora = true) {
+        if (!fechaIso) return 'No registrado';
+        const valor = new Date(fechaIso);
+        return incluirHora ? valor.toLocaleString() : valor.toLocaleDateString();
+    }
 
 function cerrarModalDetalle(){
     document.getElementById("modalDetalle").style.display = "none";

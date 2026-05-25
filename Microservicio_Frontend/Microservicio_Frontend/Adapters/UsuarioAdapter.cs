@@ -210,7 +210,8 @@ public class UsuarioAdapter : IUsuarioServicio
                 PrimerApellido = dto.PrimerApellido,
                 Rol = dto.Rol,
                 Estado = dto.Estado,
-                DebeCambiarPassword = dto.DebeCambiarPassword
+                DebeCambiarPassword = dto.DebeCambiarPassword,
+                Token = token
             });
         }
         catch (Exception ex)

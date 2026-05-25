@@ -17,4 +17,6 @@ public class LibroDto
     public string? PaisPublicacion { get; set; }
     public string? Descripcion { get; set; }
     public bool Estado { get; set; }
+    public DateTime FechaRegistro { get; set; }
+    public DateTime? UltimaActualizacion { get; set; }
 }

@@ -15,7 +15,7 @@ public class Libro
     public string? PaisPublicacion { get; set; }
     public string? Descripcion { get; set; }
     public bool Estado { get; set; } = true;
-    public DateTime FechaRegistro { get; set; } = DateTime.UtcNow;
+    public DateTime FechaRegistro { get; set; } = DateTime.Now;
     public DateTime? UltimaActualizacion { get; set; }
     public int? UsuarioSesionId { get; set; }
 

@@ -5,6 +5,7 @@ public class UsuarioDto
     public int UsuarioId { get; set; }
     public string? CI { get; set; }
     public int? UsuarioSesionId { get; set; }
+    public string? Token { get; set; }
     public string Nombres { get; set; } = string.Empty;
     public string PrimerApellido { get; set; } = string.Empty;
     public string? SegundoApellido { get; set; }

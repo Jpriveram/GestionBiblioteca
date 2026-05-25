@@ -1,16 +1,18 @@
 ﻿using System.Net.Http.Json;
 using System.Text.Json;
+using System.Net.Http.Headers;
 using Frontend.Dtos;
+using Microsoft.AspNetCore.Http;
 using Frontend.Adapters;
 using Frontend.Helpers;
-using Frontend.Dtos;
 
 namespace Frontend.Adapters;
 
 public class EjemplarAdapter : IEjemplarServicio
 {
     private readonly HttpClient _http;
-    public EjemplarAdapter(IHttpClientFactory f) => _http = f.CreateClient("ServicioLibroEjemplar");
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    public EjemplarAdapter(IHttpClientFactory f, IHttpContextAccessor httpContextAccessor) { _http = f.CreateClient("ServicioLibroEjemplar"); _httpContextAccessor = httpContextAccessor; }
 
     public IEnumerable<EjemplarDto> Select(bool todos = false) => CallGet<List<EjemplarDto>>(todos ? "api/ejemplares?todos=true" : "api/ejemplares") ?? new();
     public EjemplarDto? GetById(int id) => CallGet<EjemplarDto>($"api/ejemplares/{id}");
@@ -36,10 +38,31 @@ public class EjemplarAdapter : IEjemplarServicio
     public Dictionary<int, string> ObtenerEjemplaresDisponibles() => CallGet<Dictionary<int, string>>("api/ejemplares/disponibles") ?? new();
     public Result ValidarEjemplar(EjemplarDto e) => Result.Success();
 
-    private T? CallGet<T>(string u) where T : class { try { var r = _http.GetAsync(u).Result; r.EnsureSuccessStatusCode(); return r.Content.ReadFromJsonAsync<T>().Result; } catch { return null; } }
-    private Result<EjemplarDto> CallPostR<T>(string u, object d) { try { var r = _http.PostAsJsonAsync(u, d).Result; if (!r.IsSuccessStatusCode) return Result<EjemplarDto>.Failure(new Error("Post", LeerError(r))); return Result<EjemplarDto>.Success(r.Content.ReadFromJsonAsync<EjemplarDto>().Result!); } catch (Exception ex) { return Result<EjemplarDto>.Failure(new Error("Post", ex.Message)); } }
-    private Result<EjemplarDto> CallPutR<T>(string u, object d) { try { var r = _http.PutAsJsonAsync(u, d).Result; return r.IsSuccessStatusCode ? Result<EjemplarDto>.Success(d as EjemplarDto ?? new()) : Result<EjemplarDto>.Failure(new Error("Put", "Error")); } catch (Exception ex) { return Result<EjemplarDto>.Failure(new Error("Put", ex.Message)); } }
-    private Result CallDeleteR(string u) { try { var r = _http.DeleteAsync(u).Result; return r.IsSuccessStatusCode ? Result.Success() : Result.Failure(new Error("Delete", "Error")); } catch (Exception ex) { return Result.Failure(new Error("Delete", ex.Message)); } }
+    private T? CallGet<T>(string u) where T : class { try { EnsureAuthorizationHeader(); var r = _http.GetAsync(u).Result; r.EnsureSuccessStatusCode(); return r.Content.ReadFromJsonAsync<T>().Result; } catch { return null; } }
+    private Result<EjemplarDto> CallPostR<T>(string u, object d) { try { EnsureAuthorizationHeader(); var r = _http.PostAsJsonAsync(u, d).Result; if (!r.IsSuccessStatusCode) return Result<EjemplarDto>.Failure(new Error("Post", LeerError(r))); return Result<EjemplarDto>.Success(r.Content.ReadFromJsonAsync<EjemplarDto>().Result!); } catch (Exception ex) { return Result<EjemplarDto>.Failure(new Error("Post", ex.Message)); } }
+    private Result<EjemplarDto> CallPutR<T>(string u, object d) { try { EnsureAuthorizationHeader(); var r = _http.PutAsJsonAsync(u, d).Result; return r.IsSuccessStatusCode ? Result<EjemplarDto>.Success(d as EjemplarDto ?? new()) : Result<EjemplarDto>.Failure(new Error("Put", "Error")); } catch (Exception ex) { return Result<EjemplarDto>.Failure(new Error("Put", ex.Message)); } }
+    private Result CallDeleteR(string u) { try { EnsureAuthorizationHeader(); var r = _http.DeleteAsync(u).Result; return r.IsSuccessStatusCode ? Result.Success() : Result.Failure(new Error("Delete", "Error")); } catch (Exception ex) { return Result.Failure(new Error("Delete", ex.Message)); } }
+    
+    private void EnsureAuthorizationHeader()
+    {
+        try
+        {
+            var token = _httpContextAccessor?.HttpContext?.Session?.GetString(SessionKeys.JwtToken);
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                if (_http.DefaultRequestHeaders.Authorization == null || _http.DefaultRequestHeaders.Authorization.Parameter != token)
+                    _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+            else
+            {
+                _http.DefaultRequestHeaders.Authorization = null;
+            }
+        }
+        catch
+        {
+            // ignore
+        }
+    }
 
     private static string LeerError(HttpResponseMessage response)
     {

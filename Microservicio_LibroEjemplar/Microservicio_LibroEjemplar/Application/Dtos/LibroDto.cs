@@ -19,6 +19,7 @@ public class LibroDto
     public bool Estado { get; set; }
     public DateTime FechaRegistro { get; set; }
     public DateTime? UltimaActualizacion { get; set; }
+    public int? UsuarioSesionId { get; set; }
 }
 
 public class CreateLibroDto

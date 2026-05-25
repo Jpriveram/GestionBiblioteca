@@ -14,7 +14,7 @@ public class HealthController : ControllerBase
             service = "ServicioUsuario",
             status = "running",
             version = "1.0.0",
-            timestamp = DateTime.UtcNow,
+            timestamp = DateTime.Now,
             endpoints = new
             {
                 usuarios = "/api/Usuarios",

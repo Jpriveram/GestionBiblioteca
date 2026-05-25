@@ -75,7 +75,7 @@ public class LibroService : ILibroService
             PaisPublicacion = NormalizeOptional(dto.PaisPublicacion),
             Descripcion = NormalizeOptional(dto.Descripcion),
             Estado = true,
-            FechaRegistro = DateTime.UtcNow,
+            FechaRegistro = DateTime.Now,
             UsuarioSesionId = GetCurrentUserId()
         };
 
@@ -115,7 +115,7 @@ public class LibroService : ILibroService
         libro.PaisPublicacion = NormalizeOptional(dto.PaisPublicacion);
         libro.Descripcion = NormalizeOptional(dto.Descripcion);
         libro.Estado = dto.Estado;
-        libro.UltimaActualizacion = DateTime.UtcNow;
+        libro.UltimaActualizacion = DateTime.Now;
         libro.UsuarioSesionId = GetCurrentUserId();
 
         _repositorio.Update(libro);
@@ -134,7 +134,7 @@ public class LibroService : ILibroService
             return Task.FromResult(false);
 
         libro.Estado = false;
-        libro.UltimaActualizacion = DateTime.UtcNow;
+        libro.UltimaActualizacion = DateTime.Now;
         libro.UsuarioSesionId = GetCurrentUserId();
 
         _repositorio.Update(libro);
@@ -204,7 +204,7 @@ public class LibroService : ILibroService
         if (!string.IsNullOrWhiteSpace(isbn) && !ValidadorEntrada.ISBNValido(isbn))
             throw new InvalidOperationException(LibroErrors.DatosInvalidos.Message);
 
-        if (añoPublicacion.HasValue && (añoPublicacion.Value < 1000 || añoPublicacion.Value > DateTime.UtcNow.Year))
+        if (añoPublicacion.HasValue && (añoPublicacion.Value < 1000 || añoPublicacion.Value > DateTime.Now.Year))
             throw new InvalidOperationException(LibroErrors.DatosInvalidos.Message);
 
         if (numeroPaginas.HasValue && numeroPaginas.Value <= 0)

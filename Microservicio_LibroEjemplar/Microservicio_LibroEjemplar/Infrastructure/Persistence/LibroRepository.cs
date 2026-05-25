@@ -200,7 +200,7 @@ public class LibroRepository : IRepository<Libro, int>
                     command.Parameters.AddWithValue("@PaisPublicacion", entity.PaisPublicacion ?? (object)DBNull.Value);
                     command.Parameters.AddWithValue("@Descripcion", entity.Descripcion ?? (object)DBNull.Value);
                     command.Parameters.AddWithValue("@Estado", entity.Estado);
-                    command.Parameters.AddWithValue("@UltimaActualizacion", entity.UltimaActualizacion ?? DateTime.UtcNow);
+                    command.Parameters.AddWithValue("@UltimaActualizacion", entity.UltimaActualizacion ?? DateTime.Now);
                     command.Parameters.AddWithValue("@UsuarioSesionId", entity.UsuarioSesionId ?? (object)DBNull.Value);
                     
                     command.ExecuteNonQuery();

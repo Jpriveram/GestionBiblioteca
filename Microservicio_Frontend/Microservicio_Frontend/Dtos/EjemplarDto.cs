@@ -14,4 +14,6 @@ public class EjemplarDto
     public string? Ubicacion { get; set; }
     public bool Estado { get; set; }
     public string RouteToken { get; set; } = string.Empty;
+    public DateTime FechaRegistro { get; set; }
+    public DateTime? UltimaActualizacion { get; set; }
 }

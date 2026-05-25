@@ -13,6 +13,6 @@ public class Usuario
     public string? PasswordHash { get; set; }
     public string Rol { get; set; } = string.Empty;
     public bool Estado { get; set; } = true;
-    public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
+    public DateTime FechaCreacion { get; set; } = DateTime.Now;
     public DateTime? FechaActualizacion { get; set; }
 }

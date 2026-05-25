@@ -79,7 +79,7 @@ public class EjemplarService : IEjemplarService
             DadoDeBaja = false,
             Ubicacion = NormalizeOptional(dto.Ubicacion),
             Estado = true,
-            FechaRegistro = DateTime.UtcNow,
+            FechaRegistro = DateTime.Now,
             UsuarioSesionId = GetCurrentUserId()
         };
 
@@ -111,7 +111,7 @@ public class EjemplarService : IEjemplarService
         ejemplar.MotivoBaja = NormalizeOptional(dto.MotivoBaja);
         ejemplar.Ubicacion = NormalizeOptional(dto.Ubicacion);
         ejemplar.Estado = dto.Estado;
-        ejemplar.UltimaActualizacion = DateTime.UtcNow;
+        ejemplar.UltimaActualizacion = DateTime.Now;
         ejemplar.UsuarioSesionId = GetCurrentUserId();
 
         _repositorio.Update(ejemplar);
@@ -130,7 +130,7 @@ public class EjemplarService : IEjemplarService
             return Task.FromResult(false);
 
         ejemplar.Estado = false;
-        ejemplar.UltimaActualizacion = DateTime.UtcNow;
+        ejemplar.UltimaActualizacion = DateTime.Now;
         ejemplar.UsuarioSesionId = GetCurrentUserId();
 
         _repositorio.Update(ejemplar);

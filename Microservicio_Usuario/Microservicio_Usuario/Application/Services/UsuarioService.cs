@@ -88,8 +88,8 @@ public class UsuarioService : IUsuarioServicio
             PasswordHash = null,
             Rol = dto.Rol,
             Estado = true,
-            FechaCreacion = DateTime.UtcNow,
-            FechaActualizacion = DateTime.UtcNow
+            FechaCreacion = DateTime.Now,
+            FechaActualizacion = DateTime.Now
         };
 
         if (ShouldAutoProvisionCredentials(dto.Rol))
@@ -135,7 +135,7 @@ public class UsuarioService : IUsuarioServicio
         usuario.NombreUsuario = dto.NombreUsuario;
         usuario.Rol = dto.Rol;
         usuario.Estado = dto.Estado;
-        usuario.FechaActualizacion = DateTime.UtcNow;
+        usuario.FechaActualizacion = DateTime.Now;
 
         _repositorio.Update(usuario);
         return Task.FromResult<UsuarioDto?>(MapToDto(usuario));
@@ -210,7 +210,7 @@ public class UsuarioService : IUsuarioServicio
 
         usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(nueva);
         usuario.UsuarioSesionId = GetCurrentUserId();
-        usuario.FechaActualizacion = DateTime.UtcNow;
+        usuario.FechaActualizacion = DateTime.Now;
 
         _repositorio.Update(usuario);
         return Task.CompletedTask;

@@ -233,7 +233,7 @@ public class UsuarioRepository : IRepository<Usuario, int>
                     command.Parameters.AddWithValue("@Estado", entity.Estado);
                     command.Parameters.AddWithValue("@CI", entity.CI ?? (object)DBNull.Value);
                     command.Parameters.AddWithValue("@UsuarioSesionId", entity.UsuarioSesionId ?? (object)DBNull.Value);
-                    command.Parameters.AddWithValue("@UltimaActualizacion", entity.FechaActualizacion ?? DateTime.UtcNow);
+                    command.Parameters.AddWithValue("@UltimaActualizacion", entity.FechaActualizacion ?? DateTime.Now);
                     command.ExecuteNonQuery();
                     entity.UsuarioId = Convert.ToInt32(command.LastInsertedId);
                 }
@@ -269,7 +269,7 @@ public class UsuarioRepository : IRepository<Usuario, int>
                     command.Parameters.AddWithValue("@Estado", entity.Estado);
                     command.Parameters.AddWithValue("@CI", entity.CI ?? (object)DBNull.Value);
                     command.Parameters.AddWithValue("@UsuarioSesionId", entity.UsuarioSesionId ?? (object)DBNull.Value);
-                    command.Parameters.AddWithValue("@UltimaActualizacion", entity.FechaActualizacion ?? DateTime.UtcNow);
+                    command.Parameters.AddWithValue("@UltimaActualizacion", entity.FechaActualizacion ?? DateTime.Now);
                     command.ExecuteNonQuery();
                 }
             }

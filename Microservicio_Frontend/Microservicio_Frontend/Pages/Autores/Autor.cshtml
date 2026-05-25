@@ -24,11 +24,6 @@
         ? ViewData.ModelState["FechaNacimiento"]?.AttemptedValue ?? ""
         : "";
 
-    bool editEstadoSeleccionado = !ViewData.ModelState.ContainsKey("Estado")
-        || ViewData.ModelState["Estado"]?.AttemptedValue == "true"
-        || ViewData.ModelState["Estado"]?.AttemptedValue == "True"
-        || ViewData.ModelState["Estado"]?.AttemptedValue == "on";
-
     string createNombres = ViewData.ModelState.ContainsKey("AutorDto.Nombres")
         ? ViewData.ModelState["AutorDto.Nombres"]?.AttemptedValue ?? ""
         : "";
@@ -121,37 +116,36 @@
                             }
                         </td>
 
-<td class="acciones">
-    <button type="button"
-            class="btn-editar"
-            onclick="abrirModalEditar(
-                    '@token',
-                    '@Html.Raw(nombres.Replace("'", "\\'"))',
-                    '@Html.Raw(apellidos.Replace("'", "\\'"))',
-                    '@Html.Raw(nacionalidad.Replace("'", "\\'"))',
-                    '@fecha',
-                    '@(estado.ToString().ToLower())'
-                )">
-        <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-             class="icono-btn">
-        Editar
-    </button>
+                        <td class="acciones">
+                            <button type="button"
+                                    class="btn-editar"
+                                    onclick="abrirModalEditar(
+                                            '@token',
+                                            '@Html.Raw(nombres.Replace("'", "\\'"))',
+                                            '@Html.Raw(apellidos.Replace("'", "\\'"))',
+                                            '@Html.Raw(nacionalidad.Replace("'", "\\'"))',
+                                            '@fecha'
+                                        )">
+                                <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                                     class="icono-btn">
+                                Editar
+                            </button>
 
-    @if (estado)
-    {
-        <button type="button"
-                class="btn-eliminar"
-                onclick="abrirModal('@token')">
-            <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-                 class="icono-btn">
-            Eliminar
-        </button>
-    }
-    else
-    {
-        <span class="estado eliminado-label">Eliminado</span>
-    }
-</td>
+                            @if (estado)
+                            {
+                                <button type="button"
+                                        class="btn-eliminar"
+                                        onclick="abrirModal('@token')">
+                                    <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                                         class="icono-btn">
+                                    Eliminar
+                                </button>
+                            }
+                            else
+                            {
+                                <span class="estado eliminado-label">Eliminado</span>
+                            }
+                        </td>
                     </tr>
                 }
 
@@ -205,7 +199,6 @@
                    id="editNombres"
                    name="Nombres"
                    placeholder="Nombres"
-                   required
                    value="@editNombres" />
             @if (ViewData.ModelState.ContainsKey("Nombres"))
             {
@@ -243,14 +236,11 @@
                 <span class="text-error">@ViewData.ModelState["FechaNacimiento"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
             }
 
-            <input type="hidden"
-                   id="editEstadoHidden"
-                   value="@(editEstadoSeleccionado ? "true" : "false")" />
+            <input type="hidden" id="editEstado" name="Estado" value="true" />
 
-            <select id="editEstado" name="Estado">
-                <option value="true" selected="@(editEstadoSeleccionado ? "selected" : null)">Activo</option>
-                <option value="false" selected="@(!editEstadoSeleccionado ? "selected" : null)">Inactivo</option>
-            </select>
+            <div class="estado-readonly">
+                <span class="estado activo">Activo</span>
+            </div>
 
             <div class="modal-buttons">
                 <button type="submit" class="btn-warning">Guardar</button>
@@ -259,6 +249,7 @@
         </form>
     </div>
 </div>
+
 <!-- MODAL CREAR -->
 <div id="modalCrear" class="modal">
     <div class="modal-box">
@@ -270,7 +261,6 @@
             <input type="text"
                    name="AutorDto.Nombres"
                    placeholder="Nombres"
-                   required
                    value="@createNombres" />
             @if (ViewData.ModelState.ContainsKey("AutorDto.Nombres"))
             {
@@ -317,6 +307,7 @@
         </form>
     </div>
 </div>
+
 @if (!ViewData.ModelState.IsValid)
 {
     <script>
@@ -336,41 +327,42 @@
 
 @section Scripts {
     <script>
-        function abrirModal(token){document.getElementById("autorTokenInput").value=token;modalEliminar.style.display="flex";}
-        function cerrarModal(){modalEliminar.style.display="none";}
-        function abrirModalEditar(t,n,a,na,f,e){
+        function abrirModal(token) {
+            document.getElementById("autorTokenInput").value = token;
+            modalEliminar.style.display = "flex";
+        }
+
+        function cerrarModal() {
+            modalEliminar.style.display = "none";
+        }
+
+        function abrirModalEditar(t, n, a, na, f) {
             editToken.value = t;
             editNombres.value = n || "";
             editApellidos.value = a || "";
-            editNacionalidad.value = na || ""; 
+            editNacionalidad.value = na || "";
             editFechaNacimiento.value = f || "";
-
-            editEstado.value = (e === "true") ? "true" : "false";
-            editEstadoHidden.value = editEstado.value;
+            editEstado.value = "true";
 
             modalEditar.style.display = "flex";
         }
-        function cerrarModalEditar(){modalEditar.style.display="none";}
-        function abrirModalCrear(){modalCrear.style.display="flex";}
-        function cerrarModalCrear(){modalCrear.style.display="none";}
 
-        document.addEventListener("DOMContentLoaded", function(){
-            const sel = document.getElementById("editEstado");
-            const hid = document.getElementById("editEstadoHidden");
-            if (sel && hid) {
-                sel.addEventListener("change", () => {
-                    hid.value = sel.value; // "true" o "false"
-                });
-            }
-        });
+        function cerrarModalEditar() {
+            modalEditar.style.display = "none";
+        }
 
-       window.onclick = function(event) {
+        function abrirModalCrear() {
+            modalCrear.style.display = "flex";
+        }
+
+        function cerrarModalCrear() {
+            modalCrear.style.display = "none";
+        }
+
+        window.onclick = function (event) {
             if (event.target === modalEliminar) cerrarModal();
             if (event.target === modalEditar) cerrarModalEditar();
             if (event.target === modalCrear) cerrarModalCrear();
-        }
-        function cerrarModalCrear(){
-            modalCrear.style.display = "none";
         }
     </script>
 
@@ -404,7 +396,6 @@
             });
         })();
     </script>
-
 
     <datalist id="paises-lista">
 

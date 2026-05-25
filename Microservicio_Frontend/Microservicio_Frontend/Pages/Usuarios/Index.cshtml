@@ -24,15 +24,18 @@
 
     @if (!string.IsNullOrWhiteSpace(Model.MensajeOk))
     {
-        <div class="alert-custom alert-success-custom">
-            @Model.MensajeOk
-        </div>
-    }
-
-    @if (!string.IsNullOrWhiteSpace(Model.MensajeError))
-    {
-        <div class="alert-custom alert-danger-custom">
-            @Model.MensajeError
+        <div id="mensajeOkUsuario" class="alert-custom alert-success-custom" role="status" aria-live="polite">
+            <span class="alert-icon" aria-hidden="true">
+                <img src="~/assets/icons/check_circle_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" />
+            </span>
+            <span class="alert-content">
+                <strong>Operación completada</strong>
+                <span>@Model.MensajeOk</span>
+            </span>
+            <button type="button"
+                    class="alert-dismiss"
+                    aria-label="Cerrar mensaje"
+                    onclick="cerrarMensajeOkUsuario()">&times;</button>
         </div>
     }
 
@@ -110,7 +113,11 @@
         <form method="post" asp-page-handler="Crear" id="formCrearUsuario" autocomplete="off" novalidate>
             @Html.AntiForgeryToken()
 
-            <div id="mensajeValidacionUsuario" class="text-error-summary" style="display:none;"></div>
+            <div id="mensajeValidacionUsuario"
+                 class="text-error-summary"
+                 style="display:@(string.IsNullOrWhiteSpace(Model.MensajeError) ? "none" : "block");">
+                @Model.MensajeError
+            </div>
 
             <div class="usuario-form-grid">
                 <div class="field-group">
@@ -239,6 +246,13 @@
 
         function cerrarModalCrearUsuario() {
             document.getElementById("modalCrearUsuario").style.display = "none";
+        }
+
+        function cerrarMensajeOkUsuario() {
+            var mensaje = document.getElementById("mensajeOkUsuario");
+            if (mensaje) {
+                mensaje.style.display = "none";
+            }
         }
 
         function abrirModalBajaUsuario(token, nombreUsuario) {

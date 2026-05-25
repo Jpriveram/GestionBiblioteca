@@ -8,6 +8,12 @@ public class MultaRepository : IMultaRepository
 {
     private readonly IMongoCollection<Multa> _multas;
 
+    private static DateTime LocalNowForMongo()
+    {
+        // Fuerza que Mongo conserve la hora local visible (sin desplazar a UTC al guardar).
+        return DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Utc);
+    }
+
     public MultaRepository(IMongoDatabase database, string collectionName)
     {
         _multas = database.GetCollection<Multa>(collectionName);
@@ -35,26 +41,28 @@ public class MultaRepository : IMultaRepository
 
     public async Task InsertAsync(Multa entity)
     {
-        entity.FechaRegistro = DateTime.UtcNow;
-        entity.UltimaActualizacion = DateTime.UtcNow;
+        var now = LocalNowForMongo();
+        entity.FechaRegistro = now;
+        entity.UltimaActualizacion = now;
         await _multas.InsertOneAsync(entity);
     }
 
     public async Task UpdateAsync(Multa entity)
     {
-        entity.UltimaActualizacion = DateTime.UtcNow;
+        entity.UltimaActualizacion = LocalNowForMongo();
         var filter = Builders<Multa>.Filter.Eq(m => m.Id, entity.Id);
         await _multas.ReplaceOneAsync(filter, entity);
     }
 
     public async Task DeleteAsync(Multa entity)
     {
+        var now = LocalNowForMongo();
         entity.Estado = false;
-        entity.UltimaActualizacion = DateTime.UtcNow;
+        entity.UltimaActualizacion = now;
         var filter = Builders<Multa>.Filter.Eq(m => m.Id, entity.Id);
         var update = Builders<Multa>.Update
             .Set(m => m.Estado, false)
-            .Set(m => m.UltimaActualizacion, DateTime.UtcNow)
+            .Set(m => m.UltimaActualizacion, now)
             .Set(m => m.UsuarioSesionId, entity.UsuarioSesionId);
         await _multas.UpdateOneAsync(filter, update);
     }

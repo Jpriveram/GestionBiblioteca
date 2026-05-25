@@ -113,7 +113,7 @@ public class AutorRepository : IRepository<Autor, int>
             using var command = new SqlCommand(query, connection);
             command.Parameters.AddWithValue("@AutorId", entity.AutorId);
             AddCommonParameters(command, entity);
-            command.Parameters.AddWithValue("@UltimaActualizacion", entity.UltimaActualizacion ?? DateTime.UtcNow);
+            command.Parameters.AddWithValue("@UltimaActualizacion", entity.UltimaActualizacion ?? DateTime.Now);
 
             command.ExecuteNonQuery();
         }

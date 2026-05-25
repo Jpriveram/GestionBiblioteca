@@ -42,7 +42,11 @@ public class AutorRepository : IRepository<Autor, int>
             using var connection = ConfigurationSingleton.Instancia.GetConnection();
             connection.Open();
 
-            const string query = "SELECT * FROM Autor WHERE Estado = 1 ORDER BY FechaRegistro DESC;";
+            const string query = """
+                SELECT * FROM Autor
+                WHERE Estado = 1
+                ORDER BY PrimerApellido ASC, SegundoApellido ASC, Nombres ASC;
+                """;
 
             using var command = new SqlCommand(query, connection);
             using var reader = command.ExecuteReader();
@@ -67,10 +71,10 @@ public class AutorRepository : IRepository<Autor, int>
 
             const string query = """
                 INSERT INTO Autor
-                (Nombres, PrimerApellido, SegundoApellido, Nacionalidad, FechaNacimiento, Biografia, Estado, FechaRegistro, UsuarioSesionId)
+                (Nombres, PrimerApellido, SegundoApellido, Nacionalidad, FechaNacimiento, Estado, FechaRegistro, UsuarioSesionId)
                 OUTPUT INSERTED.AutorId
                 VALUES
-                (@Nombres, @PrimerApellido, @SegundoApellido, @Nacionalidad, @FechaNacimiento, @Biografia, @Estado, @FechaRegistro, @UsuarioSesionId);
+                (@Nombres, @PrimerApellido, @SegundoApellido, @Nacionalidad, @FechaNacimiento, @Estado, @FechaRegistro, @UsuarioSesionId);
                 """;
 
             using var command = new SqlCommand(query, connection);
@@ -100,7 +104,6 @@ public class AutorRepository : IRepository<Autor, int>
                     SegundoApellido = @SegundoApellido,
                     Nacionalidad = @Nacionalidad,
                     FechaNacimiento = @FechaNacimiento,
-                    Biografia = @Biografia,
                     Estado = @Estado,
                     UltimaActualizacion = @UltimaActualizacion,
                     UsuarioSesionId = @UsuarioSesionId
@@ -151,7 +154,6 @@ public class AutorRepository : IRepository<Autor, int>
         command.Parameters.AddWithValue("@SegundoApellido", entity.SegundoApellido ?? (object)DBNull.Value);
         command.Parameters.AddWithValue("@Nacionalidad", entity.Nacionalidad ?? (object)DBNull.Value);
         command.Parameters.AddWithValue("@FechaNacimiento", entity.FechaNacimiento ?? (object)DBNull.Value);
-        command.Parameters.AddWithValue("@Biografia", entity.Biografia ?? (object)DBNull.Value);
         command.Parameters.AddWithValue("@Estado", entity.Estado);
         command.Parameters.AddWithValue("@FechaRegistro", entity.FechaRegistro);
         command.Parameters.AddWithValue("@UsuarioSesionId", entity.UsuarioSesionId ?? (object)DBNull.Value);
@@ -167,7 +169,6 @@ public class AutorRepository : IRepository<Autor, int>
             SegundoApellido = GetNullableString(reader, "SegundoApellido"),
             Nacionalidad = GetNullableString(reader, "Nacionalidad"),
             FechaNacimiento = GetNullableDateTime(reader, "FechaNacimiento"),
-            Biografia = GetNullableString(reader, "Biografia"),
             Estado = reader.GetBoolean(reader.GetOrdinal("Estado")),
             FechaRegistro = reader.GetDateTime(reader.GetOrdinal("FechaRegistro")),
             UltimaActualizacion = GetNullableDateTime(reader, "UltimaActualizacion"),

@@ -500,11 +500,19 @@
     display:none;
 }
 
+/* VALIDACIONES */
+
 .text-error{
-    color:#f87171;
-    font-size:13px;
-    margin-top:4px;
     display:block;
+    margin:-4px 0 12px 2px;
+    padding:8px 12px;
+    border-left:3px solid #ef4444;
+    border-radius:8px;
+    background:rgba(239,68,68,.10);
+    color:#fca5a5;
+    font-size:13px;
+    font-weight:500;
+    text-align:left;
 }
 
 .text-error-summary{
@@ -516,6 +524,20 @@
     margin-bottom:10px;
     font-size:14px;
 }
+
+.estado-readonly{
+    width:100%;
+    background:#111418;
+    border:1px solid #282828;
+    color:#e5e7eb;
+    border-radius:10px;
+    padding:12px 14px;
+    margin-bottom:12px;
+    box-sizing:border-box;
+    text-align:left;
+}
+
+/* ELIMINADO */
 
 .eliminado-label{
     display:inline-flex;

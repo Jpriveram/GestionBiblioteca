@@ -6,5 +6,4 @@ public class CreateAutorDto
     public string? Apellidos { get; set; }
     public string? Nacionalidad { get; set; }
     public DateTime? FechaNacimiento { get; set; }
-    public string? Biografia { get; set; }
 }

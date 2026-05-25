@@ -9,7 +9,6 @@ public class AutorDto
     public string? Apellidos { get; set; }
     public string? Nacionalidad { get; set; }
     public DateTime? FechaNacimiento { get; set; }
-    public string? Biografia { get; set; }
     public bool Estado { get; set; }
     public DateTime FechaRegistro { get; set; }
     public DateTime? UltimaActualizacion { get; set; }

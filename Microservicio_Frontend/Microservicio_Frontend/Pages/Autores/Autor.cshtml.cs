@@ -1,12 +1,11 @@
 ﻿using Frontend.Adapters;
 using Frontend.Helpers;
 using Frontend.Dtos;
-using Frontend.Dtos;
-using Frontend.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Http;
+using System.Text.RegularExpressions;
 
 namespace Frontend.Pages;
 
@@ -30,13 +29,10 @@ public class AutorModel : PageModel
         _routeTokenService = routeTokenService;
     }
 
-
     public IActionResult OnGet()
     {
         if (!EsAdminOBibliotecario())
-        {
             return LocalRedirect("/");
-        }
 
         CargarAutores();
         return Page();
@@ -45,37 +41,29 @@ public class AutorModel : PageModel
     private void CargarAutores()
     {
         var autores = _autorServicio.Select(todos: EsAdmin()).ToList();
-        
-        foreach (var AutorDto in autores)
-        {
-            AutorDto.Nombres = AutorDto.Nombres.ToDisplayName();
-            AutorDto.Apellidos = AutorDto.Apellidos.ToDisplayName();
 
-            if (string.IsNullOrEmpty(AutorDto.RouteToken))
-            {
-                AutorDto.RouteToken = _routeTokenService.CrearToken(AutorDto.AutorId);
-            }
+        foreach (var autorDto in autores)
+        {
+            autorDto.Nombres = LimpiarTexto(autorDto.Nombres).ToDisplayName();
+            autorDto.Apellidos = LimpiarTexto(autorDto.Apellidos).ToDisplayName();
+            autorDto.Nacionalidad = LimpiarTexto(autorDto.Nacionalidad);
+
+            if (string.IsNullOrEmpty(autorDto.RouteToken))
+                autorDto.RouteToken = _routeTokenService.CrearToken(autorDto.AutorId);
         }
-        
+
         Autores = autores;
     }
 
     public IActionResult OnPostEliminar(string token)
     {
         if (!EsAdminOBibliotecario())
-        {
             return LocalRedirect("/");
-        }
 
         if (!_routeTokenService.TryObtenerId(token, out var id))
             return NotFound();
 
-        var result = _autorServicio.Delete(id, ObtenerUsuarioSesionId());
-
-        if (result.IsFailure)
-        {
-            // Opcional: manejar error de eliminación
-        }
+        _autorServicio.Delete(id, ObtenerUsuarioSesionId());
 
         return RedirectToPage();
     }
@@ -83,21 +71,27 @@ public class AutorModel : PageModel
     public IActionResult OnPostCrear()
     {
         if (!EsAdminOBibliotecario())
-        {
             return LocalRedirect("/");
-        }
 
         ModalActivo = "crear";
-        AutorDto.Nombres = AutorDto.Nombres.ToDisplayName();
-        AutorDto.Apellidos = AutorDto.Apellidos.ToDisplayName();
+
+        AutorDto.Nombres = LimpiarTexto(AutorDto.Nombres).ToDisplayName();
+        AutorDto.Apellidos = LimpiarTexto(AutorDto.Apellidos).ToDisplayName();
+        AutorDto.Nacionalidad = LimpiarTexto(AutorDto.Nacionalidad);
         AutorDto.UsuarioSesionId = ObtenerUsuarioSesionId();
+
+        ValidarAutorCrear();
+
+        if (!ModelState.IsValid)
+        {
+            CargarAutores();
+            return Page();
+        }
 
         var result = _autorServicio.Create(AutorDto);
 
         if (result.IsFailure)
-        {
             AgregarError(result.Error, true);
-        }
 
         if (!ModelState.IsValid)
         {
@@ -117,17 +111,30 @@ public class AutorModel : PageModel
         bool? Estado)
     {
         if (!EsAdminOBibliotecario())
-        {
             return LocalRedirect("/");
-        }
 
         ModalActivo = "editar";
 
         if (!_routeTokenService.TryObtenerId(token, out var id))
             return NotFound();
 
-        Nombres = Nombres.ToDisplayName();
-        Apellidos = Apellidos.ToDisplayName();
+        Nombres = LimpiarTexto(Nombres).ToDisplayName();
+        Apellidos = LimpiarTexto(Apellidos).ToDisplayName();
+        Nacionalidad = LimpiarTexto(Nacionalidad);
+
+        ValidarAutorEditar(Nombres, Apellidos, Nacionalidad, FechaNacimiento);
+
+        if (!ModelState.IsValid)
+        {
+            ModelState.SetModelValue("token", new ValueProviderResult(token));
+            ModelState.SetModelValue("Nombres", new ValueProviderResult(Nombres));
+            ModelState.SetModelValue("Apellidos", new ValueProviderResult(Apellidos ?? ""));
+            ModelState.SetModelValue("Nacionalidad", new ValueProviderResult(Nacionalidad ?? ""));
+            ModelState.SetModelValue("FechaNacimiento", new ValueProviderResult(FechaNacimiento?.ToString("yyyy-MM-dd") ?? ""));
+            ModelState.SetModelValue("Estado", new ValueProviderResult((Estado ?? false).ToString()));
+            CargarAutores();
+            return Page();
+        }
 
         var autorDto = new AutorDto
         {
@@ -143,18 +150,10 @@ public class AutorModel : PageModel
         var result = _autorServicio.Update(autorDto);
 
         if (result.IsFailure)
-        {
             AgregarError(result.Error);
-        }
 
         if (!ModelState.IsValid)
         {
-            ModelState.SetModelValue("token", new ValueProviderResult(token));
-            ModelState.SetModelValue("Nombres", new ValueProviderResult(Nombres));
-            ModelState.SetModelValue("Apellidos", new ValueProviderResult(Apellidos ?? ""));
-            ModelState.SetModelValue("Nacionalidad", new ValueProviderResult(Nacionalidad ?? ""));
-            ModelState.SetModelValue("FechaNacimiento", new ValueProviderResult(FechaNacimiento?.ToString("yyyy-MM-dd") ?? ""));
-            ModelState.SetModelValue("Estado", new ValueProviderResult((Estado ?? false).ToString()));
             CargarAutores();
             return Page();
         }
@@ -162,18 +161,63 @@ public class AutorModel : PageModel
         return RedirectToPage();
     }
 
+    private void ValidarAutorCrear()
+    {
+        ValidarCampoObligatorio("AutorDto.Nombres", AutorDto.Nombres, "Ingrese el nombre del autor.");
+        ValidarSoloLetras("AutorDto.Nombres", AutorDto.Nombres, "El nombre solo debe contener letras y espacios.");
+        ValidarSoloLetras("AutorDto.Apellidos", AutorDto.Apellidos, "Los apellidos solo deben contener letras y espacios.");
+        ValidarSoloLetras("AutorDto.Nacionalidad", AutorDto.Nacionalidad, "La nacionalidad solo debe contener letras y espacios.");
+        ValidarFecha("AutorDto.FechaNacimiento", AutorDto.FechaNacimiento);
+    }
+
+    private void ValidarAutorEditar(string nombres, string? apellidos, string? nacionalidad, DateTime? fechaNacimiento)
+    {
+        ValidarCampoObligatorio("Nombres", nombres, "Ingrese el nombre del autor.");
+        ValidarSoloLetras("Nombres", nombres, "El nombre solo debe contener letras y espacios.");
+        ValidarSoloLetras("Apellidos", apellidos, "Los apellidos solo deben contener letras y espacios.");
+        ValidarSoloLetras("Nacionalidad", nacionalidad, "La nacionalidad solo debe contener letras y espacios.");
+        ValidarFecha("FechaNacimiento", fechaNacimiento);
+    }
+
+    private void ValidarCampoObligatorio(string key, string? value, string message)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            ModelState.AddModelError(key, message);
+    }
+
+    private void ValidarSoloLetras(string key, string? value, string message)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return;
+
+        var regex = new Regex(@"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$");
+
+        if (!regex.IsMatch(value))
+            ModelState.AddModelError(key, message);
+    }
+
+    private void ValidarFecha(string key, DateTime? fechaNacimiento)
+    {
+        if (fechaNacimiento.HasValue && fechaNacimiento.Value.Date > DateTime.Today)
+            ModelState.AddModelError(key, "La fecha de nacimiento no puede ser futura.");
+    }
+
+    private static string LimpiarTexto(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return string.Empty;
+
+        return Regex.Replace(value.Trim(), @"\s+", " ");
+    }
+
     private void AgregarError(Error error, bool esCrear = false)
     {
         var key = error.Code.Split('.').LastOrDefault() ?? string.Empty;
 
         if (esCrear)
-        {
             ModelState.AddModelError($"AutorDto.{key}", error.Message);
-        }
         else
-        {
             ModelState.AddModelError(key, error.Message);
-        }
     }
 
     private bool EsAdminOBibliotecario()
@@ -195,9 +239,7 @@ public class AutorModel : PageModel
         var usuarioSesion = HttpContext.Session.GetString(SessionKeys.UsuarioId);
 
         if (int.TryParse(usuarioSesion, out var usuarioId))
-        {
             return usuarioId;
-        }
 
         return null;
     }

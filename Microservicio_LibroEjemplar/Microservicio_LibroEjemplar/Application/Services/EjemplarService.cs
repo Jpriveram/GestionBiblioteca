@@ -4,16 +4,20 @@ using ServicioLibroEjemplar.Domain.Entities;
 using ServicioLibroEjemplar.Domain.Errors;
 using ServicioLibroEjemplar.Domain.Validations;
 using ServicioLibroEjemplar.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
 
 namespace ServicioLibroEjemplar.Application.Services;
 
 public class EjemplarService : IEjemplarService
 {
     private readonly EjemplarRepository _repositorio;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public EjemplarService(EjemplarRepository repositorio)
+    public EjemplarService(EjemplarRepository repositorio, IHttpContextAccessor httpContextAccessor)
     {
         _repositorio = repositorio;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public Task<List<EjemplarDto>> GetAllAsync()
@@ -75,7 +79,8 @@ public class EjemplarService : IEjemplarService
             DadoDeBaja = false,
             Ubicacion = NormalizeOptional(dto.Ubicacion),
             Estado = true,
-            FechaRegistro = DateTime.UtcNow
+            FechaRegistro = DateTime.UtcNow,
+            UsuarioSesionId = GetCurrentUserId()
         };
 
         _repositorio.Insert(ejemplar);
@@ -107,6 +112,7 @@ public class EjemplarService : IEjemplarService
         ejemplar.Ubicacion = NormalizeOptional(dto.Ubicacion);
         ejemplar.Estado = dto.Estado;
         ejemplar.UltimaActualizacion = DateTime.UtcNow;
+        ejemplar.UsuarioSesionId = GetCurrentUserId();
 
         _repositorio.Update(ejemplar);
         _repositorio.SaveChanges();
@@ -125,6 +131,7 @@ public class EjemplarService : IEjemplarService
 
         ejemplar.Estado = false;
         ejemplar.UltimaActualizacion = DateTime.UtcNow;
+        ejemplar.UsuarioSesionId = GetCurrentUserId();
 
         _repositorio.Update(ejemplar);
         _repositorio.SaveChanges();
@@ -145,8 +152,24 @@ public class EjemplarService : IEjemplarService
             Ubicacion = ejemplar.Ubicacion,
             Estado = ejemplar.Estado,
             FechaRegistro = ejemplar.FechaRegistro,
-            UltimaActualizacion = ejemplar.UltimaActualizacion
+            UltimaActualizacion = ejemplar.UltimaActualizacion,
+            UsuarioSesionId = ejemplar.UsuarioSesionId
         };
+    }
+
+    private int? GetCurrentUserId()
+    {
+        var httpContext = _httpContextAccessor?.HttpContext;
+        if (httpContext?.User?.Identity?.IsAuthenticated != true)
+            return null;
+
+        var sub = httpContext.User.FindFirst("sub")?.Value
+              ?? httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (int.TryParse(sub, out var id))
+            return id;
+
+        return null;
     }
 
     private static void ValidateCreateDto(CreateEjemplarDto dto)

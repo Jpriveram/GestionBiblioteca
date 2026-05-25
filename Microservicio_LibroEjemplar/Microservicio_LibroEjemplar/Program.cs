@@ -11,6 +11,7 @@ ConfigurationSingleton.Initialize(builder.Configuration);
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddHttpContextAccessor();
 
 // Creadores concretos
 builder.Services.AddSingleton<LibroRepositoryCreator>();

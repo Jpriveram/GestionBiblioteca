@@ -4,16 +4,20 @@ using ServicioLibroEjemplar.Domain.Entities;
 using ServicioLibroEjemplar.Domain.Errors;
 using ServicioLibroEjemplar.Domain.Validations;
 using ServicioLibroEjemplar.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
 
 namespace ServicioLibroEjemplar.Application.Services;
 
 public class LibroService : ILibroService
 {
     private readonly LibroRepository _repositorio;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public LibroService(LibroRepository repositorio)
+    public LibroService(LibroRepository repositorio, IHttpContextAccessor httpContextAccessor)
     {
         _repositorio = repositorio;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public Task<List<LibroDto>> GetAllAsync()
@@ -71,7 +75,8 @@ public class LibroService : ILibroService
             PaisPublicacion = NormalizeOptional(dto.PaisPublicacion),
             Descripcion = NormalizeOptional(dto.Descripcion),
             Estado = true,
-            FechaRegistro = DateTime.UtcNow
+            FechaRegistro = DateTime.UtcNow,
+            UsuarioSesionId = GetCurrentUserId()
         };
 
         _repositorio.Insert(libro);
@@ -111,6 +116,7 @@ public class LibroService : ILibroService
         libro.Descripcion = NormalizeOptional(dto.Descripcion);
         libro.Estado = dto.Estado;
         libro.UltimaActualizacion = DateTime.UtcNow;
+        libro.UsuarioSesionId = GetCurrentUserId();
 
         _repositorio.Update(libro);
         _repositorio.SaveChanges();
@@ -129,6 +135,7 @@ public class LibroService : ILibroService
 
         libro.Estado = false;
         libro.UltimaActualizacion = DateTime.UtcNow;
+        libro.UsuarioSesionId = GetCurrentUserId();
 
         _repositorio.Update(libro);
         _repositorio.SaveChanges();
@@ -153,8 +160,24 @@ public class LibroService : ILibroService
             Descripcion = libro.Descripcion,
             Estado = libro.Estado,
             FechaRegistro = libro.FechaRegistro,
-            UltimaActualizacion = libro.UltimaActualizacion
+            UltimaActualizacion = libro.UltimaActualizacion,
+            UsuarioSesionId = libro.UsuarioSesionId
         };
+    }
+
+    private int? GetCurrentUserId()
+    {
+        var httpContext = _httpContextAccessor?.HttpContext;
+        if (httpContext?.User?.Identity?.IsAuthenticated != true)
+            return null;
+
+        var sub = httpContext.User.FindFirst("sub")?.Value
+              ?? httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (int.TryParse(sub, out var id))
+            return id;
+
+        return null;
     }
 
     private static void ValidateCreateDto(CreateLibroDto dto)

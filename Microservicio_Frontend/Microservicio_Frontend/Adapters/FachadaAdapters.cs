@@ -26,10 +26,10 @@ public class PrestamoFachadaAdapter : IPrestamoFachada
             .ToList();
     }
 
-    public Result<int> CrearPrestamoMultiple(int lectorId, IEnumerable<int> ejIds, DateTime f, int? uid = null, string? obs = null) => Result<int>.Failure(new Error("NotImpl", "Not implemented"));
-    public Result<int> CrearPrestamoMultiple(int lectorId, IEnumerable<(int, string?)> d, DateTime f, int? uid = null) => Result<int>.Failure(new Error("NotImpl", "Not implemented"));
-    public Result CrearPrestamo(PrestamoDto p) => Result.Failure(new Error("NotImpl", "Not implemented"));
-    public Result CrearPrestamos(IEnumerable<PrestamoDto> p) => Result.Failure(new Error("NotImpl", "Not implemented"));
+    public Result<int> CrearPrestamoMultiple(int lectorId, IEnumerable<int> ejIds, DateTime f, int? uid = null, string? obs = null) => Result<int>.Failure(new Error("NotImpl", "Funcionalidad no implementada."));
+    public Result<int> CrearPrestamoMultiple(int lectorId, IEnumerable<(int, string?)> d, DateTime f, int? uid = null) => Result<int>.Failure(new Error("NotImpl", "Funcionalidad no implementada."));
+    public Result CrearPrestamo(PrestamoDto p) => Result.Failure(new Error("NotImpl", "Funcionalidad no implementada."));
+    public Result CrearPrestamos(IEnumerable<PrestamoDto> p) => Result.Failure(new Error("NotImpl", "Funcionalidad no implementada."));
     public int CountPrestamosActivos(int id) => 0;
     public PrestamoDto? ObtenerPrestamoPorId(int id) => null;
     public EjemplarDto? ObtenerEjemplarPorId(int id) => null;
@@ -124,8 +124,8 @@ public class PrestamoServicioAdapter : IPrestamoServicio
         catch { return new List<PrestamoDto>(); }
     }
 
-    public Result<PrestamoDto> Create(PrestamoDto d) => Result<PrestamoDto>.Failure(new Error("NotImpl", "Not implemented"));
-    public Result<PrestamoDto> Update(PrestamoDto d) => Result<PrestamoDto>.Failure(new Error("NotImpl", "Not implemented"));
+    public Result<PrestamoDto> Create(PrestamoDto d) => Result<PrestamoDto>.Failure(new Error("NotImpl", "Funcionalidad no implementada."));
+    public Result<PrestamoDto> Update(PrestamoDto d) => Result<PrestamoDto>.Failure(new Error("NotImpl", "Funcionalidad no implementada."));
 
     public Result Delete(PrestamoDto d)
     {

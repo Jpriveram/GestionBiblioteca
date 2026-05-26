@@ -25,6 +25,6 @@ public static class EmailSenderFactory
             return ActivatorUtilities.CreateInstance<HttpApiEmailSender>(serviceProvider);
         }
 
-        throw new InvalidOperationException($"Proveedor de email no soportado: {settings.Provider}");
+        throw new InvalidOperationException($"Proveedor de correo electrónico no compatible: {settings.Provider}");
     }
 }

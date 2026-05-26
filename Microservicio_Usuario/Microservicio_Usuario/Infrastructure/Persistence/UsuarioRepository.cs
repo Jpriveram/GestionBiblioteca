@@ -219,8 +219,8 @@ public class UsuarioRepository : IRepository<Usuario, int>
             using (var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection())
             {
                 connection.Open();
-                string query = @"INSERT INTO usuario (Nombres, PrimerApellido, SegundoApellido, Email, NombreUsuario, PasswordHash, Rol, Estado, CI, UsuarioSesionId, UltimaActualizacion) 
-                                VALUES (@Nombres, @PrimerApellido, @SegundoApellido, @Email, @NombreUsuario, @PasswordHash, @Rol, @Estado, @CI, @UsuarioSesionId, @UltimaActualizacion);";
+                string query = @"INSERT INTO usuario (Nombres, PrimerApellido, SegundoApellido, Email, NombreUsuario, PasswordHash, Rol, Estado, CI, UsuarioSesionId, FechaRegistro, UltimaActualizacion) 
+                                VALUES (@Nombres, @PrimerApellido, @SegundoApellido, @Email, @NombreUsuario, @PasswordHash, @Rol, @Estado, @CI, @UsuarioSesionId, @FechaRegistro, @UltimaActualizacion);";
                 using (MySqlCommand command = new MySqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@Nombres", entity.Nombres);
@@ -233,7 +233,8 @@ public class UsuarioRepository : IRepository<Usuario, int>
                     command.Parameters.AddWithValue("@Estado", entity.Estado);
                     command.Parameters.AddWithValue("@CI", entity.CI ?? (object)DBNull.Value);
                     command.Parameters.AddWithValue("@UsuarioSesionId", entity.UsuarioSesionId ?? (object)DBNull.Value);
-                    command.Parameters.AddWithValue("@UltimaActualizacion", entity.FechaActualizacion ?? DateTime.Now);
+                    command.Parameters.AddWithValue("@FechaRegistro", entity.FechaCreacion);
+                    command.Parameters.AddWithValue("@UltimaActualizacion", DBNull.Value);
                     command.ExecuteNonQuery();
                     entity.UsuarioId = Convert.ToInt32(command.LastInsertedId);
                 }

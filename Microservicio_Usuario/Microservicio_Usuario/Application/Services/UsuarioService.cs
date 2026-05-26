@@ -89,7 +89,7 @@ public class UsuarioService : IUsuarioServicio
             Rol = rol,
             Estado = true,
             FechaCreacion = DateTime.Now,
-            FechaActualizacion = DateTime.Now
+            FechaActualizacion = null
         };
 
         if (ShouldAutoProvisionCredentials(rol))

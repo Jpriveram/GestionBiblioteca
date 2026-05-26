@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ServicioLibroEjemplar.Application.Dtos;
 using ServicioLibroEjemplar.Application.Interfaces;
@@ -6,6 +7,7 @@ namespace ServicioLibroEjemplar.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class LibrosController : ControllerBase
 {
     private readonly ILibroService _libroService;

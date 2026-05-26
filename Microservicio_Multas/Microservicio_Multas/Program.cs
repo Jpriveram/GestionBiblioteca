@@ -4,6 +4,7 @@ using ServicioMultas.Application.Interfaces;
 using ServicioMultas.Application.Services;
 using ServicioMultas.Domain.Ports;
 using ServicioMultas.Infrastructure.Configuration;
+using ServicioMultas.Infrastructure.Creators;
 using ServicioMultas.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -27,12 +28,17 @@ builder.Services.AddSingleton(sp =>
     return client.GetDatabase(settings.DatabaseName);
 });
 
-builder.Services.AddSingleton<IMultaRepository>(sp =>
+// Creador concreto
+builder.Services.AddSingleton(sp =>
 {
     var settings = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<MongoDbSettings>>().Value;
     var database = sp.GetRequiredService<IMongoDatabase>();
-    return new MultaRepository(database, settings.CollectionName);
+    return new MultaRepositoryCreator(database, settings.CollectionName);
 });
+
+// Repositorio
+builder.Services.AddSingleton<IMultaRepository>(sp =>
+    sp.GetRequiredService<MultaRepositoryCreator>().CreateRepository());
 
 // Servicio de aplicación
 builder.Services.AddSingleton<IMultaService, MultaService>();

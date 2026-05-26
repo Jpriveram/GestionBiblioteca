@@ -34,7 +34,7 @@ public class UserCredentialProvisioningService : IUserCredentialProvisioningServ
 
         if (string.IsNullOrWhiteSpace(usuario.Email))
         {
-            throw new InvalidOperationException("El usuario debe tener email para enviar credenciales.");
+            throw new InvalidOperationException("El usuario debe tener correo electrónico para enviar credenciales.");
         }
 
         var nombreUsuario = GenerarNombreUsuarioUnico(usuario.Nombres, usuario.PrimerApellido, usuario.SegundoApellido);

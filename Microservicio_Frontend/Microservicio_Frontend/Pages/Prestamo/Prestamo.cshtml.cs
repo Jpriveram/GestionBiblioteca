@@ -182,7 +182,7 @@ public class PrestamoModel : PageModel
         List<(int Id, string? Observaciones)> items = new();
         if (string.IsNullOrWhiteSpace(EjemplarData))
         {
-            MensajeError = "Debe seleccionar al menos un EjemplarDto.";
+            MensajeError = "Debe seleccionar al menos un ejemplar.";
             CargarPrestamosDetallados();
             SetFechaDefaults();
             return Page();
@@ -194,7 +194,7 @@ public class PrestamoModel : PageModel
             var trimmedData = EjemplarData.Trim();
             if (trimmedData == "[]")
             {
-                MensajeError = "Debe seleccionar al menos un EjemplarDto.";
+                MensajeError = "Debe seleccionar al menos un ejemplar.";
                 CargarPrestamosDetallados();
                 SetFechaDefaults();
                 return Page();

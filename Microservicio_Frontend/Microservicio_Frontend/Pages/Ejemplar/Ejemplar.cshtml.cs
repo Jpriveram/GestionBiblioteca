@@ -142,7 +142,7 @@ public class EjemplarModel : PageModel
         }
         catch (Exception ex) when (ex.Message.Contains("Duplicate"))
         {
-            ModelState.AddModelError("CodigoInventario", "C�digo duplicado.");
+            ModelState.AddModelError("CodigoInventario", "Código duplicado.");
             CargarPagina();
             return Page();
         }
@@ -193,7 +193,7 @@ public class EjemplarModel : PageModel
         }
         catch (Exception ex) when (ex.Message.Contains("Duplicate"))
         {
-            ModelState.AddModelError("EjemplarDto.CodigoInventario", "C�digo duplicado.");
+            ModelState.AddModelError("EjemplarDto.CodigoInventario", "Código duplicado.");
             CargarPagina();
             return Page();
         }

@@ -124,7 +124,7 @@ public class UsuariosController : ControllerBase
         try
         {
             await _usuarioService.CambiarPasswordAsync(id, dto.PasswordActual, dto.PasswordNueva, dto.PasswordConfirmacion);
-            return Ok(new { message = "Contrasena actualizada correctamente." });
+            return Ok(new { message = "Contraseña actualizada correctamente." });
         }
         catch (InvalidOperationException ex)
         {

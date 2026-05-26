@@ -252,7 +252,7 @@ public class LibroModel : PageModel
     private void AgregarError(Error error)
     {
         var key = error.Code.Split('.').LastOrDefault() ?? string.Empty;
-        key = key.Replace("A�oPublicacion", "AñoPublicacion");
+        key = key.Replace("A\uFFFDoPublicacion", "AñoPublicacion");
 
         if (string.Equals(error.Code, "Post", StringComparison.OrdinalIgnoreCase)
             || string.Equals(error.Code, "Put", StringComparison.OrdinalIgnoreCase)

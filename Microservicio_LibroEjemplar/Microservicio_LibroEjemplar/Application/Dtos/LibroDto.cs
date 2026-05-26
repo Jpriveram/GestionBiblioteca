@@ -24,7 +24,7 @@ public class LibroDto
 
 public class CreateLibroDto
 {
-    [Range(1, int.MaxValue, ErrorMessage = "AutorId debe ser mayor a cero.")]
+    [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar un autor válido.")]
     public int AutorId { get; set; }
 
     [Required]
@@ -43,10 +43,10 @@ public class CreateLibroDto
     [StringLength(40)]
     public string? Edicion { get; set; }
 
-    [Range(1000, 9999, ErrorMessage = "AñoPublicacion debe tener un valor valido.")]
+    [Range(1000, 9999, ErrorMessage = "El año de publicación debe tener un valor válido.")]
     public int? AñoPublicacion { get; set; }
 
-    [Range(1, int.MaxValue, ErrorMessage = "NumeroPaginas debe ser mayor a cero.")]
+    [Range(1, int.MaxValue, ErrorMessage = "El número de páginas debe ser mayor a cero.")]
     public int? NumeroPaginas { get; set; }
 
     [StringLength(40)]
@@ -61,7 +61,7 @@ public class CreateLibroDto
 
 public class UpdateLibroDto
 {
-    [Range(1, int.MaxValue, ErrorMessage = "AutorId debe ser mayor a cero.")]
+    [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar un autor válido.")]
     public int AutorId { get; set; }
 
     [Required]
@@ -80,10 +80,10 @@ public class UpdateLibroDto
     [StringLength(40)]
     public string? Edicion { get; set; }
 
-    [Range(1000, 9999, ErrorMessage = "AñoPublicacion debe tener un valor valido.")]
+    [Range(1000, 9999, ErrorMessage = "El año de publicación debe tener un valor válido.")]
     public int? AñoPublicacion { get; set; }
 
-    [Range(1, int.MaxValue, ErrorMessage = "NumeroPaginas debe ser mayor a cero.")]
+    [Range(1, int.MaxValue, ErrorMessage = "El número de páginas debe ser mayor a cero.")]
     public int? NumeroPaginas { get; set; }
 
     [StringLength(40)]

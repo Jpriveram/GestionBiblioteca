@@ -52,8 +52,8 @@ public class UserCredentialProvisioningService : IUserCredentialProvisioningServ
                 $"Hola {usuario.Nombres},\n\n" +
                 "Tu usuario fue creado correctamente.\n" +
                 $"Nombre de usuario: {nombreUsuario}\n" +
-                $"Contrasena temporal: {passwordTemporal}\n\n" +
-                "Por seguridad, en tu primer inicio de sesion se te pedira cambiar la contrasena.\n"
+                $"Contraseña temporal: {passwordTemporal}\n\n" +
+                "Por seguridad, en tu primer inicio de sesión se te pedirá cambiar la contraseña.\n"
         };
 
         var emailSent = true;
@@ -108,7 +108,7 @@ public class UserCredentialProvisioningService : IUserCredentialProvisioningServ
 
             if (maxBaseLen <= 0)
             {
-                throw new InvalidOperationException("No fue posible generar un nombre de usuario unico.");
+                throw new InvalidOperationException("No fue posible generar un nombre de usuario único.");
             }
 
             var candidateBase = baseName.Length > maxBaseLen ? baseName[..maxBaseLen] : baseName;

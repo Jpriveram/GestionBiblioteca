@@ -253,12 +253,12 @@ public class UsuarioService : IUsuarioServicio
 
         if (!VerifyPassword(actual, usuario.PasswordHash))
         {
-            throw new InvalidOperationException("La contrasena actual no es correcta.");
+            throw new InvalidOperationException("La contraseña actual no es correcta.");
         }
 
         if (!string.Equals(nueva, confirmacion, StringComparison.Ordinal))
         {
-            throw new InvalidOperationException("La nueva contrasena y su confirmacion no coinciden.");
+            throw new InvalidOperationException("La nueva contraseña y su confirmación no coinciden.");
         }
 
         var policyResult = ValidatePasswordPolicy(nueva);
@@ -269,7 +269,7 @@ public class UsuarioService : IUsuarioServicio
 
         if (VerifyPassword(nueva, usuario.PasswordHash))
         {
-            throw new InvalidOperationException("La nueva contrasena no puede ser igual a la contrasena actual.");
+            throw new InvalidOperationException("La nueva contraseña no puede ser igual a la contraseña actual.");
         }
 
         usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(nueva);
@@ -345,32 +345,32 @@ public class UsuarioService : IUsuarioServicio
     {
         if (string.IsNullOrWhiteSpace(password))
         {
-            return (false, "La nueva contrasena es obligatoria.");
+            return (false, "La nueva contraseña es obligatoria.");
         }
 
         if (password.Length < 8)
         {
-            return (false, "La contrasena debe tener al menos 8 caracteres.");
+            return (false, "La contraseña debe tener al menos 8 caracteres.");
         }
 
         if (!Regex.IsMatch(password, "[A-Z]"))
         {
-            return (false, "La contrasena debe incluir al menos una letra mayuscula.");
+            return (false, "La contraseña debe incluir al menos una letra mayúscula.");
         }
 
         if (!Regex.IsMatch(password, "[a-z]"))
         {
-            return (false, "La contrasena debe incluir al menos una letra minuscula.");
+            return (false, "La contraseña debe incluir al menos una letra minúscula.");
         }
 
         if (!Regex.IsMatch(password, "[0-9]"))
         {
-            return (false, "La contrasena debe incluir al menos un numero.");
+            return (false, "La contraseña debe incluir al menos un número.");
         }
 
         if (!Regex.IsMatch(password, "[^a-zA-Z0-9]"))
         {
-            return (false, "La contrasena debe incluir al menos un caracter especial.");
+            return (false, "La contraseña debe incluir al menos un carácter especial.");
         }
 
         return (true, string.Empty);

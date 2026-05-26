@@ -57,6 +57,29 @@ public static class ValidadorEntrada
         return true;
     }
 
+    public static bool CarnetIdentidadValido(string? valor)
+    {
+        var normalizado = NormalizarEspacios(valor);
+        return !string.IsNullOrWhiteSpace(normalizado)
+            && Regex.IsMatch(normalizado, @"^\d+(?:-[A-Za-z0-9]+)?$");
+    }
+
+    public static bool EmailValido(string? valor)
+    {
+        var normalizado = NormalizarEspacios(valor);
+        return !string.IsNullOrWhiteSpace(normalizado)
+            && Regex.IsMatch(normalizado, @"^[^\s@]+@[^\s@]+\.[^\s@]+$");
+    }
+
+    public static bool RolUsuarioValido(string? valor)
+    {
+        var normalizado = NormalizarEspacios(valor);
+        return string.Equals(normalizado, "Lector", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(normalizado, "Bibliotecario", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(normalizado, "Admin", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(normalizado, "Usuario", StringComparison.OrdinalIgnoreCase);
+    }
+
     public static bool CodigoInventarioValido(string valor)
     {
         if (string.IsNullOrWhiteSpace(valor))

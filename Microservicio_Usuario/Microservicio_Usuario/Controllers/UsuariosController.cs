@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using ServicioUsuario.Application.Dtos;
 using ServicioUsuario.Application.Services;
 using ServicioUsuario.Application.Interfaces;
+using ServicioUsuario.Domain.Errors;
 
 namespace ServicioUsuario.Controllers;
 
@@ -65,6 +66,10 @@ public class UsuariosController : ControllerBase
         {
             var usuario = await _usuarioService.CreateAsync(dto);
             return Ok(usuario);
+        }
+        catch (UsuarioValidationException ex)
+        {
+            return BadRequest(new { code = ex.Error.Code, message = ex.Error.Message });
         }
         catch (InvalidOperationException ex)
         {

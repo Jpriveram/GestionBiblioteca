@@ -54,7 +54,7 @@ public class UsuarioAdapter : IUsuarioServicio
             d.SegundoApellido = d.SegundoApellido.ToDisplayName();
             var response = _http.PostAsJsonAsync("api/usuarios", d).Result;
             if (!response.IsSuccessStatusCode)
-                return Result<UsuarioDto>.Failure(new Error("Create", "Error al crear usuario"));
+                return Result<UsuarioDto>.Failure(ParseApiError(response.Content.ReadAsStringAsync().Result, "Create", "Error al crear usuario."));
 
             var created = response.Content.ReadFromJsonAsync<UsuarioDto>().Result;
             return Result<UsuarioDto>.Success(created ?? d);
@@ -70,17 +70,17 @@ public class UsuarioAdapter : IUsuarioServicio
         try
         {
             EnsureAuthorizationHeader();
-            var ciCompleto = JoinCiComp(d.CI ?? string.Empty, d.Complemento ?? string.Empty);
             var createUsuarioDto = new UsuarioDto
             {
-                NombreUsuario = !string.IsNullOrWhiteSpace(ciCompleto)
-                    ? ciCompleto
+                NombreUsuario = !string.IsNullOrWhiteSpace(d.CI)
+                    ? d.CI
                     : d.Nombres,
                 Nombres = d.Nombres.ToDisplayName(),
                 PrimerApellido = d.PrimerApellido.ToDisplayName(),
                 SegundoApellido = d.SegundoApellido.ToDisplayName(),
                 Email = d.Email,
-                CI = ciCompleto,
+                CI = d.CI,
+                Complemento = d.Complemento,
                 Rol = "Lector",
                 Estado = true,
                 UsuarioSesionId = uid
@@ -91,7 +91,7 @@ public class UsuarioAdapter : IUsuarioServicio
             {
                 var errorContent = response.Content.ReadAsStringAsync().Result;
                 System.Diagnostics.Debug.WriteLine($"Error CrearLector: {response.StatusCode} - {errorContent}");
-                return Result.Failure(new Error("Create", TryExtractApiMessage(errorContent) ?? "Error al crear lector."));
+                return Result.Failure(ParseApiError(errorContent, "Create", "Error al crear lector."));
             }
             
             System.Diagnostics.Debug.WriteLine("Lector creado exitosamente");
@@ -132,15 +132,13 @@ public class UsuarioAdapter : IUsuarioServicio
             var response = await _http.PostAsJsonAsync("api/usuarios", d, ct);
             return response.IsSuccessStatusCode
                 ? Result.Success()
-                : Result.Failure(new Error("Create", await LeerErrorAsync(response, ct)));
+                : Result.Failure(ParseApiError(await response.Content.ReadAsStringAsync(ct), "Create", "Error al crear usuario."));
         }
         catch (Exception ex)
         {
             return Result.Failure(new Error("Create", ex.Message));
         }
     }
-
-    public string JoinCiComp(string ci, string comp) => string.IsNullOrWhiteSpace(comp) ? ci : $"{ci}-{comp}";
 
     public async Task<Result> CambiarPasswordAsync(int usuarioId, string passwordActual, string passwordNueva, string passwordConfirmacion, CancellationToken ct = default)
     {
@@ -262,12 +260,6 @@ public class UsuarioAdapter : IUsuarioServicio
         }
     }
 
-    private static async Task<string> LeerErrorAsync(HttpResponseMessage response, CancellationToken ct)
-    {
-        var content = await response.Content.ReadAsStringAsync(ct);
-        return TryExtractApiMessage(content) ?? "Error al crear usuario.";
-    }
-
     private static string? TryExtractApiMessage(string? responseBody)
     {
         if (string.IsNullOrWhiteSpace(responseBody))
@@ -293,5 +285,34 @@ public class UsuarioAdapter : IUsuarioServicio
         }
 
         return responseBody;
+    }
+
+    private static Error ParseApiError(string? responseBody, string fallbackCode, string fallbackMessage)
+    {
+        if (!string.IsNullOrWhiteSpace(responseBody))
+        {
+            try
+            {
+                using var document = JsonDocument.Parse(responseBody);
+                var root = document.RootElement;
+                var code = root.TryGetProperty("code", out var codeElement)
+                    ? codeElement.GetString()
+                    : null;
+                var message = root.TryGetProperty("message", out var messageElement)
+                    ? messageElement.GetString()
+                    : null;
+
+                if (!string.IsNullOrWhiteSpace(message))
+                {
+                    return new Error(code ?? fallbackCode, message);
+                }
+            }
+            catch
+            {
+                // El mensaje alternativo mantiene el formulario utilizable ante respuestas no JSON.
+            }
+        }
+
+        return new Error(fallbackCode, fallbackMessage);
     }
 }

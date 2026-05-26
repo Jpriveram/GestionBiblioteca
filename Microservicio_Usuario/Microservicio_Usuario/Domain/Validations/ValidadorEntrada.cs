@@ -61,7 +61,18 @@ public static class ValidadorEntrada
     {
         var normalizado = NormalizarEspacios(valor);
         return !string.IsNullOrWhiteSpace(normalizado)
-            && Regex.IsMatch(normalizado, @"^\d+(?:-[A-Za-z0-9]+)?$");
+            && Regex.IsMatch(normalizado, @"^\d+$");
+    }
+
+    public static bool ComplementoCiValido(string? valor)
+    {
+        if (string.IsNullOrWhiteSpace(valor))
+        {
+            return true;
+        }
+
+        var normalizado = NormalizarEspacios(valor);
+        return Regex.IsMatch(normalizado, @"^[A-Za-z0-9]+$");
     }
 
     public static bool EmailValido(string? valor)

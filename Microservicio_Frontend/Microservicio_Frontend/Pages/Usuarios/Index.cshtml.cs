@@ -15,6 +15,7 @@ public class IndexModel : PageModel
     private readonly RouteTokenService _routeTokenService;
 
     public List<UsuarioListadoItem> Usuarios { get; set; } = new();
+    public List<UsuarioGrupo> GruposUsuarios { get; set; } = new();
 
     [BindProperty]
     public UsuarioDto NuevoUsuario { get; set; } = new();
@@ -194,7 +195,31 @@ public class IndexModel : PageModel
             });
         }
 
+        GruposUsuarios = new List<UsuarioGrupo>
+        {
+            CrearGrupo("Administradores", Roles.Admin),
+            CrearGrupo("Lectores", Roles.Lector),
+            CrearGrupo("Bibliotecarios", Roles.Bibliotecario)
+        };
+
         MensajeOk = TempData["MensajeOk"]?.ToString();
+    }
+
+    private UsuarioGrupo CrearGrupo(string titulo, string rol)
+    {
+        var usuarios = Usuarios
+            .Where(u => string.Equals(u.Rol, rol, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(u => u.Nombres, StringComparer.CurrentCultureIgnoreCase)
+            .ThenBy(u => u.PrimerApellido, StringComparer.CurrentCultureIgnoreCase)
+            .ThenBy(u => u.SegundoApellido, StringComparer.CurrentCultureIgnoreCase)
+            .ToList();
+
+        return new UsuarioGrupo
+        {
+            Titulo = titulo,
+            Rol = rol,
+            Usuarios = usuarios
+        };
     }
 
     private bool EsAdmin()
@@ -226,5 +251,12 @@ public class IndexModel : PageModel
         public string NombreUsuario { get; set; } = string.Empty;
         public string Rol { get; set; } = string.Empty;
         public bool Estado { get; set; }
+    }
+
+    public class UsuarioGrupo
+    {
+        public string Titulo { get; set; } = string.Empty;
+        public string Rol { get; set; } = string.Empty;
+        public List<UsuarioListadoItem> Usuarios { get; set; } = new();
     }
 }

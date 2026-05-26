@@ -39,61 +39,80 @@
         </div>
     }
 
-    <div class="tabla-container">
-        <table class="tabla-usuarios">
-            <thead>
-                <tr>
-                    <th>Nombres</th>
-                    <th>Primer apellido</th>
-                    <th>Segundo apellido</th>
-                    <th>Email</th>
-                    <th>Usuario</th>
-                    <th>Rol</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
+    <div class="usuarios-grupos">
+        @foreach (var grupo in Model.GruposUsuarios)
+        {
+            <section class="tabla-container grupo-panel grupo-@grupo.Rol.ToLowerInvariant()">
+                <header class="grupo-header">
+                    <h2>@grupo.Titulo</h2>
+                    <span class="grupo-total">@grupo.Usuarios.Count</span>
+                </header>
 
-            <tbody>
-                @foreach (var usuario in Model.Usuarios)
-                {
-                    <tr>
-                        <td>@usuario.Nombres.ToDisplayName()</td>
-                        <td>@usuario.PrimerApellido.ToDisplayName()</td>
-                        <td>@usuario.SegundoApellido.ToDisplayName()</td>
-                        <td>@usuario.Email</td>
-                        <td>@usuario.NombreUsuario</td>
-                        <td>@usuario.Rol</td>
-                        <td>
-                            @if (usuario.Estado)
+                <table class="tabla-usuarios">
+                    <thead>
+                        <tr>
+                            <th>Nombres</th>
+                            <th>Primer apellido</th>
+                            <th>Segundo apellido</th>
+                            <th>Email</th>
+                            <th>Usuario</th>
+                            <th>Rol</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @if (grupo.Usuarios.Count == 0)
+                        {
+                            <tr class="grupo-vacio">
+                                <td colspan="8">No hay usuarios registrados en este grupo.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var usuario in grupo.Usuarios)
                             {
-                                <span class="estado activo">Activo</span>
+                                <tr>
+                                    <td>@usuario.Nombres.ToDisplayName()</td>
+                                    <td>@usuario.PrimerApellido.ToDisplayName()</td>
+                                    <td>@usuario.SegundoApellido.ToDisplayName()</td>
+                                    <td>@usuario.Email</td>
+                                    <td>@usuario.NombreUsuario</td>
+                                    <td>@usuario.Rol</td>
+                                    <td>
+                                        @if (usuario.Estado)
+                                        {
+                                            <span class="estado activo">Activo</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="estado inactivo">Inactivo</span>
+                                        }
+                                    </td>
+                                    <td class="acciones">
+                                        @if (usuario.Estado)
+                                        {
+                                            <button type="button"
+                                                    class="btn-eliminar"
+                                                    onclick="abrirModalBajaUsuario('@usuario.UsuarioIdToken', '@Html.Raw((usuario.NombreUsuario ?? "").Replace("'", "\\'"))')">
+                                                <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                                                     class="icono-btn" />
+                                                Dar de baja
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Sin acciones</span>
+                                        }
+                                    </td>
+                                </tr>
                             }
-                            else
-                            {
-                                <span class="estado inactivo">Inactivo</span>
-                            }
-                        </td>
-                        <td class="acciones">
-                            @if (usuario.Estado)
-                            {
-                                <button type="button"
-                                        class="btn-eliminar"
-                                        onclick="abrirModalBajaUsuario('@usuario.UsuarioIdToken', '@Html.Raw((usuario.NombreUsuario ?? "").Replace("'", "\\'"))')">
-                                    <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-                                         class="icono-btn" />
-                                    Dar de baja
-                                </button>
-                            }
-                            else
-                            {
-                                <span class="text-muted">Sin acciones</span>
-                            }
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+                        }
+                    </tbody>
+                </table>
+            </section>
+        }
     </div>
 
 </div>

@@ -499,10 +499,7 @@
                 esValido = false;
             }
 
-            if (!fecha.value) {
-                mostrarError(fecha, "Ingrese la fecha de nacimiento.");
-                esValido = false;
-            } else {
+            if (fecha.value) {
                 const fechaIngresada = new Date(fecha.value + "T00:00:00");
                 const hoy = new Date();
                 hoy.setHours(0, 0, 0, 0);

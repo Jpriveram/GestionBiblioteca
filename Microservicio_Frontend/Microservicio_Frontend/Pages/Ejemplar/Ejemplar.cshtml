@@ -135,10 +135,11 @@
 }
 
 @section Styles {
+    <link rel="stylesheet" href="~/css/pages/usuarios.css" />
     <link rel="stylesheet" href="~/css/pages/ejemplar.css" />
 }
 
-<div class="ejemplar-container">
+<div class="usuarios-container">
 
     <div class="page-header">
         <div class="titulo-logo">
@@ -175,7 +176,7 @@ else
     var dadosDeBaja = Model.Ejemplares.Count(e => e.DadoDeBaja);
 
     <div class="tabla-container">
-        <table id="tabla-ejemplar" class="tabla-ejemplar">
+        <table id="tabla-ejemplar" class="tabla-usuarios">
 
             <thead>
                 <tr>

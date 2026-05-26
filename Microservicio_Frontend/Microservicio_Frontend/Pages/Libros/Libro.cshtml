@@ -604,7 +604,7 @@ else
             </div>
 
             <div class="detalle-card">
-                <span class="label">Numero de Páginas</span>
+                <span class="label">Número de páginas</span>
                 <span id="dPaginas" class="value"></span>
             </div>
 
@@ -1019,7 +1019,7 @@ function mostrarErroresCrear(errors) {
         const mensajeError = mensajeArray[0];
         if (!mensajeError) return;
 
-        const nombreCampo = campo.replace('Libro.', '').replace('A�oPublicacion', 'AñoPublicacion');
+        const nombreCampo = campo.replace('Libro.', '').replace('A\uFFFDoPublicacion', 'AñoPublicacion');
         const elementoError = document.getElementById(`error-create-${nombreCampo}`);
 
         if (elementoError) {
@@ -1053,7 +1053,7 @@ function mostrarErroresEditar(errors) {
         const mensajeError = mensajeArray[0];
         if (!mensajeError) return;
 
-        const nombreCampo = campo.replace('Libro.', '').replace('A�oPublicacion', 'AñoPublicacion');
+        const nombreCampo = campo.replace('Libro.', '').replace('A\uFFFDoPublicacion', 'AñoPublicacion');
         const elementoError = document.getElementById(`error-edit-${nombreCampo}`);
 
         if (elementoError) {

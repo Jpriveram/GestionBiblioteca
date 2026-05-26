@@ -54,7 +54,7 @@
                             <th>Nombres</th>
                             <th>Primer apellido</th>
                             <th>Segundo apellido</th>
-                            <th>Email</th>
+                            <th>Correo electrónico</th>
                             <th>Usuario</th>
                             <th>Rol</th>
                             <th>Estado</th>
@@ -441,14 +441,14 @@
 
                     if (!/^\d+$/.test(ci.value.trim())) {
                         e.preventDefault();
-                        setFieldErrorUsuario("errorCiUsuario", "Ingresa solo numeros, sin espacios.", ci);
+                        setFieldErrorUsuario("errorCiUsuario", "Ingresa solo números, sin espacios.", ci);
                         ci.focus();
                         return;
                     }
 
                     if (complemento.value.trim() && !/^[a-zA-Z0-9]+$/.test(complemento.value.trim())) {
                         e.preventDefault();
-                        setFieldErrorUsuario("errorComplementoUsuario", "Usa solo letras y numeros, sin espacios ni simbolos.", complemento);
+                        setFieldErrorUsuario("errorComplementoUsuario", "Usa solo letras y números, sin espacios ni símbolos.", complemento);
                         complemento.focus();
                         return;
                     }

@@ -160,7 +160,7 @@ public class UsuarioAdapter : IUsuarioServicio
             }
 
             var errorBody = await response.Content.ReadAsStringAsync(ct);
-            var fallback = "No se pudo cambiar la contrasena.";
+            var fallback = "No se pudo cambiar la contraseña.";
             var message = TryExtractApiMessage(errorBody) ?? fallback;
             return Result.Failure(new Error("ChangePassword", message));
         }
@@ -281,7 +281,7 @@ public class UsuarioAdapter : IUsuarioServicio
         }
         catch
         {
-            // Si no es JSON valido, devolvemos el texto original.
+            // Si no es JSON válido, devolvemos el texto original.
         }
 
         return responseBody;

@@ -21,12 +21,12 @@ public class HttpApiEmailSender : IEmailSender
     {
         if (string.IsNullOrWhiteSpace(_settings.ApiUrl))
         {
-            throw new InvalidOperationException("Email:ApiUrl no esta configurado.");
+            throw new InvalidOperationException("Email:ApiUrl no está configurado.");
         }
 
         if (string.IsNullOrWhiteSpace(_settings.ApiKey))
         {
-            throw new InvalidOperationException("Email:ApiKey no esta configurado para proveedor API.");
+            throw new InvalidOperationException("Email:ApiKey no está configurado para proveedor API.");
         }
 
         using var request = new HttpRequestMessage(HttpMethod.Post, _settings.ApiUrl);

@@ -30,7 +30,7 @@ public class SmtpEmailSender : IEmailSender
 
         if (string.IsNullOrWhiteSpace(_settings.FromAddress))
         {
-            throw new InvalidOperationException("Email.FromAddress no esta configurado.");
+            throw new InvalidOperationException("Email.FromAddress no está configurado.");
         }
 
         if (string.IsNullOrWhiteSpace(_settings.Smtp.Username) || string.IsNullOrWhiteSpace(_settings.Smtp.Password))

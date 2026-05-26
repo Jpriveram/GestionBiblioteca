@@ -4,6 +4,24 @@
 @{
     ViewData["Title"] = "Gestión de Autores";
 
+    var paises = new List<string>
+    {
+        "Argentina", "Bolivia", "Brasil", "Chile", "Colombia", "Costa Rica", "Cuba",
+        "Ecuador", "El Salvador", "Guatemala", "Honduras", "México", "Nicaragua",
+        "Panamá", "Paraguay", "Perú", "República Dominicana", "Uruguay", "Venezuela",
+        "Estados Unidos", "Canadá", "España", "Francia", "Alemania", "Italia",
+        "Reino Unido", "Irlanda", "Portugal", "Países Bajos", "Bélgica", "Suiza",
+        "Austria", "Suecia", "Noruega", "Dinamarca", "Finlandia", "Polonia",
+        "Hungría", "República Checa", "Eslovaquia", "Rusia", "Ucrania", "Grecia",
+        "Turquía", "Rumania", "Bulgaria", "Serbia", "China", "Japón",
+        "Corea del Sur", "Corea del Norte", "India", "Pakistán", "Bangladés",
+        "Indonesia", "Tailandia", "Vietnam", "Filipinas", "Malasia", "Singapur",
+        "Arabia Saudita", "Emiratos Árabes Unidos", "Israel", "Irán", "Irak",
+        "Qatar", "Kuwait", "Egipto", "Marruecos", "Argelia", "Túnez",
+        "Sudáfrica", "Nigeria", "Kenia", "Etiopía", "Ghana", "Senegal",
+        "Camerún", "Costa de Marfil", "Australia", "Nueva Zelanda", "Fiyi"
+    };
+
     string editToken = ViewData.ModelState.ContainsKey("token")
         ? ViewData.ModelState["token"]?.AttemptedValue ?? ""
         : "";
@@ -40,10 +58,12 @@
         ? ViewData.ModelState["AutorDto.FechaNacimiento"]?.AttemptedValue ?? ""
         : "";
 
-    bool createEstadoSeleccionado = !ViewData.ModelState.ContainsKey("AutorDto.Estado")
-        || ViewData.ModelState["AutorDto.Estado"]?.AttemptedValue == "true"
-        || ViewData.ModelState["AutorDto.Estado"]?.AttemptedValue == "True"
-        || ViewData.ModelState["AutorDto.Estado"]?.AttemptedValue == "on";
+    string ErrorCampo(string key)
+    {
+        return ViewData.ModelState.ContainsKey(key)
+            ? ViewData.ModelState[key]?.Errors.FirstOrDefault()?.ErrorMessage ?? ""
+            : "";
+    }
 }
 
 @section Styles {
@@ -74,7 +94,6 @@
     </div>
 
     <div class="tabla-container">
-
         <table id="tabla-autores" class="tabla-autores">
             <thead>
                 <tr>
@@ -93,8 +112,8 @@
                     var token = autor.RouteToken;
                     var nombres = autor.Nombres ?? "";
                     var apellidos = autor.Apellidos ?? "";
-                    var nombresDisplay = nombres.ToDisplayName();
-                    var apellidosDisplay = apellidos.ToDisplayName();
+                    var nombresDisplay = nombres.Trim().ToDisplayName();
+                    var apellidosDisplay = apellidos.Trim().ToDisplayName();
                     var nacionalidad = autor.Nacionalidad ?? "";
                     var fecha = autor.FechaNacimiento?.ToString("yyyy-MM-dd") ?? "";
                     var estado = autor.Estado;
@@ -120,12 +139,12 @@
                             <button type="button"
                                     class="btn-editar"
                                     onclick="abrirModalEditar(
-                                            '@token',
-                                            '@Html.Raw(nombres.Replace("'", "\\'"))',
-                                            '@Html.Raw(apellidos.Replace("'", "\\'"))',
-                                            '@Html.Raw(nacionalidad.Replace("'", "\\'"))',
-                                            '@fecha'
-                                        )">
+                                        '@token',
+                                        '@Html.Raw(nombres.Replace("'", "\\'"))',
+                                        '@Html.Raw(apellidos.Replace("'", "\\'"))',
+                                        '@Html.Raw(nacionalidad.Replace("'", "\\'"))',
+                                        '@fecha'
+                                    )">
                                 <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
                                      class="icono-btn">
                                 Editar
@@ -156,13 +175,12 @@
                 </tr>
             </tbody>
         </table>
-
     </div>
 </div>
 
 <!-- MODAL ELIMINAR -->
 <div id="modalEliminar" class="modal">
-    <div class="modal-box">
+    <div class="modal-box modal-box-small">
 
         <div class="modal-icon">
             <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
@@ -181,7 +199,6 @@
                 <button type="button" class="btn-secondary" onclick="cerrarModal()">Cancelar</button>
             </div>
         </form>
-
     </div>
 </div>
 
@@ -190,7 +207,7 @@
     <div class="modal-box">
         <h2>Editar Autor</h2>
 
-        <form method="post" asp-page-handler="Editar" id="editAutorForm">
+        <form method="post" asp-page-handler="Editar" id="editAutorForm" novalidate>
             @Html.AntiForgeryToken()
 
             <input type="hidden" id="editToken" name="token" value="@editToken" />
@@ -199,42 +216,51 @@
                    id="editNombres"
                    name="Nombres"
                    placeholder="Nombres"
-                   value="@editNombres" />
-            @if (ViewData.ModelState.ContainsKey("Nombres"))
-            {
-                <span class="text-error">@ViewData.ModelState["Nombres"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
-            }
+                   value="@editNombres"
+                   data-field="editNombres" />
+            <span class="text-error field-error"
+                  id="error-editNombres"
+                  style="display:@(!string.IsNullOrWhiteSpace(ErrorCampo("Nombres")) ? "block" : "none")">
+                @ErrorCampo("Nombres")
+            </span>
 
             <input type="text"
                    id="editApellidos"
                    name="Apellidos"
                    placeholder="Apellidos"
-                   value="@editApellidos" />
-            @if (ViewData.ModelState.ContainsKey("Apellidos"))
-            {
-                <span class="text-error">@ViewData.ModelState["Apellidos"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
-            }
+                   value="@editApellidos"
+                   data-field="editApellidos" />
+            <span class="text-error field-error"
+                  id="error-editApellidos"
+                  style="display:@(!string.IsNullOrWhiteSpace(ErrorCampo("Apellidos")) ? "block" : "none")">
+                @ErrorCampo("Apellidos")
+            </span>
 
-            <input type="text"
-                   id="editNacionalidad"
-                   name="Nacionalidad"
-                   placeholder="Nacionalidad"
-                   list="paises-lista"
-                   autocomplete="off"
-                   value="@editNacionalidad" />
-            @if (ViewData.ModelState.ContainsKey("Nacionalidad"))
-            {
-                <span class="text-error">@ViewData.ModelState["Nacionalidad"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
-            }
+            <select id="editNacionalidad" name="Nacionalidad" data-field="editNacionalidad">
+                <option value="">Seleccione una nacionalidad</option>
+                @foreach (var pais in paises)
+                {
+                    <option value="@pais" selected="@(editNacionalidad == pais ? "selected" : null)">
+                        @pais
+                    </option>
+                }
+            </select>
+            <span class="text-error field-error"
+                  id="error-editNacionalidad"
+                  style="display:@(!string.IsNullOrWhiteSpace(ErrorCampo("Nacionalidad")) ? "block" : "none")">
+                @ErrorCampo("Nacionalidad")
+            </span>
 
             <input type="date"
                    id="editFechaNacimiento"
                    name="FechaNacimiento"
-                   value="@editFechaNacimiento" />
-            @if (ViewData.ModelState.ContainsKey("FechaNacimiento"))
-            {
-                <span class="text-error">@ViewData.ModelState["FechaNacimiento"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
-            }
+                   value="@editFechaNacimiento"
+                   data-field="editFechaNacimiento" />
+            <span class="text-error field-error"
+                  id="error-editFechaNacimiento"
+                  style="display:@(!string.IsNullOrWhiteSpace(ErrorCampo("FechaNacimiento")) ? "block" : "none")">
+                @ErrorCampo("FechaNacimiento")
+            </span>
 
             <input type="hidden" id="editEstado" name="Estado" value="true" />
 
@@ -255,50 +281,66 @@
     <div class="modal-box">
         <h2>Nuevo Autor</h2>
 
-        <form method="post" asp-page-handler="Crear">
+        <form method="post" asp-page-handler="Crear" id="createAutorForm" novalidate>
             @Html.AntiForgeryToken()
 
             <input type="text"
+                   id="createNombres"
                    name="AutorDto.Nombres"
                    placeholder="Nombres"
-                   value="@createNombres" />
-            @if (ViewData.ModelState.ContainsKey("AutorDto.Nombres"))
-            {
-                <span class="text-error">@ViewData.ModelState["AutorDto.Nombres"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
-            }
+                   value="@createNombres"
+                   data-field="createNombres" />
+            <span class="text-error field-error"
+                  id="error-createNombres"
+                  style="display:@(!string.IsNullOrWhiteSpace(ErrorCampo("AutorDto.Nombres")) ? "block" : "none")">
+                @ErrorCampo("AutorDto.Nombres")
+            </span>
 
             <input type="text"
+                   id="createApellidos"
                    name="AutorDto.Apellidos"
                    placeholder="Apellidos"
-                   value="@createApellidos" />
-            @if (ViewData.ModelState.ContainsKey("AutorDto.Apellidos"))
-            {
-                <span class="text-error">@ViewData.ModelState["AutorDto.Apellidos"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
-            }
+                   value="@createApellidos"
+                   data-field="createApellidos" />
+            <span class="text-error field-error"
+                  id="error-createApellidos"
+                  style="display:@(!string.IsNullOrWhiteSpace(ErrorCampo("AutorDto.Apellidos")) ? "block" : "none")">
+                @ErrorCampo("AutorDto.Apellidos")
+            </span>
 
-            <input type="text"
-                   name="AutorDto.Nacionalidad"
-                   placeholder="Nacionalidad"
-                   list="paises-lista"
-                   autocomplete="off"
-                   value="@createNacionalidad" />
-            @if (ViewData.ModelState.ContainsKey("AutorDto.Nacionalidad"))
-            {
-                <span class="text-error">@ViewData.ModelState["AutorDto.Nacionalidad"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
-            }
+            <select id="createNacionalidad"
+                    name="AutorDto.Nacionalidad"
+                    data-field="createNacionalidad">
+                <option value="">Seleccione una nacionalidad</option>
+                @foreach (var pais in paises)
+                {
+                    <option value="@pais" selected="@(createNacionalidad == pais ? "selected" : null)">
+                        @pais
+                    </option>
+                }
+            </select>
+            <span class="text-error field-error"
+                  id="error-createNacionalidad"
+                  style="display:@(!string.IsNullOrWhiteSpace(ErrorCampo("AutorDto.Nacionalidad")) ? "block" : "none")">
+                @ErrorCampo("AutorDto.Nacionalidad")
+            </span>
 
             <input type="date"
+                   id="createFechaNacimiento"
                    name="AutorDto.FechaNacimiento"
-                   value="@createFechaNacimiento" />
-            @if (ViewData.ModelState.ContainsKey("AutorDto.FechaNacimiento"))
-            {
-                <span class="text-error">@ViewData.ModelState["AutorDto.FechaNacimiento"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
-            }
+                   value="@createFechaNacimiento"
+                   data-field="createFechaNacimiento" />
+            <span class="text-error field-error"
+                  id="error-createFechaNacimiento"
+                  style="display:@(!string.IsNullOrWhiteSpace(ErrorCampo("AutorDto.FechaNacimiento")) ? "block" : "none")">
+                @ErrorCampo("AutorDto.FechaNacimiento")
+            </span>
 
-            <select name="AutorDto.Estado">
-                <option value="true" selected="@(createEstadoSeleccionado ? "selected" : null)">Activo</option>
-                <option value="false" selected="@(!createEstadoSeleccionado ? "selected" : null)">Inactivo</option>
-            </select>
+            <input type="hidden" name="AutorDto.Estado" value="true" />
+
+            <div class="estado-readonly">
+                <span class="estado activo">Activo</span>
+            </div>
 
             <div class="modal-buttons">
                 <button type="submit" class="btn-success">Crear</button>
@@ -338,12 +380,13 @@
 
         function abrirModalEditar(t, n, a, na, f) {
             editToken.value = t;
-            editNombres.value = n || "";
-            editApellidos.value = a || "";
+            editNombres.value = normalizarTexto(n || "");
+            editApellidos.value = normalizarTexto(a || "");
             editNacionalidad.value = na || "";
             editFechaNacimiento.value = f || "";
             editEstado.value = "true";
 
+            limpiarErrores(editAutorForm);
             modalEditar.style.display = "flex";
         }
 
@@ -352,6 +395,7 @@
         }
 
         function abrirModalCrear() {
+            limpiarErrores(createAutorForm);
             modalCrear.style.display = "flex";
         }
 
@@ -364,9 +408,119 @@
             if (event.target === modalEditar) cerrarModalEditar();
             if (event.target === modalCrear) cerrarModalCrear();
         }
-    </script>
 
-    <script>
+        function normalizarTexto(valor) {
+            return valor.replace(/\s+/g, " ").trim();
+        }
+
+        function limpiarErrores(form) {
+            if (!form) return;
+
+            form.querySelectorAll(".field-error").forEach(error => {
+                error.textContent = "";
+                error.style.display = "none";
+            });
+
+            form.querySelectorAll("input, select").forEach(campo => {
+                campo.classList.remove("input-error");
+            });
+        }
+
+        function mostrarError(campo, mensaje) {
+            const error = document.getElementById("error-" + campo.dataset.field);
+
+            campo.classList.add("input-error");
+
+            if (error) {
+                error.textContent = mensaje;
+                error.style.display = "block";
+            }
+        }
+
+        function validarFormularioAutor(form, modo) {
+            limpiarErrores(form);
+
+            const nombres = modo === "crear"
+                ? document.getElementById("createNombres")
+                : document.getElementById("editNombres");
+
+            const apellidos = modo === "crear"
+                ? document.getElementById("createApellidos")
+                : document.getElementById("editApellidos");
+
+            const nacionalidad = modo === "crear"
+                ? document.getElementById("createNacionalidad")
+                : document.getElementById("editNacionalidad");
+
+            const fecha = modo === "crear"
+                ? document.getElementById("createFechaNacimiento")
+                : document.getElementById("editFechaNacimiento");
+
+            nombres.value = normalizarTexto(nombres.value);
+            apellidos.value = normalizarTexto(apellidos.value);
+
+            let esValido = true;
+            const soloLetras = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/;
+
+            if (!nombres.value) {
+                mostrarError(nombres, "Ingrese el nombre del autor.");
+                esValido = false;
+            } else if (!soloLetras.test(nombres.value)) {
+                mostrarError(nombres, "El nombre solo debe contener letras y espacios.");
+                esValido = false;
+            }
+
+            if (!apellidos.value) {
+                mostrarError(apellidos, "Ingrese los apellidos del autor.");
+                esValido = false;
+            } else if (!soloLetras.test(apellidos.value)) {
+                mostrarError(apellidos, "Los apellidos solo deben contener letras y espacios.");
+                esValido = false;
+            }
+
+            if (!nacionalidad.value) {
+                mostrarError(nacionalidad, "Seleccione una nacionalidad.");
+                esValido = false;
+            }
+
+            if (!fecha.value) {
+                mostrarError(fecha, "Ingrese la fecha de nacimiento.");
+                esValido = false;
+            } else {
+                const fechaIngresada = new Date(fecha.value + "T00:00:00");
+                const hoy = new Date();
+                hoy.setHours(0, 0, 0, 0);
+
+                if (fechaIngresada > hoy) {
+                    mostrarError(fecha, "La fecha de nacimiento no puede ser futura.");
+                    esValido = false;
+                }
+            }
+
+            return esValido;
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const createForm = document.getElementById("createAutorForm");
+            const editForm = document.getElementById("editAutorForm");
+
+            if (createForm) {
+                createForm.addEventListener("submit", function (e) {
+                    if (!validarFormularioAutor(createForm, "crear")) {
+                        e.preventDefault();
+                    }
+                });
+            }
+
+            if (editForm) {
+                editForm.addEventListener("submit", function (e) {
+                    if (!validarFormularioAutor(editForm, "editar")) {
+                        e.preventDefault();
+                    }
+                });
+            }
+        });
+
         (function () {
             const input = document.getElementById('buscador-autor');
             const tabla = document.getElementById('tabla-autores');
@@ -396,100 +550,4 @@
             });
         })();
     </script>
-
-    <datalist id="paises-lista">
-
-        <!-- América -->
-        <option value="Argentina" />
-        <option value="Bolivia" />
-        <option value="Brasil" />
-        <option value="Chile" />
-        <option value="Colombia" />
-        <option value="Costa Rica" />
-        <option value="Cuba" />
-        <option value="Ecuador" />
-        <option value="El Salvador" />
-        <option value="Guatemala" />
-        <option value="Honduras" />
-        <option value="México" />
-        <option value="Nicaragua" />
-        <option value="Panamá" />
-        <option value="Paraguay" />
-        <option value="Perú" />
-        <option value="República Dominicana" />
-        <option value="Uruguay" />
-        <option value="Venezuela" />
-        <option value="Estados Unidos" />
-        <option value="Canadá" />
-
-        <!-- Europa -->
-        <option value="España" />
-        <option value="Francia" />
-        <option value="Alemania" />
-        <option value="Italia" />
-        <option value="Reino Unido" />
-        <option value="Irlanda" />
-        <option value="Portugal" />
-        <option value="Países Bajos" />
-        <option value="Bélgica" />
-        <option value="Suiza" />
-        <option value="Austria" />
-        <option value="Suecia" />
-        <option value="Noruega" />
-        <option value="Dinamarca" />
-        <option value="Finlandia" />
-        <option value="Polonia" />
-        <option value="Hungría" />
-        <option value="República Checa" />
-        <option value="Eslovaquia" />
-        <option value="Rusia" />
-        <option value="Ucrania" />
-        <option value="Grecia" />
-        <option value="Turquía" />
-        <option value="Rumania" />
-        <option value="Bulgaria" />
-        <option value="Serbia" />
-
-        <!-- Asia -->
-        <option value="China" />
-        <option value="Japón" />
-        <option value="Corea del Sur" />
-        <option value="Corea del Norte" />
-        <option value="India" />
-        <option value="Pakistán" />
-        <option value="Bangladés" />
-        <option value="Indonesia" />
-        <option value="Tailandia" />
-        <option value="Vietnam" />
-        <option value="Filipinas" />
-        <option value="Malasia" />
-        <option value="Singapur" />
-        <option value="Arabia Saudita" />
-        <option value="Emiratos Árabes Unidos" />
-        <option value="Israel" />
-        <option value="Irán" />
-        <option value="Irak" />
-        <option value="Qatar" />
-        <option value="Kuwait" />
-
-        <!-- África -->
-        <option value="Egipto" />
-        <option value="Marruecos" />
-        <option value="Argelia" />
-        <option value="Túnez" />
-        <option value="Sudáfrica" />
-        <option value="Nigeria" />
-        <option value="Kenia" />
-        <option value="Etiopía" />
-        <option value="Ghana" />
-        <option value="Senegal" />
-        <option value="Camerún" />
-        <option value="Costa de Marfil" />
-
-        <!-- Oceanía -->
-        <option value="Australia" />
-        <option value="Nueva Zelanda" />
-        <option value="Fiyi" />
-
-    </datalist>
 }

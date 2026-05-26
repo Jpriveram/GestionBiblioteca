@@ -79,6 +79,7 @@ public class AutorModel : PageModel
         AutorDto.Apellidos = LimpiarTexto(AutorDto.Apellidos).ToDisplayName();
         AutorDto.Nacionalidad = LimpiarTexto(AutorDto.Nacionalidad);
         AutorDto.UsuarioSesionId = ObtenerUsuarioSesionId();
+        AutorDto.Estado = true;
 
         ValidarAutorCrear();
 
@@ -131,7 +132,7 @@ public class AutorModel : PageModel
             ModelState.SetModelValue("Apellidos", new ValueProviderResult(Apellidos ?? ""));
             ModelState.SetModelValue("Nacionalidad", new ValueProviderResult(Nacionalidad ?? ""));
             ModelState.SetModelValue("FechaNacimiento", new ValueProviderResult(FechaNacimiento?.ToString("yyyy-MM-dd") ?? ""));
-            ModelState.SetModelValue("Estado", new ValueProviderResult((Estado ?? false).ToString()));
+            ModelState.SetModelValue("Estado", new ValueProviderResult("true"));
             CargarAutores();
             return Page();
         }
@@ -143,7 +144,7 @@ public class AutorModel : PageModel
             Apellidos = Apellidos,
             Nacionalidad = Nacionalidad,
             FechaNacimiento = FechaNacimiento,
-            Estado = Estado ?? false,
+            Estado = true,
             UsuarioSesionId = ObtenerUsuarioSesionId()
         };
 
@@ -164,6 +165,10 @@ public class AutorModel : PageModel
     private void ValidarAutorCrear()
     {
         ValidarCampoObligatorio("AutorDto.Nombres", AutorDto.Nombres, "Ingrese el nombre del autor.");
+        ValidarCampoObligatorio("AutorDto.Apellidos", AutorDto.Apellidos, "Ingrese los apellidos del autor.");
+        ValidarCampoObligatorio("AutorDto.Nacionalidad", AutorDto.Nacionalidad, "Seleccione una nacionalidad.");
+        ValidarFechaObligatoria("AutorDto.FechaNacimiento", AutorDto.FechaNacimiento);
+
         ValidarSoloLetras("AutorDto.Nombres", AutorDto.Nombres, "El nombre solo debe contener letras y espacios.");
         ValidarSoloLetras("AutorDto.Apellidos", AutorDto.Apellidos, "Los apellidos solo deben contener letras y espacios.");
         ValidarSoloLetras("AutorDto.Nacionalidad", AutorDto.Nacionalidad, "La nacionalidad solo debe contener letras y espacios.");
@@ -173,6 +178,10 @@ public class AutorModel : PageModel
     private void ValidarAutorEditar(string nombres, string? apellidos, string? nacionalidad, DateTime? fechaNacimiento)
     {
         ValidarCampoObligatorio("Nombres", nombres, "Ingrese el nombre del autor.");
+        ValidarCampoObligatorio("Apellidos", apellidos, "Ingrese los apellidos del autor.");
+        ValidarCampoObligatorio("Nacionalidad", nacionalidad, "Seleccione una nacionalidad.");
+        ValidarFechaObligatoria("FechaNacimiento", fechaNacimiento);
+
         ValidarSoloLetras("Nombres", nombres, "El nombre solo debe contener letras y espacios.");
         ValidarSoloLetras("Apellidos", apellidos, "Los apellidos solo deben contener letras y espacios.");
         ValidarSoloLetras("Nacionalidad", nacionalidad, "La nacionalidad solo debe contener letras y espacios.");
@@ -183,6 +192,12 @@ public class AutorModel : PageModel
     {
         if (string.IsNullOrWhiteSpace(value))
             ModelState.AddModelError(key, message);
+    }
+
+    private void ValidarFechaObligatoria(string key, DateTime? value)
+    {
+        if (!value.HasValue)
+            ModelState.AddModelError(key, "Ingrese la fecha de nacimiento.");
     }
 
     private void ValidarSoloLetras(string key, string? value, string message)

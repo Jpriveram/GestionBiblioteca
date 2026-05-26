@@ -44,7 +44,7 @@ public class HttpApiEmailSender : IEmailSender
         if (!response.IsSuccessStatusCode)
         {
             var body = await response.Content.ReadAsStringAsync(cancellationToken);
-            throw new InvalidOperationException($"Error enviando email por API. Status: {(int)response.StatusCode}. Detalle: {body}");
+            throw new InvalidOperationException($"Error al enviar el correo mediante API. Estado: {(int)response.StatusCode}. Detalle: {body}");
         }
 
         return true;

@@ -339,7 +339,7 @@ public class PrestamoModel : PageModel
             });
         }
 
-        // cargar titulos para desplegables
+        // Cargar títulos para desplegables.
         LibrosTitulos = _prestamoFachada.BuscarEjemplaresActivos(string.Empty).ToDictionary(k => k.Key, v => v.Value);
     }
 

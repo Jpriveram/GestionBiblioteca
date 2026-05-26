@@ -1,7 +1,9 @@
 using ServicioUsuario.Application.Dtos;
 using ServicioUsuario.Application.Interfaces;
 using ServicioUsuario.Domain.Entities;
+using ServicioUsuario.Domain.Errors;
 using ServicioUsuario.Domain.Ports;
+using ServicioUsuario.Domain.Validations;
 using ServicioUsuario.Infrastructure.Persistence;
 using System.Globalization;
 using System.Text.RegularExpressions;
@@ -58,32 +60,29 @@ public class UsuarioService : IUsuarioServicio
 
     public async Task<UsuarioDto> CreateAsync(CreateUsuarioDto dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.Nombres)
-            || string.IsNullOrWhiteSpace(dto.PrimerApellido)
-            || string.IsNullOrWhiteSpace(dto.Email)
-            || string.IsNullOrWhiteSpace(dto.Rol))
+        ValidarCreacion(dto);
+
+        var ci = ValidadorEntrada.NormalizarEspacios(dto.CI);
+        var email = ValidadorEntrada.NormalizarEspacios(dto.Email);
+
+        if (_repositorio.ExisteCi(ci))
         {
-            throw new InvalidOperationException("Completa todos los campos obligatorios.");
+            throw new InvalidOperationException(UsuarioErrors.CiDuplicado.Message);
         }
 
-        if (!string.IsNullOrWhiteSpace(dto.CI) && _repositorio.ExisteCi(dto.CI.Trim()))
+        if (_repositorio.ExisteEmail(email))
         {
-            throw new InvalidOperationException("Ya existe un usuario registrado con ese CI.");
-        }
-
-        if (_repositorio.ExisteEmail(dto.Email.Trim()))
-        {
-            throw new InvalidOperationException("Ya existe un usuario registrado con ese correo.");
+            throw new InvalidOperationException(UsuarioErrors.EmailDuplicado.Message);
         }
 
         var usuario = new Usuario
         {
             UsuarioSesionId = GetCurrentUserId(),
-            CI = dto.CI?.Trim() ?? string.Empty,
+            CI = ci,
             Nombres = NormalizeDisplayName(dto.Nombres),
             PrimerApellido = NormalizeDisplayName(dto.PrimerApellido),
             SegundoApellido = NormalizeDisplayName(dto.SegundoApellido),
-            Email = dto.Email.Trim(),
+            Email = email,
             NombreUsuario = null,
             PasswordHash = null,
             Rol = dto.Rol,
@@ -118,6 +117,55 @@ public class UsuarioService : IUsuarioServicio
                 : null);
 
         return MapToDto(usuarioPersistido ?? usuario);
+    }
+
+    private static void ValidarCreacion(CreateUsuarioDto dto)
+    {
+        var ci = ValidadorEntrada.NormalizarEspacios(dto.CI);
+        var nombres = ValidadorEntrada.NormalizarEspacios(dto.Nombres);
+        var primerApellido = ValidadorEntrada.NormalizarEspacios(dto.PrimerApellido);
+        var segundoApellido = ValidadorEntrada.NormalizarEspacios(dto.SegundoApellido);
+        var email = ValidadorEntrada.NormalizarEspacios(dto.Email);
+        var rol = ValidadorEntrada.NormalizarEspacios(dto.Rol);
+
+        if (ValidadorEntrada.EstaVacio(ci)
+            || ValidadorEntrada.EstaVacio(nombres)
+            || ValidadorEntrada.EstaVacio(primerApellido)
+            || ValidadorEntrada.EstaVacio(email)
+            || ValidadorEntrada.EstaVacio(rol))
+        {
+            throw new InvalidOperationException(UsuarioErrors.DatosObligatorios.Message);
+        }
+
+        if (!ValidadorEntrada.CarnetIdentidadValido(ci))
+        {
+            throw new InvalidOperationException(UsuarioErrors.CiInvalido.Message);
+        }
+
+        if (!ValidadorEntrada.SoloLetras(nombres))
+        {
+            throw new InvalidOperationException(UsuarioErrors.NombresInvalidos.Message);
+        }
+
+        if (!ValidadorEntrada.SoloLetras(primerApellido))
+        {
+            throw new InvalidOperationException(UsuarioErrors.PrimerApellidoInvalido.Message);
+        }
+
+        if (!string.IsNullOrWhiteSpace(segundoApellido) && !ValidadorEntrada.SoloLetras(segundoApellido))
+        {
+            throw new InvalidOperationException(UsuarioErrors.SegundoApellidoInvalido.Message);
+        }
+
+        if (!ValidadorEntrada.EmailValido(email))
+        {
+            throw new InvalidOperationException(UsuarioErrors.EmailInvalido.Message);
+        }
+
+        if (!ValidadorEntrada.RolUsuarioValido(rol))
+        {
+            throw new InvalidOperationException(UsuarioErrors.RolInvalido.Message);
+        }
     }
 
     public Task<UsuarioDto?> UpdateAsync(int id, UpdateUsuarioDto dto)

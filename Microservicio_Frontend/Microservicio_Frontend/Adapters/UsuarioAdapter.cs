@@ -91,7 +91,7 @@ public class UsuarioAdapter : IUsuarioServicio
             {
                 var errorContent = response.Content.ReadAsStringAsync().Result;
                 System.Diagnostics.Debug.WriteLine($"Error CrearLector: {response.StatusCode} - {errorContent}");
-                return Result.Failure(new Error("Create", $"Error al crear lector: {errorContent}"));
+                return Result.Failure(new Error("Create", TryExtractApiMessage(errorContent) ?? "Error al crear lector."));
             }
             
             System.Diagnostics.Debug.WriteLine("Lector creado exitosamente");

@@ -7,6 +7,10 @@ public static class UsuarioErrors
     public static readonly Error CredencialesInvalidas = new("Usuario.Login", "Usuario o contraseña invalidos.");
     public static readonly Error RolInvalido = new("Usuario.Rol", "El rol seleccionado no es valido.");
     public static readonly Error DatosObligatorios = new("Usuario.Datos", "Completa todos los campos obligatorios.");
+    public static readonly Error CiInvalido = new("Usuario.CI", "El carnet de identidad ingresado no es valido.");
+    public static readonly Error NombresInvalidos = new("Usuario.Nombres", "Los nombres solo pueden contener letras y espacios.");
+    public static readonly Error PrimerApellidoInvalido = new("Usuario.PrimerApellido", "El primer apellido solo puede contener letras y espacios.");
+    public static readonly Error SegundoApellidoInvalido = new("Usuario.SegundoApellido", "El segundo apellido solo puede contener letras y espacios.");
     public static readonly Error EmailInvalido = new("Usuario.Email", "El correo electronico ingresado no es valido.");
     public static readonly Error EmailDuplicado = new("Usuario.Email", "Ya existe un usuario registrado con ese correo.");
     public static readonly Error CiDuplicado = new("Usuario.CI", "Ya existe un usuario registrado con ese CI.");

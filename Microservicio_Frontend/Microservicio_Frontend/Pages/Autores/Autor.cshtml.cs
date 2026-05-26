@@ -172,6 +172,10 @@ public class AutorModel : PageModel
         ValidarSoloLetras("AutorDto.Nombres", AutorDto.Nombres, "El nombre solo debe contener letras y espacios.");
         ValidarSoloLetras("AutorDto.Apellidos", AutorDto.Apellidos, "Los apellidos solo deben contener letras y espacios.");
         ValidarSoloLetras("AutorDto.Nacionalidad", AutorDto.Nacionalidad, "La nacionalidad solo debe contener letras y espacios.");
+
+        ValidarEspaciosInternosIncorrectos("AutorDto.Nombres", AutorDto.Nombres, "El nombre no debe contener espacios innecesarios entre letras.");
+        ValidarEspaciosInternosIncorrectos("AutorDto.Apellidos", AutorDto.Apellidos, "Los apellidos no deben contener espacios innecesarios entre letras.");
+
         ValidarFecha("AutorDto.FechaNacimiento", AutorDto.FechaNacimiento);
     }
 
@@ -185,6 +189,10 @@ public class AutorModel : PageModel
         ValidarSoloLetras("Nombres", nombres, "El nombre solo debe contener letras y espacios.");
         ValidarSoloLetras("Apellidos", apellidos, "Los apellidos solo deben contener letras y espacios.");
         ValidarSoloLetras("Nacionalidad", nacionalidad, "La nacionalidad solo debe contener letras y espacios.");
+
+        ValidarEspaciosInternosIncorrectos("Nombres", nombres, "El nombre no debe contener espacios innecesarios entre letras.");
+        ValidarEspaciosInternosIncorrectos("Apellidos", apellidos, "Los apellidos no deben contener espacios innecesarios entre letras.");
+
         ValidarFecha("FechaNacimiento", fechaNacimiento);
     }
 
@@ -208,6 +216,17 @@ public class AutorModel : PageModel
         var regex = new Regex(@"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$");
 
         if (!regex.IsMatch(value))
+            ModelState.AddModelError(key, message);
+    }
+
+    private void ValidarEspaciosInternosIncorrectos(string key, string? value, string message)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return;
+
+        var partes = value.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+        if (partes.Length >= 3 && partes.Any(parte => parte.Length <= 2))
             ModelState.AddModelError(key, message);
     }
 

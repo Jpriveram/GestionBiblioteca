@@ -122,13 +122,14 @@
             <div class="usuario-form-grid">
                 <div class="field-group">
                     <label for="CI">Carnet de identidad <span class="required-mark">*</span></label>
-                    <input asp-for="NuevoUsuario.CI" class="input-form" id="CI" placeholder="Ej: 12345678" />
-                    <div id="errorCiUsuario" class="field-error"></div>
+                    <input asp-for="NuevoUsuario.CI" class="input-form" id="CI" inputmode="numeric" placeholder="Ej: 12345678" />
+                    <div id="errorCiUsuario" class="field-error">@ViewData.ModelState["NuevoUsuario.CI"]?.Errors.FirstOrDefault()?.ErrorMessage</div>
                 </div>
 
                 <div class="field-group">
                     <label for="Complemento">Complemento</label>
-                    <input id="Complemento" name="Complemento" class="input-form" placeholder="Ej: 1P" />
+                    <input asp-for="Complemento" id="Complemento" class="input-form" placeholder="Ej: 1P" />
+                    <div id="errorComplementoUsuario" class="field-error">@ViewData.ModelState["Complemento"]?.Errors.FirstOrDefault()?.ErrorMessage</div>
                 </div>
 
                 <div class="field-group field-span-2">
@@ -138,7 +139,7 @@
                            id="Nombres"
                            placeholder="Nombre completo"
                            required />
-                    <div id="errorNombresUsuario" class="field-error"></div>
+                    <div id="errorNombresUsuario" class="field-error">@ViewData.ModelState["NuevoUsuario.Nombres"]?.Errors.FirstOrDefault()?.ErrorMessage</div>
                 </div>
 
                 <div class="field-group">
@@ -148,7 +149,7 @@
                            id="PrimerApellido"
                            placeholder="Primer apellido"
                            required />
-                    <div id="errorPrimerApellidoUsuario" class="field-error"></div>
+                    <div id="errorPrimerApellidoUsuario" class="field-error">@ViewData.ModelState["NuevoUsuario.PrimerApellido"]?.Errors.FirstOrDefault()?.ErrorMessage</div>
                 </div>
 
                 <div class="field-group">
@@ -157,6 +158,7 @@
                            class="input-form"
                            id="SegundoApellido"
                            placeholder="Opcional" />
+                    <div id="errorSegundoApellidoUsuario" class="field-error">@ViewData.ModelState["NuevoUsuario.SegundoApellido"]?.Errors.FirstOrDefault()?.ErrorMessage</div>
                 </div>
 
                 <div class="field-group @(Model.IsAdmin ? string.Empty : "field-span-2")">
@@ -167,7 +169,7 @@
                            type="email"
                            placeholder="usuario@correo.com"
                            required />
-                    <div id="errorEmailUsuario" class="field-error"></div>
+                    <div id="errorEmailUsuario" class="field-error">@ViewData.ModelState["NuevoUsuario.Email"]?.Errors.FirstOrDefault()?.ErrorMessage</div>
                 </div>
 
                 @if (Model.IsAdmin)
@@ -181,7 +183,7 @@
                             <option value="@Roles.Admin">Admin</option>
                             <option value="@Roles.Lector">Lector</option>
                         </select>
-                        <div id="errorRolUsuario" class="field-error"></div>
+                        <div id="errorRolUsuario" class="field-error">@ViewData.ModelState["RolNuevoUsuario"]?.Errors.FirstOrDefault()?.ErrorMessage</div>
                     </div>
                 }
             </div>
@@ -280,10 +282,14 @@
             }, 3500);
         }
 
-        function setFieldErrorUsuario(id, mensaje) {
+        function setFieldErrorUsuario(id, mensaje, input) {
             var field = document.getElementById(id);
             if (!field) return;
             field.textContent = mensaje || "";
+            if (input) {
+                input.classList.toggle("input-invalid", Boolean(mensaje));
+                input.setAttribute("aria-invalid", mensaje ? "true" : "false");
+            }
         }
 
         document.addEventListener("DOMContentLoaded", function () {
@@ -351,29 +357,55 @@
                     [
                         "errorNombresUsuario",
                         "errorCiUsuario",
+                        "errorComplementoUsuario",
                         "errorPrimerApellidoUsuario",
+                        "errorSegundoApellidoUsuario",
                         "errorEmailUsuario",
                         "errorRolUsuario"
                     ].forEach(function (id) {
                         setFieldErrorUsuario(id, "");
                     });
+
+                    [nombres, ci, complemento, primerApellido, segundoApellido, email, rol].forEach(function (input) {
+                        if (!input) return;
+                        input.classList.remove("input-invalid");
+                        input.setAttribute("aria-invalid", "false");
+                    });
                 }
 
-                [nombres, ci, complemento, primerApellido, segundoApellido, email, rol, nombreUsuario, password].forEach(function (input) {
+                var camposValidables = [
+                    [ci, "errorCiUsuario"],
+                    [complemento, "errorComplementoUsuario"],
+                    [nombres, "errorNombresUsuario"],
+                    [primerApellido, "errorPrimerApellidoUsuario"],
+                    [segundoApellido, "errorSegundoApellidoUsuario"],
+                    [email, "errorEmailUsuario"],
+                    [rol, "errorRolUsuario"]
+                ];
+
+                camposValidables.forEach(function (entry) {
+                    var input = entry[0];
                     if (!input) return;
-                    input.addEventListener("input", function () {
+                    function limpiarCampo() {
                         limpiarMensaje();
-                        limpiarErroresCampo();
-                    });
-                    input.addEventListener("change", function () {
-                        limpiarMensaje();
-                        limpiarErroresCampo();
-                    });
+                        setFieldErrorUsuario(entry[1], "", input);
+                    }
+                    input.addEventListener("input", limpiarCampo);
+                    input.addEventListener("change", limpiarCampo);
                 });
 
                 if (rol) {
                     rol.addEventListener("change", actualizarCamposCredenciales);
                 }
+
+                camposValidables.forEach(function (entry) {
+                    var input = entry[0];
+                    var field = document.getElementById(entry[1]);
+                    if (input && field && field.textContent.trim()) {
+                        input.classList.add("input-invalid");
+                        input.setAttribute("aria-invalid", "true");
+                    }
+                });
 
                 actualizarCamposCredenciales();
 
@@ -381,36 +413,67 @@
                     limpiarMensaje();
                     limpiarErroresCampo();
 
+                    if (!ci.value.trim()) {
+                        e.preventDefault();
+                        setFieldErrorUsuario("errorCiUsuario", "Debes ingresar el carnet de identidad.", ci);
+                        ci.focus();
+                        return;
+                    }
+
+                    if (!/^\d+$/.test(ci.value.trim())) {
+                        e.preventDefault();
+                        setFieldErrorUsuario("errorCiUsuario", "Ingresa solo numeros, sin espacios.", ci);
+                        ci.focus();
+                        return;
+                    }
+
+                    if (complemento.value.trim() && !/^[a-zA-Z0-9]+$/.test(complemento.value.trim())) {
+                        e.preventDefault();
+                        setFieldErrorUsuario("errorComplementoUsuario", "Usa solo letras y numeros, sin espacios ni simbolos.", complemento);
+                        complemento.focus();
+                        return;
+                    }
+
+                    var soloLetras = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ ]+$/;
+
                     if (!nombres.value.trim()) {
                         e.preventDefault();
-                        setFieldErrorUsuario("errorNombresUsuario", "Debes ingresar los nombres.");
-                        mostrarErrorUsuario("Debes ingresar los nombres.");
+                        setFieldErrorUsuario("errorNombresUsuario", "Debes ingresar los nombres.", nombres);
                         nombres.focus();
                         return;
                     }
 
-                    if (!ci.value.trim()) {
+                    if (!soloLetras.test(nombres.value.trim())) {
                         e.preventDefault();
-                        setFieldErrorUsuario("errorCiUsuario", "Debes ingresar el carnet de identidad.");
-                        mostrarErrorUsuario("Debes ingresar el carnet de identidad.");
-                        ci.focus();
+                        setFieldErrorUsuario("errorNombresUsuario", "Usa solo letras y espacios.", nombres);
+                        nombres.focus();
                         return;
                     }
 
                     if (!primerApellido.value.trim()) {
                         e.preventDefault();
-                        setFieldErrorUsuario("errorPrimerApellidoUsuario", "Debes ingresar el primer apellido.");
-                        mostrarErrorUsuario("Debes ingresar el primer apellido.");
+                        setFieldErrorUsuario("errorPrimerApellidoUsuario", "Debes ingresar el primer apellido.", primerApellido);
                         primerApellido.focus();
                         return;
                     }
 
-                    // Segundo apellido es opcional, no validar aquí
+                    if (!soloLetras.test(primerApellido.value.trim())) {
+                        e.preventDefault();
+                        setFieldErrorUsuario("errorPrimerApellidoUsuario", "Usa solo letras y espacios.", primerApellido);
+                        primerApellido.focus();
+                        return;
+                    }
+
+                    if (segundoApellido.value.trim() && !soloLetras.test(segundoApellido.value.trim())) {
+                        e.preventDefault();
+                        setFieldErrorUsuario("errorSegundoApellidoUsuario", "Usa solo letras y espacios.", segundoApellido);
+                        segundoApellido.focus();
+                        return;
+                    }
 
                     if (!email.value.trim()) {
                         e.preventDefault();
-                        setFieldErrorUsuario("errorEmailUsuario", "Debes ingresar el correo electrónico.");
-                        mostrarErrorUsuario("Debes ingresar el correo electrónico.");
+                        setFieldErrorUsuario("errorEmailUsuario", "Debes ingresar el correo electrónico.", email);
                         email.focus();
                         return;
                     }
@@ -418,16 +481,14 @@
                     var emailValido = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(email.value.trim());
                     if (!emailValido) {
                         e.preventDefault();
-                        setFieldErrorUsuario("errorEmailUsuario", "Debes ingresar un correo electrónico válido.");
-                        mostrarErrorUsuario("Debes ingresar un correo electrónico válido.");
+                        setFieldErrorUsuario("errorEmailUsuario", "Debes ingresar un correo electrónico válido.", email);
                         email.focus();
                         return;
                     }
 
                     if (rol && !rol.value.trim()) {
                         e.preventDefault();
-                        setFieldErrorUsuario("errorRolUsuario", "Debes seleccionar un rol.");
-                        mostrarErrorUsuario("Debes seleccionar un rol.");
+                        setFieldErrorUsuario("errorRolUsuario", "Debes seleccionar un rol.", rol);
                         rol.focus();
                         return;
                     }
@@ -436,7 +497,7 @@
                 });
             }
 
-            @if (!string.IsNullOrWhiteSpace(Model.MensajeError))
+            @if (Model.AbrirModalCrear || !string.IsNullOrWhiteSpace(Model.MensajeError))
             {
                 <text>abrirModalCrearUsuario();</text>
             }

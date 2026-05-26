@@ -29,6 +29,7 @@ public class IndexModel : PageModel
     public string? MensajeOk { get; set; }
 
     public bool IsAdmin { get; set; }
+    public bool AbrirModalCrear { get; set; }
 
     public IndexModel(IUsuarioServicio usuarioServicio, RouteTokenService routeTokenService)
     {
@@ -69,18 +70,14 @@ public class IndexModel : PageModel
         NuevoUsuario.Nombres = NuevoUsuario.Nombres.ToDisplayName();
         NuevoUsuario.PrimerApellido = NuevoUsuario.PrimerApellido.ToDisplayName();
         NuevoUsuario.SegundoApellido = NuevoUsuario.SegundoApellido.ToDisplayName();
-
-        // unir CI y complemento si viene
-        if (!string.IsNullOrWhiteSpace(Complemento))
-        {
-            NuevoUsuario.CI = _usuarioServicio.JoinCiComp(NuevoUsuario.CI ?? string.Empty, Complemento);
-        }
+        NuevoUsuario.Complemento = Complemento;
 
         if (NuevoUsuario.Rol == Roles.Lector)
         {
             var lectorDto = new LectorDto
             {
                 CI = NuevoUsuario.CI,
+                Complemento = Complemento,
                 Nombres = NuevoUsuario.Nombres,
                 PrimerApellido = NuevoUsuario.PrimerApellido,
                 SegundoApellido = NuevoUsuario.SegundoApellido,
@@ -89,12 +86,11 @@ public class IndexModel : PageModel
 
             var resultadoLector = _usuarioServicio.CrearLector(lectorDto, usuarioSesionId.Value);
 
-        if (resultadoLector.IsFailure)
-        {
-            MensajeError = resultadoLector.Error.Message;
-            ModelState.AddModelError(string.Empty, resultadoLector.Error.Message);
-            CargarUsuarios();
-            return Page();
+            if (resultadoLector.IsFailure)
+            {
+                AgregarErrorCreacion(resultadoLector.Error);
+                CargarUsuarios();
+                return Page();
             }
 
             TempData["MensajeOk"] = "Lector creado correctamente.";
@@ -105,14 +101,43 @@ public class IndexModel : PageModel
 
         if (resultado.IsFailure)
         {
-            MensajeError = resultado.Error.Message;
-            ModelState.AddModelError(string.Empty, resultado.Error.Message);
+            AgregarErrorCreacion(resultado.Error);
             CargarUsuarios();
             return Page();
         }
 
         TempData["MensajeOk"] = "Usuario creado correctamente. Se enviaron credenciales por correo.";
         return RedirectToPage();
+    }
+
+    private void AgregarErrorCreacion(Error? error)
+    {
+        AbrirModalCrear = true;
+        if (error is null)
+        {
+            MensajeError = "No se pudo crear el usuario.";
+            return;
+        }
+
+        var key = error.Code switch
+        {
+            "Usuario.CI" => "NuevoUsuario.CI",
+            "Usuario.Complemento" => nameof(Complemento),
+            "Usuario.Nombres" => "NuevoUsuario.Nombres",
+            "Usuario.PrimerApellido" => "NuevoUsuario.PrimerApellido",
+            "Usuario.SegundoApellido" => "NuevoUsuario.SegundoApellido",
+            "Usuario.Email" => "NuevoUsuario.Email",
+            "Usuario.Rol" => nameof(RolNuevoUsuario),
+            _ => string.Empty
+        };
+
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            MensajeError = error.Message;
+            return;
+        }
+
+        ModelState.AddModelError(key, error.Message);
     }
 
     public IActionResult OnPostBaja(string token)

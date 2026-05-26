@@ -410,6 +410,12 @@
     box-shadow:0 0 0 3px rgba(16,163,127,.12);
 }
 
+.input-form.input-invalid,
+.input-form.input-invalid:focus{
+    border-color:#ef4444;
+    box-shadow:0 0 0 3px rgba(239,68,68,.14);
+}
+
 .modal-buttons{
     display:grid;
     grid-template-columns:1fr 1fr;

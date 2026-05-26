@@ -7,7 +7,8 @@ public static class UsuarioErrors
     public static readonly Error CredencialesInvalidas = new("Usuario.Login", "Usuario o contraseña invalidos.");
     public static readonly Error RolInvalido = new("Usuario.Rol", "El rol seleccionado no es valido.");
     public static readonly Error DatosObligatorios = new("Usuario.Datos", "Completa todos los campos obligatorios.");
-    public static readonly Error CiInvalido = new("Usuario.CI", "El carnet de identidad ingresado no es valido.");
+    public static readonly Error CiInvalido = new("Usuario.CI", "El carnet de identidad solo puede contener numeros, sin espacios.");
+    public static readonly Error ComplementoInvalido = new("Usuario.Complemento", "El complemento solo puede contener letras y numeros, sin espacios ni simbolos.");
     public static readonly Error NombresInvalidos = new("Usuario.Nombres", "Los nombres solo pueden contener letras y espacios.");
     public static readonly Error PrimerApellidoInvalido = new("Usuario.PrimerApellido", "El primer apellido solo puede contener letras y espacios.");
     public static readonly Error SegundoApellidoInvalido = new("Usuario.SegundoApellido", "El segundo apellido solo puede contener letras y espacios.");
@@ -18,4 +19,14 @@ public static class UsuarioErrors
     public static readonly Error UsuarioNoEncontrado = new("Usuario.Id", "El usuario no existe.");
     public static readonly Error UsuarioYaInactivo = new("Usuario.Estado", "El usuario ya se encuentra inactivo.");
     public static readonly Error NoAutorizado = new("Usuario.Autorizacion", "No tienes permisos para realizar esta accion.");
+}
+
+public class UsuarioValidationException : InvalidOperationException
+{
+    public Error Error { get; }
+
+    public UsuarioValidationException(Error error) : base(error.Message)
+    {
+        Error = error;
+    }
 }

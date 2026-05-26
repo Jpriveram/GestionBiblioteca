@@ -26,7 +26,19 @@ foreach ($proj in $proyectos) {
     }
 
     Write-Host "  [BUILD] $name" -ForegroundColor DarkGray
-    dotnet build $full -q
+    # Ensure stale build artifacts don't block MSBuild (common cause of MSB3492)
+    $objDir = Join-Path $full 'obj'
+    $binDir = Join-Path $full 'bin'
+    if (Test-Path $objDir) {
+        Write-Host "    Cleaning: obj" -ForegroundColor DarkGray
+        Remove-Item -Recurse -Force -ErrorAction SilentlyContinue $objDir
+    }
+    if (Test-Path $binDir) {
+        Write-Host "    Cleaning: bin" -ForegroundColor DarkGray
+        Remove-Item -Recurse -Force -ErrorAction SilentlyContinue $binDir
+    }
+
+    dotnet build $full
     if ($LASTEXITCODE -ne 0) { exit 1 }
 }
 

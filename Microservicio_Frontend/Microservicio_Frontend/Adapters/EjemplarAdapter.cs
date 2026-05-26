@@ -40,7 +40,23 @@ public class EjemplarAdapter : IEjemplarServicio
 
     private T? CallGet<T>(string u) where T : class { try { EnsureAuthorizationHeader(); var r = _http.GetAsync(u).Result; r.EnsureSuccessStatusCode(); return r.Content.ReadFromJsonAsync<T>().Result; } catch { return null; } }
     private Result<EjemplarDto> CallPostR<T>(string u, object d) { try { EnsureAuthorizationHeader(); var r = _http.PostAsJsonAsync(u, d).Result; if (!r.IsSuccessStatusCode) return Result<EjemplarDto>.Failure(new Error("Post", LeerError(r))); return Result<EjemplarDto>.Success(r.Content.ReadFromJsonAsync<EjemplarDto>().Result!); } catch (Exception ex) { return Result<EjemplarDto>.Failure(new Error("Post", ex.Message)); } }
-    private Result<EjemplarDto> CallPutR<T>(string u, object d) { try { EnsureAuthorizationHeader(); var r = _http.PutAsJsonAsync(u, d).Result; return r.IsSuccessStatusCode ? Result<EjemplarDto>.Success(d as EjemplarDto ?? new()) : Result<EjemplarDto>.Failure(new Error("Put", "Error")); } catch (Exception ex) { return Result<EjemplarDto>.Failure(new Error("Put", ex.Message)); } }
+    private Result<EjemplarDto> CallPutR<T>(string u, object d)
+    {
+        try
+        {
+            EnsureAuthorizationHeader();
+
+            var r = _http.PutAsJsonAsync(u, d).Result;
+
+            return r.IsSuccessStatusCode
+                ? Result<EjemplarDto>.Success(d as EjemplarDto ?? new())
+                : Result<EjemplarDto>.Failure(new Error("Put", LeerError(r)));
+        }
+        catch (Exception ex)
+        {
+            return Result<EjemplarDto>.Failure(new Error("Put", ex.Message));
+        }
+    }
     private Result CallDeleteR(string u) { try { EnsureAuthorizationHeader(); var r = _http.DeleteAsync(u).Result; return r.IsSuccessStatusCode ? Result.Success() : Result.Failure(new Error("Delete", "Error")); } catch (Exception ex) { return Result.Failure(new Error("Delete", ex.Message)); } }
     
     private void EnsureAuthorizationHeader()
@@ -67,14 +83,22 @@ public class EjemplarAdapter : IEjemplarServicio
     private static string LeerError(HttpResponseMessage response)
     {
         var content = response.Content.ReadAsStringAsync().Result;
+
         if (string.IsNullOrWhiteSpace(content))
             return "Error al procesar.";
 
         try
         {
             using var json = JsonDocument.Parse(content);
+
+            if (json.RootElement.TryGetProperty("message", out var message))
+                return message.GetString() ?? "Error al procesar.";
+
             if (json.RootElement.TryGetProperty("error", out var error))
                 return error.GetString() ?? "Error al procesar.";
+
+            if (json.RootElement.TryGetProperty("title", out var title))
+                return title.GetString() ?? "Error al procesar.";
         }
         catch
         {

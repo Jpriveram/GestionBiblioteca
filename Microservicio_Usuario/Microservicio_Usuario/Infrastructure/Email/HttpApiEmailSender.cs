@@ -21,12 +21,12 @@ public class HttpApiEmailSender : IEmailSender
     {
         if (string.IsNullOrWhiteSpace(_settings.ApiUrl))
         {
-            throw new InvalidOperationException("Email:ApiUrl no esta configurado.");
+            throw new InvalidOperationException("Email:ApiUrl no está configurado.");
         }
 
         if (string.IsNullOrWhiteSpace(_settings.ApiKey))
         {
-            throw new InvalidOperationException("Email:ApiKey no esta configurado para proveedor API.");
+            throw new InvalidOperationException("Email:ApiKey no está configurado para proveedor API.");
         }
 
         using var request = new HttpRequestMessage(HttpMethod.Post, _settings.ApiUrl);
@@ -44,7 +44,7 @@ public class HttpApiEmailSender : IEmailSender
         if (!response.IsSuccessStatusCode)
         {
             var body = await response.Content.ReadAsStringAsync(cancellationToken);
-            throw new InvalidOperationException($"Error enviando email por API. Status: {(int)response.StatusCode}. Detalle: {body}");
+            throw new InvalidOperationException($"Error al enviar el correo mediante API. Estado: {(int)response.StatusCode}. Detalle: {body}");
         }
 
         return true;

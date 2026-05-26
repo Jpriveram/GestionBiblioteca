@@ -13,5 +13,4 @@ public interface IUsuarioServicio
     Task<Result> CrearUsuarioAsync(UsuarioDto dto, int usuarioSesionId, CancellationToken ct = default);
     Result CrearLector(LectorDto dto, int usuarioSesionId);
     Result DarDeBaja(int usuarioId, int usuarioSesionId);
-    string JoinCiComp(string ci, string complemento);
 }

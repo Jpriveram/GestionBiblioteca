@@ -8,11 +8,11 @@
 }
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - gestion_bibliotecaria</title>
+    <title>@ViewData["Title"] - Gestión bibliotecaria</title>
 
     <script type="importmap"></script>
 
@@ -38,7 +38,7 @@
                     data-bs-target=".navbar-collapse"
                     aria-controls="navbarSupportedContent"
                     aria-expanded="false"
-                    aria-label="Toggle navigation">
+                    aria-label="Abrir navegación">
 
                 <img src="~/assets/icons/menu_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="24">
 
@@ -53,7 +53,7 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark d-flex align-items-center gap-2" href="/">
                                 <img src="~/assets/icons/home_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
-                                Home
+                                Inicio
                             </a>
                         </li>
 
@@ -81,7 +81,7 @@
                             </a>
                         </li>
 
-                        <!-- PRESTAMOS -->
+                        <!-- PRÉSTAMOS -->
                         <li class="nav-item">
                             <a class="nav-link text-dark d-flex align-items-center gap-2" href="/Prestamo">
                                 <img src="~/assets/icons/history_edu_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
@@ -107,7 +107,7 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark d-flex align-items-center gap-2" href="/?login=1">
                                 <img src="~/assets/icons/person_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
-                                Iniciar sesion
+                                Iniciar sesión
                             </a>
                         </li>
                     }
@@ -128,7 +128,7 @@
                                     <form method="post" action="/Login?handler=Logout">
                                         @Html.AntiForgeryToken()
                                         <button type="submit" class="dropdown-item custom-dropdown-item">
-                                            Cerrar sesion
+                                            Cerrar sesión
                                         </button>
                                     </form>
                                 </li>
@@ -149,7 +149,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2026 - gestion_bibliotecaria - <a href="/Privacy">Privacy</a>
+            &copy; 2026 - Gestión bibliotecaria - <a href="/Privacy">Privacidad</a>
         </div>
     </footer>
 

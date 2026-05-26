@@ -45,7 +45,7 @@ public class AutorAdapter : IAutorServicio
             var response = _http.PostAsJsonAsync("api/autores", dto).Result;
 
             if (!response.IsSuccessStatusCode)
-                return Result<AutorDto>.Failure(new Error("Create", "Error al crear AutorDto"));
+                return Result<AutorDto>.Failure(new Error("Create", "Error al crear el autor."));
 
             var created = response.Content.ReadFromJsonAsync<AutorDto>().Result!;
             return Result<AutorDto>.Success(created);

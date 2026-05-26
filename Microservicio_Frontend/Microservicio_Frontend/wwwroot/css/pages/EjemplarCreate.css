@@ -68,9 +68,10 @@
 
 /* TEXTOS */
 
-.text-muted{
-    color:#9ca3af;
-    font-size:13px;
+.text-muted {
+    color: #9ca3af;
+    font-size: 13px;
+    display: none;
 }
 
 /* CHECKBOX */

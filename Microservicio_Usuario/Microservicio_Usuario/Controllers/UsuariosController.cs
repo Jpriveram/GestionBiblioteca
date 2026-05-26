@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using ServicioUsuario.Application.Dtos;
 using ServicioUsuario.Application.Services;
 using ServicioUsuario.Application.Interfaces;
+using ServicioUsuario.Domain.Errors;
 
 namespace ServicioUsuario.Controllers;
 
@@ -66,6 +67,10 @@ public class UsuariosController : ControllerBase
             var usuario = await _usuarioService.CreateAsync(dto);
             return Ok(usuario);
         }
+        catch (UsuarioValidationException ex)
+        {
+            return BadRequest(new { code = ex.Error.Code, message = ex.Error.Message });
+        }
         catch (InvalidOperationException ex)
         {
             return BadRequest(new { message = ex.Message });
@@ -119,7 +124,7 @@ public class UsuariosController : ControllerBase
         try
         {
             await _usuarioService.CambiarPasswordAsync(id, dto.PasswordActual, dto.PasswordNueva, dto.PasswordConfirmacion);
-            return Ok(new { message = "Contrasena actualizada correctamente." });
+            return Ok(new { message = "Contraseña actualizada correctamente." });
         }
         catch (InvalidOperationException ex)
         {

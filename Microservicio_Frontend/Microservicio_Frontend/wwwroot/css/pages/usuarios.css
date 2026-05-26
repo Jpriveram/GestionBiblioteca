@@ -153,13 +153,41 @@
     min-height:16px;
 }
 
+.usuarios-grupos{
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+}
+
 .tabla-container{
     background:#171717;
-    padding:22px;
-    border-radius:16px;
+    padding:0;
+    border-radius:8px;
     border:1px solid #282828;
     box-shadow:0 8px 20px rgba(0,0,0,.35);
     overflow-x:auto;
+}
+
+.grupo-panel{
+    border-top:3px solid transparent;
+}
+
+.grupo-header{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    min-width:1120px;
+    padding:16px 16px 14px;
+    background:#141414;
+    border-bottom:1px solid #282828;
+}
+
+.grupo-header h2{
+    color:#f3f4f6;
+    margin:0;
+    font-size:15px;
+    font-weight:700;
+    text-transform:uppercase;
 }
 
 .tabla-usuarios{
@@ -197,6 +225,43 @@
 
 .tabla-usuarios tbody tr:hover{
     background:#1d1d1d;
+}
+
+.grupo-total{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:24px;
+    height:24px;
+    padding:0 8px;
+    border-radius:999px;
+    background:#252525;
+    color:#9ca3af;
+    font-size:12px;
+    font-weight:700;
+}
+
+.grupo-admin{
+    border-top-color:#60a5fa;
+}
+
+.grupo-lector{
+    border-top-color:#34d399;
+}
+
+.grupo-bibliotecario{
+    border-top-color:#fbbf24;
+}
+
+.tabla-usuarios .grupo-vacio:hover{
+    background:transparent;
+}
+
+.tabla-usuarios .grupo-vacio td{
+    padding:16px 12px 18px;
+    color:#9ca3af;
+    font-size:14px;
+    font-style:italic;
 }
 
 .tabla-usuarios th:nth-child(1),
@@ -408,6 +473,12 @@
 .input-form:focus{
     border-color:#10a37f;
     box-shadow:0 0 0 3px rgba(16,163,127,.12);
+}
+
+.input-form.input-invalid,
+.input-form.input-invalid:focus{
+    border-color:#ef4444;
+    box-shadow:0 0 0 3px rgba(239,68,68,.14);
 }
 
 .modal-buttons{

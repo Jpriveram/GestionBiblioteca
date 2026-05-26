@@ -62,17 +62,18 @@ public class UsuarioService : IUsuarioServicio
     {
         ValidarCreacion(dto);
 
-        var ci = ValidadorEntrada.NormalizarEspacios(dto.CI);
+        var ci = UnirCiComplemento(dto.CI, dto.Complemento);
         var email = ValidadorEntrada.NormalizarEspacios(dto.Email);
+        var rol = ValidadorEntrada.NormalizarEspacios(dto.Rol);
 
         if (_repositorio.ExisteCi(ci))
         {
-            throw new InvalidOperationException(UsuarioErrors.CiDuplicado.Message);
+            throw new UsuarioValidationException(UsuarioErrors.CiDuplicado);
         }
 
         if (_repositorio.ExisteEmail(email))
         {
-            throw new InvalidOperationException(UsuarioErrors.EmailDuplicado.Message);
+            throw new UsuarioValidationException(UsuarioErrors.EmailDuplicado);
         }
 
         var usuario = new Usuario
@@ -85,13 +86,13 @@ public class UsuarioService : IUsuarioServicio
             Email = email,
             NombreUsuario = null,
             PasswordHash = null,
-            Rol = dto.Rol,
+            Rol = rol,
             Estado = true,
             FechaCreacion = DateTime.Now,
-            FechaActualizacion = DateTime.Now
+            FechaActualizacion = null
         };
 
-        if (ShouldAutoProvisionCredentials(dto.Rol))
+        if (ShouldAutoProvisionCredentials(rol))
         {
             var provisioning = await _credentialProvisioning.PrepareAndNotifyAsync(usuario);
 
@@ -122,6 +123,7 @@ public class UsuarioService : IUsuarioServicio
     private static void ValidarCreacion(CreateUsuarioDto dto)
     {
         var ci = ValidadorEntrada.NormalizarEspacios(dto.CI);
+        var complemento = ValidadorEntrada.NormalizarEspacios(dto.Complemento);
         var nombres = ValidadorEntrada.NormalizarEspacios(dto.Nombres);
         var primerApellido = ValidadorEntrada.NormalizarEspacios(dto.PrimerApellido);
         var segundoApellido = ValidadorEntrada.NormalizarEspacios(dto.SegundoApellido);
@@ -134,38 +136,52 @@ public class UsuarioService : IUsuarioServicio
             || ValidadorEntrada.EstaVacio(email)
             || ValidadorEntrada.EstaVacio(rol))
         {
-            throw new InvalidOperationException(UsuarioErrors.DatosObligatorios.Message);
+            throw new UsuarioValidationException(UsuarioErrors.DatosObligatorios);
         }
 
         if (!ValidadorEntrada.CarnetIdentidadValido(ci))
         {
-            throw new InvalidOperationException(UsuarioErrors.CiInvalido.Message);
+            throw new UsuarioValidationException(UsuarioErrors.CiInvalido);
+        }
+
+        if (!ValidadorEntrada.ComplementoCiValido(complemento))
+        {
+            throw new UsuarioValidationException(UsuarioErrors.ComplementoInvalido);
         }
 
         if (!ValidadorEntrada.SoloLetras(nombres))
         {
-            throw new InvalidOperationException(UsuarioErrors.NombresInvalidos.Message);
+            throw new UsuarioValidationException(UsuarioErrors.NombresInvalidos);
         }
 
         if (!ValidadorEntrada.SoloLetras(primerApellido))
         {
-            throw new InvalidOperationException(UsuarioErrors.PrimerApellidoInvalido.Message);
+            throw new UsuarioValidationException(UsuarioErrors.PrimerApellidoInvalido);
         }
 
         if (!string.IsNullOrWhiteSpace(segundoApellido) && !ValidadorEntrada.SoloLetras(segundoApellido))
         {
-            throw new InvalidOperationException(UsuarioErrors.SegundoApellidoInvalido.Message);
+            throw new UsuarioValidationException(UsuarioErrors.SegundoApellidoInvalido);
         }
 
         if (!ValidadorEntrada.EmailValido(email))
         {
-            throw new InvalidOperationException(UsuarioErrors.EmailInvalido.Message);
+            throw new UsuarioValidationException(UsuarioErrors.EmailInvalido);
         }
 
         if (!ValidadorEntrada.RolUsuarioValido(rol))
         {
-            throw new InvalidOperationException(UsuarioErrors.RolInvalido.Message);
+            throw new UsuarioValidationException(UsuarioErrors.RolInvalido);
         }
+    }
+
+    private static string UnirCiComplemento(string? ci, string? complemento)
+    {
+        var ciNormalizado = ValidadorEntrada.NormalizarEspacios(ci);
+        var complementoNormalizado = ValidadorEntrada.NormalizarEspacios(complemento);
+        return string.IsNullOrWhiteSpace(complementoNormalizado)
+            ? ciNormalizado
+            : $"{ciNormalizado}-{complementoNormalizado}";
     }
 
     public Task<UsuarioDto?> UpdateAsync(int id, UpdateUsuarioDto dto)
@@ -237,12 +253,12 @@ public class UsuarioService : IUsuarioServicio
 
         if (!VerifyPassword(actual, usuario.PasswordHash))
         {
-            throw new InvalidOperationException("La contrasena actual no es correcta.");
+            throw new InvalidOperationException("La contraseña actual no es correcta.");
         }
 
         if (!string.Equals(nueva, confirmacion, StringComparison.Ordinal))
         {
-            throw new InvalidOperationException("La nueva contrasena y su confirmacion no coinciden.");
+            throw new InvalidOperationException("La nueva contraseña y su confirmación no coinciden.");
         }
 
         var policyResult = ValidatePasswordPolicy(nueva);
@@ -253,7 +269,7 @@ public class UsuarioService : IUsuarioServicio
 
         if (VerifyPassword(nueva, usuario.PasswordHash))
         {
-            throw new InvalidOperationException("La nueva contrasena no puede ser igual a la contrasena actual.");
+            throw new InvalidOperationException("La nueva contraseña no puede ser igual a la contraseña actual.");
         }
 
         usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(nueva);
@@ -329,32 +345,32 @@ public class UsuarioService : IUsuarioServicio
     {
         if (string.IsNullOrWhiteSpace(password))
         {
-            return (false, "La nueva contrasena es obligatoria.");
+            return (false, "La nueva contraseña es obligatoria.");
         }
 
         if (password.Length < 8)
         {
-            return (false, "La contrasena debe tener al menos 8 caracteres.");
+            return (false, "La contraseña debe tener al menos 8 caracteres.");
         }
 
         if (!Regex.IsMatch(password, "[A-Z]"))
         {
-            return (false, "La contrasena debe incluir al menos una letra mayuscula.");
+            return (false, "La contraseña debe incluir al menos una letra mayúscula.");
         }
 
         if (!Regex.IsMatch(password, "[a-z]"))
         {
-            return (false, "La contrasena debe incluir al menos una letra minuscula.");
+            return (false, "La contraseña debe incluir al menos una letra minúscula.");
         }
 
         if (!Regex.IsMatch(password, "[0-9]"))
         {
-            return (false, "La contrasena debe incluir al menos un numero.");
+            return (false, "La contraseña debe incluir al menos un número.");
         }
 
         if (!Regex.IsMatch(password, "[^a-zA-Z0-9]"))
         {
-            return (false, "La contrasena debe incluir al menos un caracter especial.");
+            return (false, "La contraseña debe incluir al menos un carácter especial.");
         }
 
         return (true, string.Empty);

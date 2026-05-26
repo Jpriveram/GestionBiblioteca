@@ -695,11 +695,12 @@
     display:none;
 }
 
-.text-error{
-    color:#f87171;
-    font-size:13px;
-    margin-top:4px;
-    display:block;
+.text-error {
+    color: #f87171;
+    font-size: 13px;
+    margin: 0px 0 0 9px;
+    display: block;
+    line-height: 1.2;
 }
 
 .text-error-summary{
@@ -772,4 +773,15 @@
     .modal-box h2{
         font-size:24px;
     }
+}
+
+.required {
+    color: #ef4444;
+    font-weight: 600;
+}
+.modal-label {
+    display: block;
+    margin-bottom: -11px;
+    color: #e5e7eb;
+    font-weight: 400;
 }

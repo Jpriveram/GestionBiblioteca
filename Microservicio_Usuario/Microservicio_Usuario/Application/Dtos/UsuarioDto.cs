@@ -26,6 +26,7 @@ public class CreateUsuarioDto
 {
     public int? UsuarioSesionId { get; set; }
     public string CI { get; set; } = string.Empty;
+    public string? Complemento { get; set; }
     public string Nombres { get; set; } = string.Empty;
     public string PrimerApellido { get; set; } = string.Empty;
     public string? SegundoApellido { get; set; }

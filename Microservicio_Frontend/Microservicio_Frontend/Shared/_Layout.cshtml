@@ -44,7 +44,8 @@
             <button class="navbar-toggler"
                     type="button"
                     data-bs-toggle="collapse"
-                    data-bs-target=".navbar-collapse">
+                    data-bs-target=".navbar-collapse"
+                    aria-label="Abrir navegación">
                 <img src="~/assets/icons/menu_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
                     width="24">
             </button>
@@ -164,7 +165,7 @@
                             <ul class="dropdown-menu dropdown-menu-end custom-dropdown-menu">
                                 <li>
                                     <button type="button" class="dropdown-item custom-dropdown-item" onclick="abrirModalCambiarPassword()">
-                                        Cambiar contrasena
+                                        Cambiar contraseña
                                     </button>
                                 </li>
                                 <li>
@@ -263,15 +264,15 @@
                      class="icono-modal" />
             </div>
 
-            <h2>Cambiar contrasena</h2>
+            <h2>Cambiar contraseña</h2>
             <p>
                 @if (debeCambiarPassword)
                 {
-                    <text>Primer inicio detectado. Debes cambiar tu contrasena para continuar.</text>
+                    <text>Primer inicio detectado. Debes cambiar tu contraseña para continuar.</text>
                 }
                 else
                 {
-                    <text>Ingresa tu contrasena actual y define una nueva contrasena segura.</text>
+                    <text>Ingresa tu contraseña actual y define una nueva contraseña segura.</text>
                 }
             </p>
 
@@ -293,16 +294,16 @@
                           name="passwordActualModal"
                           id="passwordActualModal"
                           class="input-form password-input"
-                          placeholder="Contrasena actual"
+                          placeholder="Contraseña actual"
                           required />
 
                       <button type="button"
                         class="toggle-password-btn"
                         onclick="togglePasswordField('passwordActualModal', 'togglePasswordActualModalIcon')"
-                        aria-label="Mostrar u ocultar contrasena actual">
+                        aria-label="Mostrar u ocultar contraseña actual">
                        <img id="togglePasswordActualModalIcon"
                          src="~/assets/icons/visibility_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-                         alt="Ver contrasena" />
+                         alt="Ver contraseña" />
                       </button>
                   </div>
 
@@ -311,16 +312,16 @@
                           name="passwordNuevaModal"
                           id="passwordNuevaModal"
                           class="input-form password-input"
-                          placeholder="Nueva contrasena"
+                          placeholder="Nueva contraseña"
                           required />
 
                       <button type="button"
                         class="toggle-password-btn"
                         onclick="togglePasswordField('passwordNuevaModal', 'togglePasswordNuevaModalIcon')"
-                        aria-label="Mostrar u ocultar nueva contrasena">
+                        aria-label="Mostrar u ocultar nueva contraseña">
                        <img id="togglePasswordNuevaModalIcon"
                          src="~/assets/icons/visibility_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-                         alt="Ver contrasena" />
+                         alt="Ver contraseña" />
                       </button>
                   </div>
 
@@ -329,16 +330,16 @@
                           name="passwordConfirmacionModal"
                           id="passwordConfirmacionModal"
                           class="input-form password-input"
-                          placeholder="Confirmar nueva contrasena"
+                          placeholder="Confirmar nueva contraseña"
                           required />
 
                       <button type="button"
                         class="toggle-password-btn"
                         onclick="togglePasswordField('passwordConfirmacionModal', 'togglePasswordConfirmacionModalIcon')"
-                        aria-label="Mostrar u ocultar confirmacion de contrasena">
+                        aria-label="Mostrar u ocultar confirmación de contraseña">
                        <img id="togglePasswordConfirmacionModalIcon"
                          src="~/assets/icons/visibility_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-                         alt="Ver contrasena" />
+                         alt="Ver contraseña" />
                       </button>
                   </div>
 
@@ -546,7 +547,7 @@
             return;
         }
 
-        box.textContent = "La nueva contrasena no cumple:\n- " + mensajes.join("\n- ");
+        box.textContent = "La nueva contraseña no cumple:\n- " + mensajes.join("\n- ");
         box.style.display = "block";
         box.style.whiteSpace = "pre-line";
     }
@@ -622,7 +623,7 @@
 
                 if (nueva !== confirmacion) {
                     e.preventDefault();
-                    mostrarErrorCambiarPassword("La nueva contrasena y su confirmacion no coinciden.");
+                    mostrarErrorCambiarPassword("La nueva contraseña y su confirmación no coinciden.");
                     return;
                 }
 
@@ -670,7 +671,7 @@
                     }
 
                     if (nueva !== confirmacion) {
-                        mostrarErrorCambiarPassword("La nueva contrasena y su confirmacion no coinciden.");
+                        mostrarErrorCambiarPassword("La nueva contraseña y su confirmación no coinciden.");
                     } else {
                         limpiarErrorCambiarPassword();
                     }

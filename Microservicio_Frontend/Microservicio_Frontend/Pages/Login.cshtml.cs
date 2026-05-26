@@ -85,7 +85,7 @@ public class LoginModel : PageModel
         else
         {
             HttpContext.Session.SetString(SessionKeys.DebeCambiarPassword, "false");
-            TempData["ChangePasswordOk"] = "Contrasena actualizada correctamente.";
+            TempData["ChangePasswordOk"] = "Contraseña actualizada correctamente.";
         }
 
         if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))

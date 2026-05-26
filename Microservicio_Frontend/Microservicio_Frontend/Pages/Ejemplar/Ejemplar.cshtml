@@ -191,7 +191,11 @@ else
             </thead>
 
             <tbody>
-            @foreach (var ejemplar in Model.Ejemplares)
+                    @foreach (var ejemplar in Model.Ejemplares
+                                    .OrderBy(e => Model.LibrosTitulos.ContainsKey(e.LibroId)
+                                    ? Model.LibrosTitulos[e.LibroId].ToLower()
+                                    : "")
+                                    .ThenBy(e => e.CodigoInventario))
             {
                 <tr class="@(ejemplar.DadoDeBaja ? "fila-baja" : "")">
 
@@ -450,16 +454,7 @@ else
                           placeholder="Motivo de baja">@editMotivoBaja</textarea>
             </div>
 
-            <div class="form-check modal-check">
-                <input type="checkbox"
-                       id="editEstado"
-                       name="Estado"
-                       value="true"
-                       class="check-input"
-                       checked="@(editEstadoChecked ? "checked" : null)" />
-                <label for="editEstado">Activo en el sistema</label>
-            </div>
-            <input type="hidden" name="Estado" value="false" />
+            <input type="hidden" id="editEstado" name="Estado" value="true" />
 
             <div class="modal-buttons">
                 <button type="submit" class="btn-warning">Guardar cambios</button>
@@ -501,7 +496,9 @@ else
 }
 
             <input type="hidden" id="createLibroIdHidden" name="EjemplarDto.LibroId" value="@createLibroId" />
-
+            <label class="modal-label">
+                Libro<span class="required">*</span>
+            </label>
             <div class="libro-search-wrapper">
                 <input type="text"
                        id="createBuscarLibro"
@@ -524,7 +521,15 @@ else
             </div>
 
             <small class="text-muted" id="createLibroSeleccionadoTexto"></small>
-
+            @if (ViewData.ModelState.ContainsKey("EjemplarDto.LibroId"))
+            {
+                <span class="text-error">
+                    @ViewData.ModelState["EjemplarDto.LibroId"]?.Errors.FirstOrDefault()?.ErrorMessage
+                </span>
+            }
+            <label class="modal-label">
+                Código inventario<span class="required">*</span>
+            </label>
                  <div class="codigo-inventario-wrapper">
                   <span class="codigo-inventario-prefijo">INV-</span>
                   <input type="text"
@@ -621,16 +626,7 @@ else
                           placeholder="Motivo de baja">@createMotivoBaja</textarea>
             </div>
 
-            <div class="form-check modal-check">
-                <input type="checkbox"
-                       id="createEstado"
-                       name="EjemplarDto.Estado"
-                       value="true"
-                       class="check-input"
-                       checked="@(createEstadoChecked ? "checked" : null)" />
-                <label for="createEstado">Activo en el sistema</label>
-            </div>
-            <input type="hidden" name="EjemplarDto.Estado" value="false" />
+            <input type="hidden" name="EjemplarDto.Estado" value="true" />
 
             <div class="modal-buttons">
                 <button type="submit" class="btn-success">Crear ejemplar</button>

@@ -53,8 +53,7 @@ public class MultaService : IMultaService
             Motivo = ValidadorEntrada.NormalizarEspacios(dto.Motivo),
             Estado = true,
             UsuarioSesionId = dto.UsuarioSesionId,
-            FechaRegistro = DateTime.UtcNow,
-            UltimaActualizacion = DateTime.UtcNow
+            FechaRegistro = DateTime.UtcNow
         };
 
         await _repository.InsertAsync(multa);

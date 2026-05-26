@@ -88,7 +88,7 @@ public class IndexModel : PageModel
     {
         var tareas = new List<Task>();
         tareas.Add(Task.Run(async () => Multas = (await _multaServicio.SelectAsync(UsuarioIdFiltro)).ToList()));
-        tareas.Add(Task.Run(() => { Usuarios = _usuarioServicio.Select().Where(u => u.Estado).ToList(); }));
+        tareas.Add(Task.Run(() => { Usuarios = _usuarioServicio.Select().Where(u => u.Estado && u.Rol == "Lector").ToList(); }));
         await Task.WhenAll(tareas);
     }
 

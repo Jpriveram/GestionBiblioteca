@@ -41,9 +41,7 @@ public class MultaRepository : IMultaRepository
 
     public async Task InsertAsync(Multa entity)
     {
-        var now = LocalNowForMongo();
-        entity.FechaRegistro = now;
-        entity.UltimaActualizacion = now;
+        entity.FechaRegistro = LocalNowForMongo();
         await _multas.InsertOneAsync(entity);
     }
 

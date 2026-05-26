@@ -135,7 +135,7 @@ public class EjemplarModel : PageModel
             var result = _ejemplarServicio.Update(dto);
             if (!result.IsSuccess)
             {
-                AgregarError(result.Error);
+                ModelState.AddModelError("CodigoInventario", result.Error.Message);
                 CargarPagina();
                 return Page();
             }
@@ -165,9 +165,25 @@ public class EjemplarModel : PageModel
 
         EjemplarDto.UsuarioSesionId = ObtenerUsuarioSesionId();
 
+        ModelState.Remove("EjemplarDto.LibroId");
+        ModelState.Remove("EjemplarDto.CodigoInventario");
+
+        if (EjemplarDto.LibroId <= 0)
+        {
+            ModelState.AddModelError("EjemplarDto.LibroId", "Debe seleccionar un libro.");
+        }
+
+        if (string.IsNullOrWhiteSpace(EjemplarDto.CodigoInventario))
+        {
+            ModelState.AddModelError("EjemplarDto.CodigoInventario", "Debe ingresar el código de inventario.");
+        }
+
+        EjemplarDto.Estado = true;
+
+
         if (!ModelState.IsValid)
         {
-            ErrorMessage = "Campos incompletos.";
+            PreservarValoresCrear(EjemplarDto);
             CargarPagina();
             return Page();
         }
@@ -175,20 +191,15 @@ public class EjemplarModel : PageModel
         try
         {
             var result = _ejemplarServicio.Create(EjemplarDto);
+
             if (!result.IsSuccess)
             {
-                if (result.Error.Code == "Post")
-                {
-                    ErrorMessage = result.Error.Message;
-                }
-                else
-                {
-                    AgregarError(result.Error, "EjemplarDto");
-                }
-
+                PreservarValoresCrear(EjemplarDto);
+                ModelState.AddModelError("EjemplarDto.CodigoInventario", result.Error.Message);
                 CargarPagina();
                 return Page();
             }
+
             return RedirectToPage();
         }
         catch (Exception ex) when (ex.Message.Contains("Duplicate"))
@@ -199,12 +210,19 @@ public class EjemplarModel : PageModel
         }
         catch (Exception)
         {
-            ErrorMessage = "Error al procesar.";
+            ModelState.AddModelError(string.Empty, "Error al procesar.");
             CargarPagina();
             return Page();
         }
     }
 
+    private void PreservarValoresCrear(EjemplarDto dto)
+    {
+        ModelState.SetModelValue("EjemplarDto.LibroId", dto.LibroId.ToString(), dto.LibroId.ToString());
+        ModelState.SetModelValue("EjemplarDto.CodigoInventario", dto.CodigoInventario ?? "", dto.CodigoInventario ?? "");
+        ModelState.SetModelValue("EjemplarDto.EstadoConservacion", dto.EstadoConservacion ?? "", dto.EstadoConservacion ?? "");
+        ModelState.SetModelValue("EjemplarDto.Ubicacion", dto.Ubicacion ?? "", dto.Ubicacion ?? "");
+    }
     private void CargarPagina()
     {
         Ejemplares = _ejemplarServicio.Select(todos: EsAdmin()).ToList();

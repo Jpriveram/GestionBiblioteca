@@ -1096,6 +1096,31 @@
                 }
             });
 
+            const modalBackdropStatePrestamo = {};
+
+            function bindBackdropClosePrestamo(modalId, closeFn) {
+                const modal = document.getElementById(modalId);
+                if (!modal) return;
+
+                modal.addEventListener('pointerdown', function (e) {
+                    modalBackdropStatePrestamo[modalId] = (e.target === modal);
+                });
+
+                modal.addEventListener('pointerup', function (e) {
+                    if (modalBackdropStatePrestamo[modalId] && e.target === modal) {
+                        closeFn();
+                    }
+
+                    modalBackdropStatePrestamo[modalId] = false;
+                });
+
+                modal.addEventListener('pointercancel', function () {
+                    modalBackdropStatePrestamo[modalId] = false;
+                });
+            }
+
+            bindBackdropClosePrestamo('modalConfirmarPrestamo', cerrarModalConfirmarPrestamo);
+
             document.addEventListener('click', (e) => {
                 const select = document.getElementById('custom-select-ejemplar');
                 if (select && !select.contains(e.target)) {
@@ -1106,11 +1131,6 @@
                 const lectorContainer = document.querySelector('.field-with-floating-results');
                 if (sugerencias && lectorContainer && !lectorContainer.contains(e.target)) {
                     sugerencias.innerHTML = '';
-                }
-
-                const modalConfirmacion = document.getElementById('modalConfirmarPrestamo');
-                if (modalConfirmacion && e.target === modalConfirmacion) {
-                    cerrarModalConfirmarPrestamo();
                 }
             });
 

@@ -96,6 +96,30 @@ public class LoginModel : PageModel
         return Redirect("/");
     }
 
+    public async Task<IActionResult> OnPostVerificarPasswordActualAsync(
+        string passwordActualModal,
+        CancellationToken cancellationToken)
+    {
+        var usuarioSesion = HttpContext.Session.GetString(SessionKeys.UsuarioId);
+
+        if (!int.TryParse(usuarioSesion, out var usuarioId))
+        {
+            return new UnauthorizedObjectResult(new { message = "No hay sesión de usuario activa." });
+        }
+
+        var resultado = await _usuarioServicio.VerificarPasswordActualAsync(
+            usuarioId,
+            passwordActualModal,
+            cancellationToken);
+
+        if (resultado.IsFailure)
+        {
+            return BadRequest(new { message = resultado.Error.Message });
+        }
+
+        return new OkObjectResult(new { message = "Contraseña actual verificada correctamente." });
+    }
+
     public IActionResult OnPostLogout()
     {
         HttpContext.Session.Clear();

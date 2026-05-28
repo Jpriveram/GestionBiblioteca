@@ -259,6 +259,11 @@
 {
     <div id="modalCambiarPassword" class="custom-modal">
         <div class="modal-box modal-login-box">
+            <button type="button"
+                    class="modal-close-btn"
+                    onclick="cerrarModalCambiarPassword()"
+                    aria-label="Cerrar modal de cambio de contraseña">&times;</button>
+
             <div class="modal-icon login">
                 <img src="~/assets/icons/privacy_tip_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
                      class="icono-modal" />
@@ -268,11 +273,11 @@
             <p>
                 @if (debeCambiarPassword)
                 {
-                    <text>Primer inicio detectado. Debes cambiar tu contraseña para continuar.</text>
+                    @:Primer inicio detectado. Debes cambiar tu contraseña para continuar.
                 }
                 else
                 {
-                    <text>Ingresa tu contraseña actual y define una nueva contraseña segura.</text>
+                    @:Ingresa tu contraseña actual y define una nueva contraseña segura.
                 }
             </p>
 
@@ -289,62 +294,65 @@
                     </div>
                 }
 
-                  <div class="password-wrapper">
-                      <input type="password"
-                          name="passwordActualModal"
-                          id="passwordActualModal"
-                          class="input-form password-input"
-                          placeholder="Contraseña actual"
-                          required />
+                                    <div class="password-wrapper">
+                                            <input type="password"
+                                                    name="passwordActualModal"
+                                                    id="passwordActualModal"
+                                                    class="input-form password-input"
+                                                    placeholder="Contraseña actual"
+                                                    required />
 
-                      <button type="button"
-                        class="toggle-password-btn"
-                        onclick="togglePasswordField('passwordActualModal', 'togglePasswordActualModalIcon')"
-                        aria-label="Mostrar u ocultar contraseña actual">
-                       <img id="togglePasswordActualModalIcon"
-                         src="~/assets/icons/visibility_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-                         alt="Ver contraseña" />
-                      </button>
-                  </div>
+                                            <button type="button"
+                                                class="toggle-password-btn"
+                                                onclick="togglePasswordField('passwordActualModal', 'togglePasswordActualModalIcon')"
+                                                aria-label="Mostrar u ocultar contraseña actual">
+                                             <img id="togglePasswordActualModalIcon"
+                                                 src="~/assets/icons/visibility_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                                                 alt="Ver contraseña" />
+                                            </button>
+                                    </div>
+                                    <div id="errorPasswordActualModal" class="field-error-message" style="display:none;"></div>
 
-                  <div class="password-wrapper">
-                      <input type="password"
-                          name="passwordNuevaModal"
-                          id="passwordNuevaModal"
-                          class="input-form password-input"
-                          placeholder="Nueva contraseña"
-                          required />
+                                    <div class="password-wrapper">
+                                            <input type="password"
+                                                    name="passwordNuevaModal"
+                                                    id="passwordNuevaModal"
+                                                    class="input-form password-input"
+                                                    placeholder="Nueva contraseña"
+                                                    required disabled />
 
-                      <button type="button"
-                        class="toggle-password-btn"
-                        onclick="togglePasswordField('passwordNuevaModal', 'togglePasswordNuevaModalIcon')"
-                        aria-label="Mostrar u ocultar nueva contraseña">
-                       <img id="togglePasswordNuevaModalIcon"
-                         src="~/assets/icons/visibility_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-                         alt="Ver contraseña" />
-                      </button>
-                  </div>
+                                            <button type="button"
+                                                class="toggle-password-btn"
+                                                onclick="togglePasswordField('passwordNuevaModal', 'togglePasswordNuevaModalIcon')"
+                                                aria-label="Mostrar u ocultar nueva contraseña">
+                                             <img id="togglePasswordNuevaModalIcon"
+                                                 src="~/assets/icons/visibility_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                                                 alt="Ver contraseña" />
+                                            </button>
+                                    </div>
+                                    <div id="errorPasswordNuevaModal" class="field-error-message" style="display:none;"></div>
 
-                  <div class="password-wrapper">
-                      <input type="password"
-                          name="passwordConfirmacionModal"
-                          id="passwordConfirmacionModal"
-                          class="input-form password-input"
-                          placeholder="Confirmar nueva contraseña"
-                          required />
+                                    <div class="password-wrapper">
+                                            <input type="password"
+                                                    name="passwordConfirmacionModal"
+                                                    id="passwordConfirmacionModal"
+                                                    class="input-form password-input"
+                                                    placeholder="Confirmar nueva contraseña"
+                                                    required disabled />
 
-                      <button type="button"
-                        class="toggle-password-btn"
-                        onclick="togglePasswordField('passwordConfirmacionModal', 'togglePasswordConfirmacionModalIcon')"
-                        aria-label="Mostrar u ocultar confirmación de contraseña">
-                       <img id="togglePasswordConfirmacionModalIcon"
-                         src="~/assets/icons/visibility_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-                         alt="Ver contraseña" />
-                      </button>
-                  </div>
+                                            <button type="button"
+                                                class="toggle-password-btn"
+                                                onclick="togglePasswordField('passwordConfirmacionModal', 'togglePasswordConfirmacionModalIcon')"
+                                                aria-label="Mostrar u ocultar confirmación de contraseña">
+                                             <img id="togglePasswordConfirmacionModalIcon"
+                                                 src="~/assets/icons/visibility_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                                                 alt="Ver contraseña" />
+                                            </button>
+                                    </div>
+                                    <div id="errorPasswordConfirmacionModal" class="field-error-message" style="display:none;"></div>
 
-                <div class="modal-buttons" style="margin-top:12px;">
-                    <button type="submit" class="btn-login-modal">Actualizar</button>
+                                <div class="modal-buttons" style="margin-top:12px;">
+                                        <button type="submit" id="btnActualizarPasswordModal" class="btn-login-modal" disabled>Actualizar</button>
 
                     @if (!debeCambiarPassword)
                     {
@@ -501,6 +509,85 @@
         box.style.display = "block";
     }
 
+    function ocultarErrorCambiarPassword() {
+        var box = document.getElementById("mensajeCambiarPasswordModal");
+        if (!box) return;
+
+        box.style.display = "none";
+        box.textContent = "";
+        box.style.whiteSpace = "normal";
+    }
+
+    function mostrarErrorCampo(campoId, mensaje) {
+        var box = document.getElementById(campoId);
+        if (!box) return;
+
+        if (!mensaje) {
+            box.style.display = "none";
+            box.textContent = "";
+            return;
+        }
+
+        box.textContent = mensaje;
+        box.style.display = "block";
+    }
+
+    function limpiarErroresCamposPassword() {
+        mostrarErrorCampo("errorPasswordActualModal", "");
+        mostrarErrorCampo("errorPasswordNuevaModal", "");
+        mostrarErrorCampo("errorPasswordConfirmacionModal", "");
+    }
+
+    function establecerEstadoVerificacion(passwordVerificada) {
+        var nueva = document.getElementById("passwordNuevaModal");
+        var confirmacion = document.getElementById("passwordConfirmacionModal");
+        var submit = document.getElementById("btnActualizarPasswordModal");
+
+        if (nueva) nueva.disabled = !passwordVerificada;
+        if (confirmacion) confirmacion.disabled = !passwordVerificada;
+        if (submit) submit.disabled = !passwordVerificada;
+    }
+
+    async function verificarPasswordActual() {
+        var inputActual = document.getElementById("passwordActualModal");
+        var token = document.querySelector('#formCambiarPasswordModal input[name="__RequestVerificationToken"]');
+        var valor = inputActual ? (inputActual.value || "").trim() : "";
+
+        limpiarErroresCamposPassword();
+        ocultarErrorCambiarPassword();
+
+        if (!valor) {
+            mostrarErrorCampo("errorPasswordActualModal", "Debes ingresar la contraseña actual.");
+            establecerEstadoVerificacion(false);
+            return;
+        }
+
+        try {
+            var response = await fetch("/Login?handler=VerificarPasswordActual", {
+                method: "POST",
+                headers: {
+                    "RequestVerificationToken": token ? token.value : "",
+                    "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
+                },
+                body: new URLSearchParams({ passwordActualModal: valor })
+            });
+
+            var payload = await response.json().catch(function () { return null; });
+
+            if (!response.ok) {
+                var mensaje = (payload && payload.message) ? payload.message : "La contraseña actual no es correcta.";
+                mostrarErrorCampo("errorPasswordActualModal", mensaje);
+                establecerEstadoVerificacion(false);
+                return;
+            }
+
+            establecerEstadoVerificacion(true);
+        } catch (error) {
+            mostrarErrorCampo("errorPasswordActualModal", "No se pudo verificar la contraseña actual.");
+            establecerEstadoVerificacion(false);
+        }
+    }
+
     function limpiarErrorCambiarPassword() {
         var box = document.getElementById("mensajeCambiarPasswordModal");
         if (!box) return;
@@ -567,6 +654,46 @@
         var passwordNuevaModal = document.getElementById("passwordNuevaModal");
         var passwordConfirmacionModal = document.getElementById("passwordConfirmacionModal");
         var mensajeCambiarPasswordServidor = document.getElementById("mensajeCambiarPasswordServidor");
+        var modalCambiarPassword = document.getElementById("modalCambiarPassword");
+        var modalLogin = document.getElementById("modalLogin");
+
+        establecerEstadoVerificacion(false);
+
+        if (modalCambiarPassword) {
+            modalCambiarPassword.addEventListener("pointerdown", function (e) {
+                modalCambiarPassword._backdropPointerDown = (e.target === modalCambiarPassword);
+            });
+
+            modalCambiarPassword.addEventListener("pointerup", function (e) {
+                if (modalCambiarPassword._backdropPointerDown && e.target === modalCambiarPassword) {
+                    cerrarModalCambiarPassword();
+                }
+
+                modalCambiarPassword._backdropPointerDown = false;
+            });
+
+            modalCambiarPassword.addEventListener("pointercancel", function () {
+                modalCambiarPassword._backdropPointerDown = false;
+            });
+        }
+
+        if (modalLogin) {
+            modalLogin.addEventListener("pointerdown", function (e) {
+                modalLogin._backdropPointerDown = (e.target === modalLogin);
+            });
+
+            modalLogin.addEventListener("pointerup", function (e) {
+                if (modalLogin._backdropPointerDown && e.target === modalLogin) {
+                    cerrarModalLogin();
+                }
+
+                modalLogin._backdropPointerDown = false;
+            });
+
+            modalLogin.addEventListener("pointercancel", function () {
+                modalLogin._backdropPointerDown = false;
+            });
+        }
 
         if (primerInicioForzado || mensajeCambiarPasswordServidor) {
             abrirModalCambiarPassword();
@@ -615,15 +742,29 @@
                 var nueva = (passwordNuevaModal && passwordNuevaModal.value ? passwordNuevaModal.value : "").trim();
                 var confirmacion = (passwordConfirmacionModal && passwordConfirmacionModal.value ? passwordConfirmacionModal.value : "").trim();
 
+                if (!passwordNuevaModal || passwordNuevaModal.disabled) {
+                    e.preventDefault();
+                    mostrarErrorCampo("errorPasswordActualModal", "Primero verifica la contraseña actual.");
+                    return;
+                }
+
                 if (!actual || !nueva || !confirmacion) {
                     e.preventDefault();
-                    mostrarErrorCambiarPassword("Debes completar todos los campos.");
+                    if (!actual) {
+                        mostrarErrorCampo("errorPasswordActualModal", "Debes ingresar la contraseña actual.");
+                    }
+                    if (!nueva) {
+                        mostrarErrorCampo("errorPasswordNuevaModal", "Debes ingresar la nueva contraseña.");
+                    }
+                    if (!confirmacion) {
+                        mostrarErrorCampo("errorPasswordConfirmacionModal", "Debes confirmar la nueva contraseña.");
+                    }
                     return;
                 }
 
                 if (nueva !== confirmacion) {
                     e.preventDefault();
-                    mostrarErrorCambiarPassword("La nueva contraseña y su confirmación no coinciden.");
+                    mostrarErrorCampo("errorPasswordConfirmacionModal", "La nueva contraseña y su confirmación no coinciden.");
                     return;
                 }
 
@@ -631,11 +772,12 @@
 
                 if (erroresPassword.length > 0) {
                     e.preventDefault();
-                    mostrarRequisitosPassword(erroresPassword);
+                    mostrarErrorCampo("errorPasswordNuevaModal", "La nueva contraseña no cumple: " + erroresPassword.join(", "));
                     return;
                 }
 
-                limpiarErrorCambiarPassword();
+                ocultarErrorCambiarPassword();
+                limpiarErroresCamposPassword();
             });
 
             if (passwordNuevaModal) {
@@ -644,19 +786,32 @@
                     var erroresPassword = validarPasswordSegura(nueva);
 
                     if (!nueva) {
-                        limpiarErrorCambiarPassword();
+                        mostrarErrorCampo("errorPasswordNuevaModal", "");
                         return;
                     }
 
-                    mostrarRequisitosPassword(erroresPassword);
+                    if (passwordNuevaModal.disabled === false) {
+                        mostrarErrorCampo("errorPasswordNuevaModal", erroresPassword.length > 0 ? "La nueva contraseña no cumple: " + erroresPassword.join(", ") : "");
+                    }
                 });
             }
 
             if (passwordActualModal) {
                 passwordActualModal.addEventListener("input", function () {
-                    var box = document.getElementById("mensajeCambiarPasswordModal");
-                    if (box && box.textContent === "Debes completar todos los campos.") {
-                        limpiarErrorCambiarPassword();
+                    establecerEstadoVerificacion(false);
+                    limpiarErroresCamposPassword();
+                });
+
+                passwordActualModal.addEventListener("blur", function () {
+                    if ((passwordActualModal.value || "").trim()) {
+                        verificarPasswordActual();
+                    }
+                });
+
+                passwordActualModal.addEventListener("keydown", function (e) {
+                    if (e.key === "Enter") {
+                        e.preventDefault();
+                        verificarPasswordActual();
                     }
                 });
             }
@@ -667,30 +822,23 @@
                     var confirmacion = (passwordConfirmacionModal.value || "").trim();
 
                     if (!nueva || !confirmacion) {
+                        mostrarErrorCampo("errorPasswordConfirmacionModal", "");
                         return;
                     }
 
                     if (nueva !== confirmacion) {
-                        mostrarErrorCambiarPassword("La nueva contraseña y su confirmación no coinciden.");
+                        mostrarErrorCampo("errorPasswordConfirmacionModal", "La nueva contraseña y su confirmación no coinciden.");
                     } else {
-                        limpiarErrorCambiarPassword();
+                        mostrarErrorCampo("errorPasswordConfirmacionModal", "");
                     }
                 });
             }
         }
+
+        establecerEstadoVerificacion(false);
     });
 
     window.addEventListener("click", function (e) {
-        var modal = document.getElementById("modalLogin");
-        if (modal && e.target === modal) {
-            cerrarModalLogin();
-        }
-
-        var modalCambiarPassword = document.getElementById("modalCambiarPassword");
-        if (modalCambiarPassword && e.target === modalCambiarPassword) {
-            cerrarModalCambiarPassword();
-        }
-
         var modalCambioPasswordExito = document.getElementById("modalCambioPasswordExito");
         if (modalCambioPasswordExito && e.target === modalCambioPasswordExito) {
             cerrarModalCambioPasswordExito();

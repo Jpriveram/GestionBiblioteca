@@ -13,5 +13,6 @@ public interface IUsuarioServicio
     Task<UsuarioDto?> UpdateAsync(int id, UpdateUsuarioDto dto);
     Task<bool> DeleteAsync(int id);
     Task<(UsuarioDto? Usuario, string? Token)> LoginAsync(string nombreUsuario, string password);
+    Task VerificarPasswordActualAsync(int usuarioId, string passwordActual);
     Task CambiarPasswordAsync(int usuarioId, string passwordActual, string passwordNueva, string passwordConfirmacion);
 }

@@ -1576,16 +1576,32 @@ document.addEventListener('DOMContentLoaded', function () {
     initCustomSelect({ selectId: 'custom-select-pais-edit', hiddenInputId: 'editPaisPublicacionHidden', textId: 'editPaisPublicacionText', defaultText: 'País de publicación' });
 });
 
-window.onclick = function(e) {
-    var modalEliminar = document.getElementById("modalEliminar");
-    var modalEditar = document.getElementById("modalEditar");
-    var modalCrear = document.getElementById("modalCrear");
-    var modalDetalle = document.getElementById("modalDetalle");
+const modalBackdropStateLibro = {};
 
-    if (e.target === modalEliminar) cerrarModalEliminar();
-    if (e.target === modalEditar) cerrarModalEditar();
-    if (e.target === modalCrear) cerrarModalCrear();
-    if (e.target === modalDetalle) cerrarModalDetalle();
-};
+function bindBackdropCloseLibro(modalId, closeFn) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+
+    modal.addEventListener("pointerdown", function (e) {
+        modalBackdropStateLibro[modalId] = (e.target === modal);
+    });
+
+    modal.addEventListener("pointerup", function (e) {
+        if (modalBackdropStateLibro[modalId] && e.target === modal) {
+            closeFn();
+        }
+
+        modalBackdropStateLibro[modalId] = false;
+    });
+
+    modal.addEventListener("pointercancel", function () {
+        modalBackdropStateLibro[modalId] = false;
+    });
+}
+
+bindBackdropCloseLibro("modalEliminar", cerrarModalEliminar);
+bindBackdropCloseLibro("modalEditar", cerrarModalEditar);
+bindBackdropCloseLibro("modalCrear", cerrarModalCrear);
+bindBackdropCloseLibro("modalDetalle", cerrarModalDetalle);
 </script>
 }

@@ -9,6 +9,7 @@ public interface IUsuarioServicio
     IEnumerable<UsuarioDto> Select();
     Result<UsuarioDto> Create(UsuarioDto dto);
     Result<UsuarioDto> Login(string nombreUsuario, string password);
+    Task<Result> VerificarPasswordActualAsync(int usuarioId, string passwordActual, CancellationToken ct = default);
     Task<Result> CambiarPasswordAsync(int usuarioId, string passwordActual, string passwordNueva, string passwordConfirmacion, CancellationToken ct = default);
     Task<Result> CrearUsuarioAsync(UsuarioDto dto, int usuarioSesionId, CancellationToken ct = default);
     Result CrearLector(LectorDto dto, int usuarioSesionId);

@@ -305,10 +305,32 @@
             document.querySelector("form[method='get']").submit();
         }
 
-        // Cerrar modals al hacer clic fuera
-        window.addEventListener("click", function(e) {
-            if (e.target.classList.contains("modal")) e.target.style.display = "none";
-        });
+        const modalBackdropStateMultas = {};
+
+        function bindBackdropCloseMulta(modalId, closeFn) {
+            const modal = document.getElementById(modalId);
+            if (!modal) return;
+
+            modal.addEventListener("pointerdown", function (e) {
+                modalBackdropStateMultas[modalId] = (e.target === modal);
+            });
+
+            modal.addEventListener("pointerup", function (e) {
+                if (modalBackdropStateMultas[modalId] && e.target === modal) {
+                    closeFn();
+                }
+
+                modalBackdropStateMultas[modalId] = false;
+            });
+
+            modal.addEventListener("pointercancel", function () {
+                modalBackdropStateMultas[modalId] = false;
+            });
+        }
+
+        bindBackdropCloseMulta("modalEditarMulta", cerrarModalEditar);
+        bindBackdropCloseMulta("modalBajaMulta", cerrarModalBaja);
+        bindBackdropCloseMulta("modalCrearMulta", cerrarModalCrear);
         // Cerrar sugerencias al hacer clic fuera
         document.addEventListener("click", function(e) {
             if (!e.target.closest(".sugerencias-lista") && !e.target.closest("#busquedaUsuario") && !e.target.closest("#buscarUsuarioCrear")) {

@@ -313,6 +313,8 @@
 
         document.addEventListener("DOMContentLoaded", function () {
             var form = document.getElementById("formCrearUsuario");
+            var modalCrear = document.getElementById("modalCrearUsuario");
+            var modalBaja = document.getElementById("modalBajaUsuario");
 
             if (form) {
                 var nombres = document.getElementById("Nombres");
@@ -520,18 +522,41 @@
             {
                 <text>abrirModalCrearUsuario();</text>
             }
-        });
 
-        window.addEventListener("click", function (e) {
-            var modalCrear = document.getElementById("modalCrearUsuario");
-            var modalBaja = document.getElementById("modalBajaUsuario");
+            if (modalCrear) {
+                modalCrear.addEventListener("pointerdown", function (e) {
+                    modalCrear._backdropPointerDown = (e.target === modalCrear);
+                });
 
-            if (e.target === modalCrear) {
-                cerrarModalCrearUsuario();
+                modalCrear.addEventListener("pointerup", function (e) {
+                    if (modalCrear._backdropPointerDown && e.target === modalCrear) {
+                        cerrarModalCrearUsuario();
+                    }
+
+                    modalCrear._backdropPointerDown = false;
+                });
+
+                modalCrear.addEventListener("pointercancel", function () {
+                    modalCrear._backdropPointerDown = false;
+                });
             }
 
-            if (e.target === modalBaja) {
-                cerrarModalBajaUsuario();
+            if (modalBaja) {
+                modalBaja.addEventListener("pointerdown", function (e) {
+                    modalBaja._backdropPointerDown = (e.target === modalBaja);
+                });
+
+                modalBaja.addEventListener("pointerup", function (e) {
+                    if (modalBaja._backdropPointerDown && e.target === modalBaja) {
+                        cerrarModalBajaUsuario();
+                    }
+
+                    modalBaja._backdropPointerDown = false;
+                });
+
+                modalBaja.addEventListener("pointercancel", function () {
+                    modalBaja._backdropPointerDown = false;
+                });
             }
         });
     </script>

@@ -262,6 +262,20 @@ thead{
     font-weight:500;
 }
 
+.btn-login-modal:disabled{
+    opacity:.5;
+    cursor:not-allowed;
+    transform:none;
+}
+
+.field-error-message{
+    margin:-8px 0 12px;
+    color:#fca5a5;
+    font-size:.92rem;
+    font-weight:500;
+    min-height:1.1rem;
+}
+
 /* ===== MODAL LOGIN - ESTILO HOME ===== */
 
 .modal {
@@ -279,11 +293,32 @@ thead{
 .modal-box {
     width: 100%;
     max-width: 520px;
+    position: relative;
     background: linear-gradient(135deg, rgba(18, 18, 18, 0.98), rgba(25, 25, 25, 0.98));
     border: 1px solid #272727;
     border-radius: 28px;
     padding: 34px;
     box-shadow: 0 18px 55px rgba(0, 0, 0, 0.45);
+}
+
+.modal-close-btn {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    border: none;
+    background: transparent;
+    color: #d1d5db;
+    font-size: 36px;
+    line-height: 1;
+    padding: 0;
+    cursor: pointer;
+    z-index: 2;
+    transition: color .2s ease, transform .2s ease;
+}
+
+.modal-close-btn:hover {
+    color: #ffffff;
+    transform: scale(1.08);
 }
 
 .modal-login-box {

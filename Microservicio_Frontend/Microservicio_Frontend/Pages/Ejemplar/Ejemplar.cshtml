@@ -908,15 +908,32 @@ document.addEventListener("DOMContentLoaded", function () {
     })();
 });
 
-window.onclick = function (e) {
-    var modalEliminar = document.getElementById("modalEliminar");
-    var modalEditar = document.getElementById("modalEditar");
-    var modalCrear = document.getElementById("modalCrear");
+const modalBackdropStateEjemplar = {};
 
-    if (e.target === modalEliminar) cerrarModalEliminar();
-    if (e.target === modalEditar) cerrarModalEditar();
-    if (e.target === modalCrear) cerrarModalCrear();
-};
+function bindBackdropCloseEjemplar(modalId, closeFn) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+
+    modal.addEventListener("pointerdown", function (e) {
+        modalBackdropStateEjemplar[modalId] = (e.target === modal);
+    });
+
+    modal.addEventListener("pointerup", function (e) {
+        if (modalBackdropStateEjemplar[modalId] && e.target === modal) {
+            closeFn();
+        }
+
+        modalBackdropStateEjemplar[modalId] = false;
+    });
+
+    modal.addEventListener("pointercancel", function () {
+        modalBackdropStateEjemplar[modalId] = false;
+    });
+}
+
+bindBackdropCloseEjemplar("modalEliminar", cerrarModalEliminar);
+bindBackdropCloseEjemplar("modalEditar", cerrarModalEditar);
+bindBackdropCloseEjemplar("modalCrear", cerrarModalCrear);
 </script>
 
 @if (!ViewData.ModelState.IsValid || !string.IsNullOrWhiteSpace(Model.ErrorMessage))

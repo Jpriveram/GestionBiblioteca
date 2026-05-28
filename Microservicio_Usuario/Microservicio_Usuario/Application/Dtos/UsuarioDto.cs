@@ -22,6 +22,11 @@ public class CambiarPasswordDto
     public string PasswordConfirmacion { get; set; } = string.Empty;
 }
 
+public class VerificarPasswordActualDto
+{
+    public string PasswordActual { get; set; } = string.Empty;
+}
+
 public class CreateUsuarioDto
 {
     public int? UsuarioSesionId { get; set; }

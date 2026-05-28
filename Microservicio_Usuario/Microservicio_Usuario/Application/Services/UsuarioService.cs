@@ -238,6 +238,25 @@ public class UsuarioService : IUsuarioServicio
         return Task.FromResult<(UsuarioDto?, string?)>((usuarioDto, token));
     }
 
+    public Task VerificarPasswordActualAsync(int usuarioId, string passwordActual)
+    {
+        var usuario = _repositorio.GetById(usuarioId);
+
+        if (usuario == null || !usuario.Estado || string.IsNullOrWhiteSpace(usuario.PasswordHash))
+        {
+            throw new InvalidOperationException("Usuario no encontrado o sin credenciales activas.");
+        }
+
+        var actual = passwordActual?.Trim() ?? string.Empty;
+
+        if (!VerifyPassword(actual, usuario.PasswordHash))
+        {
+            throw new InvalidOperationException("La contraseña actual no es correcta.");
+        }
+
+        return Task.CompletedTask;
+    }
+
     public Task CambiarPasswordAsync(int usuarioId, string passwordActual, string passwordNueva, string passwordConfirmacion)
     {
         var usuario = _repositorio.GetById(usuarioId);

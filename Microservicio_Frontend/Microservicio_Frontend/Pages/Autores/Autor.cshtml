@@ -403,11 +403,32 @@
             modalCrear.style.display = "none";
         }
 
-        window.onclick = function (event) {
-            if (event.target === modalEliminar) cerrarModal();
-            if (event.target === modalEditar) cerrarModalEditar();
-            if (event.target === modalCrear) cerrarModalCrear();
+        const modalBackdropStateAutor = {};
+
+        function bindBackdropCloseAutor(modalId, closeFn) {
+            const modal = document.getElementById(modalId);
+            if (!modal) return;
+
+            modal.addEventListener("pointerdown", function (e) {
+                modalBackdropStateAutor[modalId] = (e.target === modal);
+            });
+
+            modal.addEventListener("pointerup", function (e) {
+                if (modalBackdropStateAutor[modalId] && e.target === modal) {
+                    closeFn();
+                }
+
+                modalBackdropStateAutor[modalId] = false;
+            });
+
+            modal.addEventListener("pointercancel", function () {
+                modalBackdropStateAutor[modalId] = false;
+            });
         }
+
+        bindBackdropCloseAutor("modalEliminar", cerrarModal);
+        bindBackdropCloseAutor("modalEditar", cerrarModalEditar);
+        bindBackdropCloseAutor("modalCrear", cerrarModalCrear);
 
         function normalizarTexto(valor) {
             return valor.replace(/\s+/g, " ").trim();

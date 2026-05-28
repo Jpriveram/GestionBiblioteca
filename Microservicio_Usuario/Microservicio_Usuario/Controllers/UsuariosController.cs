@@ -115,6 +115,23 @@ public class UsuariosController : ControllerBase
         });
     }
 
+    [HttpPost("{id}/verificar-password-actual")]
+    public async Task<IActionResult> VerificarPasswordActual(int id, [FromBody] VerificarPasswordActualDto dto)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        try
+        {
+            await _usuarioService.VerificarPasswordActualAsync(id, dto.PasswordActual);
+            return Ok(new { message = "Contraseña actual verificada correctamente." });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     [HttpPost("{id}/cambiar-password")]
     public async Task<IActionResult> CambiarPassword(int id, [FromBody] CambiarPasswordDto dto)
     {

@@ -140,6 +140,34 @@ public class UsuarioAdapter : IUsuarioServicio
         }
     }
 
+    public async Task<Result> VerificarPasswordActualAsync(int usuarioId, string passwordActual, CancellationToken ct = default)
+    {
+        try
+        {
+            EnsureAuthorizationHeader();
+            var payload = new
+            {
+                passwordActual = (passwordActual ?? string.Empty).Trim()
+            };
+
+            var response = await _http.PostAsJsonAsync($"api/usuarios/{usuarioId}/verificar-password-actual", payload, ct);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return Result.Success();
+            }
+
+            var errorBody = await response.Content.ReadAsStringAsync(ct);
+            var fallback = "No se pudo verificar la contraseña actual.";
+            var message = TryExtractApiMessage(errorBody) ?? fallback;
+            return Result.Failure(new Error("VerifyPassword", message));
+        }
+        catch (Exception ex)
+        {
+            return Result.Failure(new Error("VerifyPassword", ex.Message));
+        }
+    }
+
     public async Task<Result> CambiarPasswordAsync(int usuarioId, string passwordActual, string passwordNueva, string passwordConfirmacion, CancellationToken ct = default)
     {
         try

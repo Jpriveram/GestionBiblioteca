@@ -3,7 +3,11 @@ using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using Microservicio_Prestamo.Infrastructure.Configuration;
 using Microservicio_Prestamo.Infrastructure.Creators;
+using Microservicio_Prestamo.Infrastructure.Persistence;
+using Microservicio_Prestamo.Infrastructure.Background;
 using Microservicio_Prestamo.Domain.Ports;
+using Microservicio_Prestamo.Application.Interfaces;
+using Microservicio_Prestamo.Application.Services;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -37,10 +41,13 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddSingleton<PrestamoRepositoryCreator>();
 builder.Services.AddSingleton<IPrestamoRepository>(sp =>
     sp.GetRequiredService<PrestamoRepositoryCreator>().CreateRepository());
+builder.Services.AddSingleton<IOutboxRepository, OutboxRepository>();
 
-// Placeholder — se completa en Phase 2
-builder.Services.AddSingleton<Microservicio_Prestamo.Domain.Ports.IOutboxRepository,
-    Microservicio_Prestamo.Infrastructure.Persistence.OutboxRepository>();
+// Servicio
+builder.Services.AddSingleton<IPrestamoService, PrestamoService>();
+
+// Outbox processor
+builder.Services.AddHostedService<OutboxProcessor>();
 
 var app = builder.Build();
 

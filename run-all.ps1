@@ -53,7 +53,7 @@ Start-Process powershell -ArgumentList '-NoExit','-Command','Write-Host LibroEje
 Start-Process powershell -ArgumentList '-NoExit','-Command','Write-Host Multas:5293 -ForegroundColor Magenta; dotnet run --no-build' -WorkingDirectory "$repoRoot\Microservicio_Multas\Microservicio_Multas"
 Start-Process powershell -ArgumentList '-NoExit','-Command','Write-Host Autor:5045 -ForegroundColor Blue; dotnet run --no-build' -WorkingDirectory "$repoRoot\Microservicio_Autor\Microservicio_Autor"
 Start-Process powershell -ArgumentList '-NoExit','-Command','Write-Host Frontend:5125 -ForegroundColor Cyan; dotnet run --no-build' -WorkingDirectory "$repoRoot\Frontend\Frontend"
-Start-Process powershell -ArgumentList '-NoExit','-Command','Write-Host Prestamo:5081 -ForegroundColor Red; dotnet run --no-build' -WorkingDirectory "$repoRoot\Microservicio_Prestamo\Microservicio_Prestamo"
+Start-Process powershell -ArgumentList '-NoExit','-Command','Write-Host Prestamo:5103 -ForegroundColor Red; dotnet run --no-build' -WorkingDirectory "$repoRoot\Microservicio_Prestamo\Microservicio_Prestamo"
 Start-Process powershell -ArgumentList '-NoExit','-Command','Write-Host Reportes:5126 -ForegroundColor White; dotnet run --no-build' -WorkingDirectory "$repoRoot\Microservicio_Reportes\Microservicio_Reportes"
 
 Write-Host "Done. Close each window to stop." -ForegroundColor Gray

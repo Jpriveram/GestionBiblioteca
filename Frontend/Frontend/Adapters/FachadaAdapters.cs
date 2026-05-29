@@ -185,10 +185,12 @@ public class PrestamoServicioAdapter : IPrestamoServicio
 public class DetalleServicioAdapter : IDetalleServicio
 {
     private readonly HttpClient _http;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public DetalleServicioAdapter(IHttpClientFactory factory)
+    public DetalleServicioAdapter(IHttpClientFactory factory, IHttpContextAccessor httpContextAccessor)
     {
         _http = factory.CreateClient("ServicioPrestamo");
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public IEnumerable<DetalleDto> Select()
@@ -200,6 +202,7 @@ public class DetalleServicioAdapter : IDetalleServicio
     {
         try
         {
+            EnsureAuthorizationHeader();
             var response = _http.GetAsync($"api/detalles/prestamo/{prestamoId}").Result;
             if (!response.IsSuccessStatusCode) return new List<DetalleDto>();
             return response.Content.ReadFromJsonAsync<List<DetalleDto>>().Result ?? new List<DetalleDto>();
@@ -211,6 +214,7 @@ public class DetalleServicioAdapter : IDetalleServicio
     {
         try
         {
+            EnsureAuthorizationHeader();
             var response = _http.GetAsync("api/detalles").Result;
             if (!response.IsSuccessStatusCode) return new List<DetalleDto>();
             return response.Content.ReadFromJsonAsync<List<DetalleDto>>().Result ?? new List<DetalleDto>();
@@ -219,4 +223,22 @@ public class DetalleServicioAdapter : IDetalleServicio
     }
 
     public Result CrearMultiples(IEnumerable<DetalleDto> d) => Result.Success();
+
+    private void EnsureAuthorizationHeader()
+    {
+        try
+        {
+            var token = _httpContextAccessor?.HttpContext?.Session?.GetString(SessionKeys.JwtToken);
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                if (_http.DefaultRequestHeaders.Authorization == null || _http.DefaultRequestHeaders.Authorization.Parameter != token)
+                    _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+            else
+            {
+                _http.DefaultRequestHeaders.Authorization = null;
+            }
+        }
+        catch { }
+    }
 }

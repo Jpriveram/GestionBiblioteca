@@ -277,13 +277,12 @@ else
                 <input type="hidden" id="editAutorId" name="AutorId" />
                 <div class="custom-select" id="custom-select-autor-edit">
                     <div class="select-trigger">
-                        <span id="editAutorText">-- Seleccione un autor --</span>
+                        <input type="text" id="editAutorText" class="select-trigger-input" placeholder="-- Seleccione un autor --" readonly />
                         <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="6 9 12 15 18 9"></polyline>
                         </svg>
                     </div>
                     <div class="select-dropdown">
-                        <input type="text" class="select-search" id="autor-search-edit" placeholder="Buscar autor..." />
                         <div class="select-options">
                             @foreach (var autorRow in Model.Autores)
                             {
@@ -305,13 +304,12 @@ else
                 <input type="hidden" id="editTituloHidden" name="Titulo" />
                 <div class="custom-select custom-select-free" id="custom-select-titulo-edit">
                     <div class="select-trigger">
-                        <span id="editTituloText">Título del libro</span>
+                        <input type="text" id="editTituloText" class="select-trigger-input" placeholder="Título del libro" />
                         <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="6 9 12 15 18 9"></polyline>
                         </svg>
                     </div>
                     <div class="select-dropdown">
-                        <input type="text" class="select-search" id="titulo-search-edit" placeholder="Escribe o busca título..." />
                         <div class="select-options">
                             @foreach (var tituloItem in titulosSugeridos.OrderBy(x => x))
                             {
@@ -337,13 +335,12 @@ else
                 <input type="hidden" id="editGeneroHidden" name="Genero" />
                 <div class="custom-select custom-select-free" id="custom-select-genero-edit">
                     <div class="select-trigger">
-                        <span id="editGeneroText">Género</span>
+                        <input type="text" id="editGeneroText" class="select-trigger-input" placeholder="Género" />
                         <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="6 9 12 15 18 9"></polyline>
                         </svg>
                     </div>
                     <div class="select-dropdown">
-                        <input type="text" class="select-search" id="genero-search-edit" placeholder="Escribe o busca género..." />
                         <div class="select-options">
                             @foreach (var generoItem in generosSugeridos.OrderBy(x => x))
                             {
@@ -359,13 +356,12 @@ else
                 <input type="hidden" id="editEdicion" name="Edicion" />
                 <div class="custom-select" id="custom-select-edicion-edit">
                     <div class="select-trigger">
-                        <span id="editEdicionText">-- Seleccione una edición --</span>
+                        <input type="text" id="editEdicionText" class="select-trigger-input" placeholder="-- Seleccione una edición --" />
                         <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="6 9 12 15 18 9"></polyline>
                         </svg>
                     </div>
                     <div class="select-dropdown">
-                        <input type="text" class="select-search" id="edicion-search-edit" placeholder="Buscar edición..." />
                         <div class="select-options">
                             <div class="option" data-value="1ra Edición">1ra Edición</div>
                             <div class="option" data-value="2da Edición">2da Edición</div>
@@ -389,13 +385,12 @@ else
                 <input type="hidden" id="editIdiomaHidden" name="Idioma" />
                 <div class="custom-select" id="custom-select-idioma-edit">
                     <div class="select-trigger">
-                        <span id="editIdiomaText">Idioma</span>
+                        <input type="text" id="editIdiomaText" class="select-trigger-input" placeholder="Idioma" />
                         <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="6 9 12 15 18 9"></polyline>
                         </svg>
                     </div>
                     <div class="select-dropdown">
-                        <input type="text" class="select-search" id="idioma-search-edit" placeholder="Buscar idioma..." />
                         <div class="select-options">
                             <div class="option" data-value="Español">Español</div>
                             <div class="option" data-value="Inglés">Inglés</div>
@@ -417,13 +412,12 @@ else
                 <input type="hidden" id="editPaisPublicacionHidden" name="PaisPublicacion" />
                 <div class="custom-select" id="custom-select-pais-edit">
                     <div class="select-trigger">
-                        <span id="editPaisPublicacionText">País de publicación</span>
+                        <input type="text" id="editPaisPublicacionText" class="select-trigger-input" placeholder="País de publicación" />
                         <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="6 9 12 15 18 9"></polyline>
                         </svg>
                     </div>
                     <div class="select-dropdown">
-                        <input type="text" class="select-search" id="pais-search-edit" placeholder="Buscar país..." />
                         <div class="select-options">
                             @foreach (var paisItem in paisesSugeridos.OrderBy(x => x))
                             {
@@ -1009,21 +1003,19 @@ function abrirModalEditar(libroToken, autorId, titulo, isbn, editorial, genero, 
 
     document.getElementById("editEstado").value = (String(estado).toLowerCase() === "true") ? "true" : "false";
 
-    document.getElementById("editAutorText").textContent = (autorId && autorId !== "") ? 
+    document.getElementById("editAutorText").value = (autorId && autorId !== "") ? 
         (document.querySelector(`#custom-select-autor-edit .select-options .option[data-value="${autorId}"]`)?.textContent || "-- Seleccione un autor --") : 
         "-- Seleccione un autor --";
-    document.getElementById("editTituloText").textContent = titulo || "Título del libro";
-    document.getElementById("editGeneroText").textContent = genero || "Género";
-    document.getElementById("editIdiomaText").textContent = idioma || "Idioma";
-    document.getElementById("editEdicionText").textContent = edicion || "-- Seleccione una edición --";
-    document.getElementById("editPaisPublicacionText").textContent = paisPublicacion || "País de publicación";
+    document.getElementById("editTituloText").value = titulo || "";
+    document.getElementById("editGeneroText").value = genero || "";
+    document.getElementById("editIdiomaText").value = idioma || "";
+    document.getElementById("editEdicionText").value = edicion || "";
+    document.getElementById("editPaisPublicacionText").value = paisPublicacion || "";
 
-    document.getElementById("autor-search-edit").value = "";
-    document.getElementById("titulo-search-edit").value = "";
-    document.getElementById("genero-search-edit").value = "";
-    document.getElementById("idioma-search-edit").value = "";
-    document.getElementById("edicion-search-edit").value = "";
-    document.getElementById("pais-search-edit").value = "";
+    const autorSearchEdit = document.getElementById("autor-search-edit");
+    if (autorSearchEdit) autorSearchEdit.value = "";
+    const edicionSearchEdit = document.getElementById("edicion-search-edit");
+    if (edicionSearchEdit) edicionSearchEdit.value = "";
 
     limpiarErrores('edit', ['AutorId', 'Titulo', 'ISBN', 'Editorial', 'Genero', 'Edicion', 'AñoPublicacion', 'NumeroPaginas', 'Idioma', 'PaisPublicacion', 'Descripcion']);
 
@@ -1186,8 +1178,8 @@ function validarCamposCrear() {
 
     if (anioPublicacion) {
         const anio = parseInt(anioPublicacion, 10);
-        if (isNaN(anio) || anio < 1000 || anio > 2026) {
-            errores.push({ campo: 'AñoPublicacion', mensaje: 'El año debe estar entre 1000 y 2026' });
+        if (isNaN(anio) || anio < 1000 || anio > new Date().getFullYear()) {
+            errores.push({ campo: 'AñoPublicacion', mensaje: 'El año debe estar entre 1000 y ' + new Date().getFullYear() });
         }
     }
     
@@ -1287,8 +1279,8 @@ function validarCamposEditar() {
 
     if (anioPublicacion) {
         const anio = parseInt(anioPublicacion, 10);
-        if (isNaN(anio) || anio < 1000 || anio > 2026) {
-            errores.push({ campo: 'AñoPublicacion', mensaje: 'El año debe estar entre 1000 y 2026' });
+        if (isNaN(anio) || anio < 1000 || anio > new Date().getFullYear()) {
+            errores.push({ campo: 'AñoPublicacion', mensaje: 'El año debe estar entre 1000 y ' + new Date().getFullYear() });
         }
     }
     
@@ -1460,74 +1452,81 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!customSelect) return;
 
         const trigger = customSelect.querySelector('.select-trigger');
+        const triggerInput = customSelect.querySelector('.select-trigger-input');
         const search = customSelect.querySelector('.select-search');
         const optionsContainer = customSelect.querySelector('.select-options');
         const hiddenInput = document.getElementById(config.hiddenInputId);
         const selectText = document.getElementById(config.textId);
         let isOpen = false;
 
+        // Si es un input editable (nuevo patron), el trigger-input es el campo de busqueda
+        const isEditable = !!triggerInput;
+        const searchField = isEditable ? triggerInput : search;
+
         trigger.addEventListener('click', function (e) {
             e.stopPropagation();
             isOpen = !isOpen;
             customSelect.classList.toggle('active', isOpen);
-
-            if (isOpen && search) {
-                setTimeout(function () { search.focus(); }, 50);
-                if (!customSelect.classList.contains('custom-select-free')) {
-                    search.value = '';
-                    optionsContainer?.querySelectorAll('.option').forEach(function (opt) { opt.classList.remove('hidden'); });
-                }
+            if (isOpen && searchField) {
+                setTimeout(function () { searchField.focus(); }, 50);
             }
         });
+
+        // Click en el input tambien abre/cierra el dropdown
+        if (triggerInput) {
+            triggerInput.addEventListener('click', function (e) {
+                e.stopPropagation();
+                isOpen = !isOpen;
+                customSelect.classList.toggle('active', isOpen);
+                if (isOpen) this.focus();
+            });
+        }
 
         document.addEventListener('click', function closeOnClickOutside(e) {
             if (!customSelect.contains(e.target) && isOpen) {
                 isOpen = false;
                 customSelect.classList.remove('active');
-
-                if (customSelect.classList.contains('custom-select-free') && search) {
-                    const textoLibre = (search.value || '').trim();
-                    if (textoLibre !== '') {
-                        hiddenInput.value = textoLibre;
-                        selectText.textContent = textoLibre;
-                    }
+                if (hiddenInput && searchField) {
+                    const val = searchField.value.trim();
+                    if (val) { hiddenInput.value = val; if (selectText && selectText !== searchField) selectText.value = val; }
                 }
             }
         }, { capture: false });
 
-        if (search && optionsContainer) {
-            search.addEventListener('input', function () {
+        if (searchField && optionsContainer) {
+            searchField.addEventListener('input', function () {
                 const searchTerm = this.value.toLowerCase();
-
-                if (customSelect.classList.contains('custom-select-free')) {
-                    hiddenInput.value = this.value;
-                    selectText.textContent = this.value.trim() || config.defaultText;
+                hiddenInput.value = this.value;
+                // Solo actualiza selectText si es distinto al searchField (evita borrar espacios al escribir)
+                if (selectText && selectText !== searchField) {
+                    selectText.value = this.value.trim() || config.defaultText;
                 }
 
-                optionsContainer.querySelectorAll('.option').forEach(function (option) {
+                const allOptions = optionsContainer.querySelectorAll('.option');
+                let visible = 0;
+                allOptions.forEach(function (option) {
                     const text = option.textContent.toLowerCase();
-                    option.classList.toggle('hidden', !text.includes(searchTerm));
+                    const match = text.includes(searchTerm);
+                    if (match && visible < 5) {
+                        option.classList.remove('hidden');
+                        visible++;
+                    } else {
+                        option.classList.add('hidden');
+                    }
                 });
             });
 
-            search.addEventListener('click', function (e) {
-                e.stopPropagation();
-            });
+            searchField.addEventListener('click', function (e) { e.stopPropagation(); });
 
             optionsContainer.addEventListener('click', function (e) {
                 const option = e.target.closest('.option');
                 if (!option || !optionsContainer.contains(option)) return;
-
                 e.stopPropagation();
-
                 const value = option.dataset.value;
                 const text = option.textContent.trim();
-
                 hiddenInput.value = value;
-                selectText.textContent = text;
-
-                if (search) search.value = text;
-
+                if (selectText && selectText !== searchField) selectText.value = text;
+                if (searchField) searchField.value = text;
                 isOpen = false;
                 customSelect.classList.remove('active');
             });

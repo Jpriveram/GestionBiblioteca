@@ -59,7 +59,7 @@ public class UsuarioRepository : IRepository<Usuario, int>
             {
                 connection.Open();
                 // Only return active users (Estado = 1) and order by PrimerApellido (then Nombres)
-                string query = "SELECT * FROM usuario WHERE Estado = 1 ORDER BY PrimerApellido ASC, Nombres ASC;";
+                string query = "SELECT * FROM usuario WHERE Estado = 1 ORDER BY PrimerApellido ASC;";
                 using (MySqlCommand command = new MySqlCommand(query, connection))
                 {
                     using (MySqlDataReader reader = command.ExecuteReader())

@@ -495,3 +495,9 @@
         gap:0;
     }
 }
+
+/* Calendar picker — verde como los botones */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(48%) sepia(79%) saturate(460%) hue-rotate(118deg) brightness(92%) contrast(90%);
+    cursor: pointer;
+}

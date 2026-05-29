@@ -167,14 +167,10 @@ public class AutorModel : PageModel
         ValidarCampoObligatorio("AutorDto.Nombres", AutorDto.Nombres, "Ingrese el nombre del autor.");
         ValidarCampoObligatorio("AutorDto.Apellidos", AutorDto.Apellidos, "Ingrese los apellidos del autor.");
         ValidarCampoObligatorio("AutorDto.Nacionalidad", AutorDto.Nacionalidad, "Seleccione una nacionalidad.");
-        ValidarFechaObligatoria("AutorDto.FechaNacimiento", AutorDto.FechaNacimiento);
 
         ValidarSoloLetras("AutorDto.Nombres", AutorDto.Nombres, "El nombre solo debe contener letras y espacios.");
         ValidarSoloLetras("AutorDto.Apellidos", AutorDto.Apellidos, "Los apellidos solo deben contener letras y espacios.");
         ValidarSoloLetras("AutorDto.Nacionalidad", AutorDto.Nacionalidad, "La nacionalidad solo debe contener letras y espacios.");
-
-        ValidarEspaciosInternosIncorrectos("AutorDto.Nombres", AutorDto.Nombres, "El nombre no debe contener espacios innecesarios entre letras.");
-        ValidarEspaciosInternosIncorrectos("AutorDto.Apellidos", AutorDto.Apellidos, "Los apellidos no deben contener espacios innecesarios entre letras.");
 
         ValidarFecha("AutorDto.FechaNacimiento", AutorDto.FechaNacimiento);
     }
@@ -184,14 +180,10 @@ public class AutorModel : PageModel
         ValidarCampoObligatorio("Nombres", nombres, "Ingrese el nombre del autor.");
         ValidarCampoObligatorio("Apellidos", apellidos, "Ingrese los apellidos del autor.");
         ValidarCampoObligatorio("Nacionalidad", nacionalidad, "Seleccione una nacionalidad.");
-        ValidarFechaObligatoria("FechaNacimiento", fechaNacimiento);
 
         ValidarSoloLetras("Nombres", nombres, "El nombre solo debe contener letras y espacios.");
         ValidarSoloLetras("Apellidos", apellidos, "Los apellidos solo deben contener letras y espacios.");
         ValidarSoloLetras("Nacionalidad", nacionalidad, "La nacionalidad solo debe contener letras y espacios.");
-
-        ValidarEspaciosInternosIncorrectos("Nombres", nombres, "El nombre no debe contener espacios innecesarios entre letras.");
-        ValidarEspaciosInternosIncorrectos("Apellidos", apellidos, "Los apellidos no deben contener espacios innecesarios entre letras.");
 
         ValidarFecha("FechaNacimiento", fechaNacimiento);
     }

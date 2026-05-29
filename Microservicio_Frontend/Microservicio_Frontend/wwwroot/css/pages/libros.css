@@ -870,3 +870,18 @@
         display:block;
     }
 }
+
+/* Trigger inputs — sin borde, heredan estilo del contenedor */
+.select-trigger-input {
+    border: none !important;
+    background: transparent !important;
+    outline: none !important;
+    box-shadow: none !important;
+    color: inherit !important;
+    font-size: inherit !important;
+    font-family: inherit !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100%;
+    flex: 1;
+}

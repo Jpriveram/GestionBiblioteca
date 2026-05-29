@@ -499,9 +499,6 @@
             } else if (!soloLetras.test(nombres.value)) {
                 mostrarError(nombres, "El nombre solo debe contener letras y espacios.");
                 esValido = false;
-            } else if (tieneEspaciosInternosInvalidos(nombres.value, 2)) {
-                mostrarError(nombres, "El nombre no debe contener espacios innecesarios entre letras.");
-                esValido = false;
             }
 
             if (!apellidos.value) {
@@ -509,9 +506,6 @@
                 esValido = false;
             } else if (!soloLetras.test(apellidos.value)) {
                 mostrarError(apellidos, "Los apellidos solo deben contener letras y espacios.");
-                esValido = false;
-            } else if (tieneEspaciosInternosInvalidos(apellidos.value, 3)) {
-                mostrarError(apellidos, "Los apellidos no deben contener espacios innecesarios entre letras.");
                 esValido = false;
             }
 

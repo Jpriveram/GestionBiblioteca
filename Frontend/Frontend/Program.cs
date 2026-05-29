@@ -3,13 +3,11 @@ using Frontend.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// HttpClient para microservicios (acepta certificados de desarrollo)
-// builder.Services.AddHttpClient("ServicioPrestamo", c =>
-//     c.BaseAddress = new Uri(builder.Configuration["ApiUrls:ServicioPrestamo"] ?? "http://localhost:5103/"))
-//     .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
-//     {
-//         ServerCertificateCustomValidationCallback = (_, _, _, _) => true
-//     });
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddHttpClient("ServicioPrestamo", c =>
+    c.BaseAddress = new Uri(builder.Configuration["ApiUrls:ServicioPrestamo"] ?? "http://localhost:5103/"));
+
 builder.Services.AddHttpClient("ServicioUsuario", c =>
     c.BaseAddress = new Uri(builder.Configuration["ApiUrls:ServicioUsuario"] ?? "http://localhost:5292/"));
 
@@ -27,15 +25,14 @@ builder.Services.AddHttpClient("ServicioLibroEjemplar", c =>
 builder.Services.AddScoped<IAutorServicio, AutorAdapter>();
 builder.Services.AddScoped<ILibroServicio, LibroAdapter>();
 builder.Services.AddScoped<IEjemplarServicio, EjemplarAdapter>();
-// builder.Services.AddScoped<IPrestamoServicio, PrestamoServicioAdapter>();
-// builder.Services.AddScoped<IDetalleServicio, DetalleServicioAdapter>();
+builder.Services.AddScoped<IPrestamoServicio, PrestamoServicioAdapter>();
+builder.Services.AddScoped<IDetalleServicio, DetalleServicioAdapter>();
 builder.Services.AddScoped<IUsuarioServicio, UsuarioAdapter>();
 builder.Services.AddScoped<IMultaServicio, MultaAdapter>();
-// builder.Services.AddScoped<IPrestamoFachada, PrestamoFachadaHttpAdapter>();
-// builder.Services.AddScoped<IAnulacionFachada, AnulacionFachadaAdapter>();
-// builder.Services.AddScoped<IEjemplarDisponibilidadFachada, EjemplarDisponibilidadFachadaAdapter>();
+builder.Services.AddScoped<IPrestamoFachada, PrestamoFachadaHttpAdapter>();
+builder.Services.AddScoped<IAnulacionFachada, AnulacionFachadaAdapter>();
+builder.Services.AddScoped<IEjemplarDisponibilidadFachada, EjemplarDisponibilidadFachadaAdapter>();
 builder.Services.AddScoped<RouteTokenService>();
-builder.Services.AddHttpContextAccessor();
 
 // Sesión
 builder.Services.AddDistributedMemoryCache();

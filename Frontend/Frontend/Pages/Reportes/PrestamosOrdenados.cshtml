@@ -1,0 +1,192 @@
+@page "/Reportes/PrestamosOrdenados"
+@model Frontend.Pages.Reportes.PrestamosOrdenadosModel
+
+@{
+    ViewData["Title"] = "Préstamos ordenados";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/prestamo.css" />
+}
+
+<div class="prestamo-page">
+    <div class="prestamo-shell">
+
+        <div class="page-header">
+            <div class="titulo-logo">
+                <div class="page-icon-shell">
+                    <img src="~/assets/icons/library_books_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                         class="icono-header"
+                         alt="Préstamos ordenados" />
+                </div>
+                <div>
+                    <h1>Reporte - Préstamos ordenados</h1>
+                    <p class="page-subtitle">
+                        Filtra, revisa y exporta el historial de préstamos según fechas y estado.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="prestamo-panel prestamo-panel-compact">
+            <form method="get" class="mb-4 d-flex gap-2 align-items-center flex-wrap">
+                <label class="field-label">Fecha inicio</label>
+                <input type="date" asp-for="FechaInicio" class="input-form" style="width:auto;" />
+
+                <label class="field-label">Fecha fin</label>
+                <input type="date" asp-for="FechaFin" class="input-form" style="width:auto;" />
+
+                <label class="field-label">Estado</label>
+                <select asp-for="EstadoFiltro" class="input-form" style="width:auto;">
+                    <option value="">Todos</option>
+                    <option value="Activo">Activo</option>
+                    <option value="Devuelto">Devuelto</option>
+                    <option value="Anulado">Anulado</option>
+                </select>
+
+                <button type="submit" class="btn btn-primary" style="font-weight:600; font-size:15px;">
+                    Generar reporte
+                </button>
+
+                <button type="button" class="btn btn-danger" style="font-weight:600; font-size:15px;" onclick="descargarPDF()">
+                    Descargar PDF
+                </button>
+
+                <button type="button" class="btn btn-success" style="font-weight:600; font-size:15px;" onclick="descargarExcel()">
+                    Descargar Excel
+                </button>
+            </form>
+        </div>
+
+        <div id="reporte-container" style="background:#ffffff; color:#000000; padding:24px; border-radius:14px; box-shadow:0 18px 45px rgba(0,0,0,.35); overflow:hidden;">
+            <header style="display:flex; align-items:center; justify-content:space-between; border-bottom:2px solid #222; padding-bottom:14px; margin-bottom:18px;">
+                <div>
+                    <h2 style="margin:0; font-weight:800;">Reporte de préstamos ordenados</h2>
+                    <p style="margin:4px 0 0;">Gestión bibliotecaria</p>
+                </div>
+
+                <img src="~/assets/images/blackLogoR.png" alt="Logo" style="height:90px;" />
+            </header>
+
+            <section style="margin-bottom:18px; background:#f8fafc; padding:12px 14px; border-radius:8px; border:1px solid #e5e7eb;">
+                <strong>Filtros aplicados:</strong>
+                <span>
+                    Fecha inicio: @(Model.FechaInicio?.ToString("dd/MM/yyyy") ?? "Todos") |
+                    Fecha fin: @(Model.FechaFin?.ToString("dd/MM/yyyy") ?? "Todos") |
+                    Estado: @(string.IsNullOrWhiteSpace(Model.EstadoFiltro) ? "Todos" : Model.EstadoFiltro)
+                </span>
+            </section>
+
+            <div style="overflow-x:auto;">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Fecha préstamo</th>
+                            <th>Lector</th>
+                            <th>Libro</th>
+                            <th>Código ejemplar</th>
+                            <th>Fecha esperada</th>
+                            <th>Fecha devolución real</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Reporte)
+                        {
+                            <tr>
+                                <td>@item.FechaPrestamo.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@item.NombreLector</td>
+                                <td>@item.TituloLibro</td>
+                                <td>@item.CodigoInventario</td>
+                                <td>@item.FechaDevolucionEsperada.ToString("dd/MM/yyyy")</td>
+                                <td>@(item.FechaDevolucionReal.HasValue ? item.FechaDevolucionReal.Value.ToString("dd/MM/yyyy HH:mm") : "Pendiente")</td>
+                                <td>@item.EstadoTexto</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <footer style="border-top:2px solid #222; margin-top:18px; padding-top:12px; display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+                <span>Total de registros: @Model.Reporte.Count</span>
+                <span>Total activos: @Model.Reporte.Count(x => x.EstadoTexto == "Activo")</span>
+                <span>Total devueltos: @Model.Reporte.Count(x => x.EstadoTexto == "Devuelto")</span>
+                <span>Total anulados: @Model.Reporte.Count(x => x.EstadoTexto == "Anulado")</span>
+            </footer>
+
+            <section style="border-top:1px solid #444; margin-top:18px; padding-top:14px; display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; font-size:14px;">
+                <span><strong>Fecha:</strong> @DateTime.Now.ToString("dd/MM/yyyy")</span>
+                <span><strong>Hora:</strong> @DateTime.Now.ToString("HH:mm")</span>
+            </section>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <script>
+        async function descargarPDF() {
+            const { jsPDF } = window.jspdf;
+            const elemento = document.getElementById('reporte-container');
+
+            const canvas = await html2canvas(elemento, {
+                scale: 2,
+                backgroundColor: '#ffffff',
+                useCORS: true
+            });
+
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('l', 'mm', 'a4');
+
+            const margen = 10;
+            const anchoPdf = 297 - (margen * 2);
+            const altoPdf = (canvas.height * anchoPdf) / canvas.width;
+
+            pdf.addImage(imgData, 'PNG', margen, margen, anchoPdf, altoPdf);
+            pdf.save('PrestamosOrdenados.pdf');
+        }
+
+        function descargarExcel() {
+            const datos = [
+                ['Fecha préstamo', 'Lector', 'Libro', 'Código ejemplar', 'Fecha esperada', 'Fecha devolución real', 'Estado']
+            ];
+
+            @foreach (var item in Model.Reporte)
+            {
+                var fechaReal = item.FechaDevolucionReal.HasValue
+                    ? item.FechaDevolucionReal.Value.ToString("dd/MM/yyyy HH:mm")
+                    : "Pendiente";
+
+                @:datos.push([
+                @:'@item.FechaPrestamo.ToString("dd/MM/yyyy HH:mm")',
+                @:'@item.NombreLector.Replace("'", "\\'")',
+                @:'@item.TituloLibro.Replace("'", "\\'")',
+                @:'@item.CodigoInventario.Replace("'", "\\'")',
+                @:'@item.FechaDevolucionEsperada.ToString("dd/MM/yyyy")',
+                @:'@fechaReal',
+                @:'@item.EstadoTexto'
+                @:]);
+            }
+
+            const hoja = XLSX.utils.aoa_to_sheet(datos);
+            hoja['!cols'] = [
+                { wch: 22 },
+                { wch: 35 },
+                { wch: 40 },
+                { wch: 20 },
+                { wch: 18 },
+                { wch: 24 },
+                { wch: 15 }
+            ];
+
+            const libro = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(libro, hoja, "Préstamos ordenados");
+
+            XLSX.writeFile(libro, "PrestamosOrdenados.xlsx");
+        }
+    </script>
+}

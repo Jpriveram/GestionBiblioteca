@@ -16,6 +16,7 @@ public interface IPrestamoRepository : IRepository<Prestamo, int>
     int CrearPrestamoTransaccional(Prestamo prestamo, IEnumerable<Detalle> detalles, int? usuarioSesionId);
     IEnumerable<Prestamo> GetAll(bool activos);
     int CountActivosByLector(int lectorId);
+    IEnumerable<Detalle> GetDetallesByPrestamoId(int prestamoId);
 }
 
 public interface IOutboxRepository

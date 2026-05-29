@@ -44,6 +44,28 @@ public class PrestamoRepository : IPrestamoRepository
         return Convert.ToInt32(cmd.ExecuteScalar());
     }
 
+    public IEnumerable<Detalle> GetDetallesByPrestamoId(int prestamoId)
+    {
+        var detalles = new List<Detalle>();
+        using var connection = ConfigurationSingleton.Instancia.GetConnection();
+        connection.Open();
+        using var cmd = new MySqlCommand("SELECT * FROM detalle WHERE PrestamoId = @Id;", connection);
+        cmd.Parameters.AddWithValue("@Id", prestamoId);
+        using var reader = cmd.ExecuteReader();
+        while (reader.Read()) detalles.Add(new Detalle
+        {
+            DetalleId = reader.GetInt32("DetalleId"),
+            PrestamoId = reader.GetInt32("PrestamoId"),
+            EjemplarId = reader.GetInt32("EjemplarId"),
+            EstadoDetalle = reader.GetByte("EstadoDetalle"),
+            ObservacionesSalida = reader.IsDBNull("ObservacionesSalida") ? null : reader.GetString("ObservacionesSalida"),
+            ObservacionesEntrada = reader.IsDBNull("ObservacionesEntrada") ? null : reader.GetString("ObservacionesEntrada"),
+            UsuarioSesionId = reader.IsDBNull("UsuarioSesionId") ? null : reader.GetInt32("UsuarioSesionId"),
+            FechaRegistro = reader.GetDateTime("FechaRegistro")
+        });
+        return detalles;
+    }
+
     public void Insert(Prestamo entity) => InsertPrestamo(entity);
 
     void IRepository<Prestamo, int>.Insert(Prestamo entity) => InsertPrestamo(entity);

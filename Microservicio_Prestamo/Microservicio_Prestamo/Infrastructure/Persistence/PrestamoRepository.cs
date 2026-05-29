@@ -106,7 +106,7 @@ public class PrestamoRepository : IPrestamoRepository
             cmdP.Parameters.AddWithValue("@Usr", usuarioSesionId ?? (object)DBNull.Value);
             int prestamoId = Convert.ToInt32(cmdP.ExecuteScalar());
 
-            // 2. Insertar detalles + actualizar ejemplares
+            // 2. Insertar detalles
             foreach (var d in detalles)
             {
                 string qD = @"INSERT INTO detalle (PrestamoId, EjemplarId, EstadoDetalle, ObservacionesSalida, UsuarioSesionId, FechaRegistro)
@@ -117,12 +117,6 @@ public class PrestamoRepository : IPrestamoRepository
                 cmdD.Parameters.AddWithValue("@Obs", d.ObservacionesSalida ?? (object)DBNull.Value);
                 cmdD.Parameters.AddWithValue("@Usr", usuarioSesionId ?? (object)DBNull.Value);
                 cmdD.ExecuteNonQuery();
-
-                string qE = "UPDATE ejemplar SET Disponible = 0, UsuarioSesionId = @Usr WHERE EjemplarId = @Eid;";
-                using var cmdE = new MySqlCommand(qE, connection, transaction);
-                cmdE.Parameters.AddWithValue("@Eid", d.EjemplarId);
-                cmdE.Parameters.AddWithValue("@Usr", usuarioSesionId ?? (object)DBNull.Value);
-                cmdE.ExecuteNonQuery();
             }
 
             // 3. Insertar outbox
@@ -130,7 +124,11 @@ public class PrestamoRepository : IPrestamoRepository
             {
                 MessageId = Guid.NewGuid().ToString(),
                 EventType = "PrestamoCreado",
-                Payload = JsonSerializer.Serialize(new { PrestamoId = prestamoId }),
+                Payload = JsonSerializer.Serialize(new { 
+                    PrestamoId = prestamoId, 
+                    LectorId = prestamo.LectorId,
+                    EjemplarIds = detalles.Select(d => d.EjemplarId).ToList()
+                }),
                 CreatedAt = DateTime.UtcNow
             };
             string qO = @"INSERT INTO outbox_messages (MessageId, EventType, Payload, CreatedAt, Processed)

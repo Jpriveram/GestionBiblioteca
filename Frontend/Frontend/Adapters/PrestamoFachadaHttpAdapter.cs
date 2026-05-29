@@ -70,10 +70,21 @@ public class PrestamoFachadaHttpAdapter : IPrestamoFachada
             }).Result;
 
             if (!response.IsSuccessStatusCode)
-                return Result<int>.Failure(new Error("Prestamo", "Error al crear préstamo"));
+            {
+                var errorBody = response.Content.ReadAsStringAsync().Result;
+                var message = "Error al crear préstamo";
+                try
+                {
+                    using var doc = System.Text.Json.JsonDocument.Parse(errorBody);
+                    if (doc.RootElement.TryGetProperty("message", out var msg))
+                        message = msg.GetString() ?? message;
+                }
+                catch { message = string.IsNullOrWhiteSpace(errorBody) ? message : errorBody; }
+                return Result<int>.Failure(new Error("Prestamo", message));
+            }
 
-            var result = response.Content.ReadFromJsonAsync<int>().Result;
-            return Result<int>.Success(result);
+            var result = response.Content.ReadFromJsonAsync<PrestamoDto>().Result;
+            return Result<int>.Success(result?.PrestamoId ?? 0);
         }
         catch (Exception ex)
         {
@@ -97,10 +108,21 @@ public class PrestamoFachadaHttpAdapter : IPrestamoFachada
             }).Result;
 
             if (!response.IsSuccessStatusCode)
-                return Result<int>.Failure(new Error("Prestamo", "Error al crear préstamo"));
+            {
+                var errorBody = response.Content.ReadAsStringAsync().Result;
+                var message = $"Error HTTP {response.StatusCode}";
+                try
+                {
+                    using var doc = System.Text.Json.JsonDocument.Parse(errorBody);
+                    if (doc.RootElement.TryGetProperty("message", out var msg))
+                        message = msg.GetString() ?? message;
+                }
+                catch { if (!string.IsNullOrWhiteSpace(errorBody)) message += " - " + errorBody; }
+                return Result<int>.Failure(new Error("Prestamo", message));
+            }
 
-            var result = response.Content.ReadFromJsonAsync<int>().Result;
-            return Result<int>.Success(result);
+            var result = response.Content.ReadFromJsonAsync<PrestamoDto>().Result;
+            return Result<int>.Success(result?.PrestamoId ?? 0);
         }
         catch (Exception ex)
         {
@@ -234,12 +256,13 @@ public class PrestamoFachadaHttpAdapter : IPrestamoFachada
             }
             else
             {
+                System.Diagnostics.Debug.WriteLine("[PrestamoAdapter] JWT token not found in session");
                 _http.DefaultRequestHeaders.Authorization = null;
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // ignore
+            System.Diagnostics.Debug.WriteLine($"[PrestamoAdapter] Error setting auth header: {ex.Message}");
         }
     }
 }

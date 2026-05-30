@@ -76,7 +76,18 @@ public class PrestamoModel : PageModel
         if (!EsAdminOBibliotecario())
             return JsonAccesoDenegado();
 
+        // Obtener IDs de ejemplares ya en préstamos activos
+        var ejemplaresEnUso = new HashSet<int>();
+        var prestamosActivos = _prestamoServicio.Select();
+        foreach (var p in prestamosActivos)
+        {
+            var detalles = _detalleServicio.ObtenerPorPrestamo(p.PrestamoId);
+            foreach (var d in detalles)
+                ejemplaresEnUso.Add(d.EjemplarId);
+        }
+
         var items = _prestamoFachada.BuscarEjemplaresActivos(q ?? string.Empty)
+            .Where(kv => !ejemplaresEnUso.Contains(kv.Key))
             .Select(kv => new { id = kv.Key, label = kv.Value });
 
         return new JsonResult(items);

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ServicioLibroEjemplar.Application.Dtos;
 using ServicioLibroEjemplar.Application.Interfaces;
+using ServicioLibroEjemplar.Infrastructure.Persistence;
 
 namespace ServicioLibroEjemplar.Controllers;
 
@@ -11,10 +12,12 @@ namespace ServicioLibroEjemplar.Controllers;
 public class EjemplaresController : ControllerBase
 {
     private readonly IEjemplarService _ejemplarService;
+    private readonly EjemplarRepository _ejemplarRepo;
 
-    public EjemplaresController(IEjemplarService ejemplarService)
+    public EjemplaresController(IEjemplarService ejemplarService, EjemplarRepository ejemplarRepo)
     {
         _ejemplarService = ejemplarService;
+        _ejemplarRepo = ejemplarRepo;
     }
 
     [HttpGet]
@@ -56,6 +59,28 @@ public class EjemplaresController : ControllerBase
     {
         var ejemplares = await _ejemplarService.GetDisponiblesAsync();
         return Ok(ejemplares);
+    }
+
+    [HttpPost("reservar-lote")]
+    public IActionResult ReservarLote([FromBody] ReservarLoteRequest request)
+    {
+        try
+        {
+            foreach (var id in request.EjemplarIds)
+            {
+                var ejemplar = _ejemplarRepo.GetById(id);
+                if (ejemplar is null || !ejemplar.Disponible)
+                    return BadRequest(new { message = $"Ejemplar {id} no disponible" });
+
+                ejemplar.Disponible = false;
+                _ejemplarRepo.Update(ejemplar);
+            }
+            return Ok(new { message = "Ejemplares reservados" });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = ex.Message });
+        }
     }
 
     [HttpPost]
@@ -104,4 +129,10 @@ public class EjemplaresController : ControllerBase
 
         return NoContent();
     }
+}
+
+public class ReservarLoteRequest
+{
+    public List<int> EjemplarIds { get; set; } = new();
+    public int? UsuarioSesionId { get; set; }
 }

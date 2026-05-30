@@ -62,6 +62,7 @@ public class EjemplaresController : ControllerBase
     }
 
     [HttpPost("reservar-lote")]
+    [AllowAnonymous]
     public IActionResult ReservarLote([FromBody] ReservarLoteRequest request)
     {
         try

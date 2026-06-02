@@ -48,12 +48,23 @@ Write-Host ""
 Write-Host "Build OK. Starting services..." -ForegroundColor Green
 Write-Host ""
 
+# RabbitMQ
+$rabbitPath = Get-ChildItem "C:\Program Files\RabbitMQ Server\rabbitmq_server-*\sbin\rabbitmq-server.bat" -ErrorAction SilentlyContinue | Select-Object -First 1
+if ($rabbitPath) {
+    $rabbitDir = Split-Path $rabbitPath.FullName
+    Write-Host "  [MQ] RabbitMQ" -ForegroundColor DarkYellow
+    Start-Process powershell -ArgumentList '-NoExit','-Command',"Write-Host RabbitMQ -ForegroundColor DarkYellow; & '$($rabbitPath.FullName)'" -WorkingDirectory $rabbitDir
+} else {
+    Write-Host "  [MQ] RabbitMQ no encontrado" -ForegroundColor Red
+}
+
 Start-Process powershell -ArgumentList '-NoExit','-Command','Write-Host Usuario:5292 -ForegroundColor Green; dotnet run --no-build' -WorkingDirectory "$repoRoot\Microservicio_Usuario\Microservicio_Usuario"
 Start-Process powershell -ArgumentList '-NoExit','-Command','Write-Host LibroEjemplar:5101 -ForegroundColor Yellow; dotnet run --no-build' -WorkingDirectory "$repoRoot\Microservicio_LibroEjemplar\Microservicio_LibroEjemplar"
 Start-Process powershell -ArgumentList '-NoExit','-Command','Write-Host Multas:5293 -ForegroundColor Magenta; dotnet run --no-build' -WorkingDirectory "$repoRoot\Microservicio_Multas\Microservicio_Multas"
 Start-Process powershell -ArgumentList '-NoExit','-Command','Write-Host Autor:5045 -ForegroundColor Blue; dotnet run --no-build' -WorkingDirectory "$repoRoot\Microservicio_Autor\Microservicio_Autor"
 Start-Process powershell -ArgumentList '-NoExit','-Command','Write-Host Frontend:5125 -ForegroundColor Cyan; dotnet run --no-build' -WorkingDirectory "$repoRoot\Frontend\Frontend"
-Start-Process powershell -ArgumentList '-NoExit','-Command','Write-Host Prestamo:5081 -ForegroundColor Red; dotnet run --no-build' -WorkingDirectory "$repoRoot\Microservicio_Prestamo\Microservicio_Prestamo"
+Start-Process powershell -ArgumentList '-NoExit','-Command','Write-Host Prestamo:5103 -ForegroundColor Red; dotnet run --no-build' -WorkingDirectory "$repoRoot\Microservicio_Prestamo\Microservicio_Prestamo"
+Start-Process powershell -ArgumentList '-NoExit','-Command','Write-Host SagaOrquestador -ForegroundColor DarkYellow; dotnet run --no-build' -WorkingDirectory "$repoRoot\Microservicio_SagaOrquestador\Microservicio_SagaOrquestador"
 Start-Process powershell -ArgumentList '-NoExit','-Command','Write-Host Reportes:5126 -ForegroundColor White; dotnet run --no-build' -WorkingDirectory "$repoRoot\Microservicio_Reportes\Microservicio_Reportes"
 
 Write-Host "Done. Close each window to stop." -ForegroundColor Gray

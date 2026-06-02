@@ -1,47 +1,69 @@
-using Microservicio_Prestamo.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microservicio_Prestamo.Application.Dtos;
+using Microservicio_Prestamo.Application.Interfaces;
 
 namespace Microservicio_Prestamo.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class PrestamosController : ControllerBase
 {
+    private readonly IPrestamoService _service;
+
+    public PrestamosController(IPrestamoService service) => _service = service;
+
     [HttpGet]
-    public ActionResult<IEnumerable<PrestamoRecord>> GetAll([FromQuery] bool todos = false)
+    public ActionResult<IEnumerable<PrestamoDto>> GetAll([FromQuery] int? lectorId, [FromQuery] bool incluirAnulados = false)
     {
-        return Ok(PrestamoDataStore.ObtenerPrestamos(todos));
+        return Ok(_service.GetAll(lectorId, incluirAnulados));
     }
 
     [HttpGet("{id}")]
-    public ActionResult<PrestamoRecord> GetById(int id)
+    public ActionResult<PrestamoDto> GetById(int id)
     {
-        var prestamo = PrestamoDataStore.ObtenerPrestamo(id);
-        return prestamo is null ? NotFound() : Ok(prestamo);
+        var p = _service.GetById(id);
+        return p is not null ? Ok(p) : NotFound(new { message = "Préstamo no encontrado" });
     }
 
     [HttpGet("activos/count/{lectorId}")]
     public ActionResult<int> CountActivos(int lectorId)
     {
-        return Ok(PrestamoDataStore.ContarPrestamosActivos(lectorId));
+        return Ok(_service.CountActivosByLector(lectorId));
     }
 
     [HttpPost]
-    public ActionResult<int> Create([FromBody] CrearPrestamoRequest request)
+    public ActionResult<PrestamoDto> Create([FromBody] CreatePrestamoDto dto)
     {
-        if (request.Ejemplares.Count == 0)
+        try
         {
-            return BadRequest(new { error = "Debe seleccionar al menos un ejemplar." });
+            var result = _service.Create(dto);
+            return Ok(result);
         }
-
-        var prestamoId = PrestamoDataStore.CrearPrestamo(request);
-        return CreatedAtAction(nameof(GetById), new { id = prestamoId }, prestamoId);
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     [HttpPost("{id}/anular")]
-    public ActionResult Anular(int id, [FromBody] AnularPrestamoRequest request)
+    public IActionResult Anular(int id, [FromBody] AnularRequest? request)
     {
-        var ok = PrestamoDataStore.AnularPrestamo(id, request.UsuarioSesionId, request.Motivo);
-        return ok ? Ok(new { message = "Préstamo anulado correctamente." }) : NotFound();
+        try
+        {
+            _service.Anular(id, request?.UsuarioSesionId, request?.Motivo);
+            return Ok(new { message = "Préstamo anulado correctamente" });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
+}
+
+public class AnularRequest
+{
+    public int? UsuarioSesionId { get; set; }
+    public string? Motivo { get; set; }
 }

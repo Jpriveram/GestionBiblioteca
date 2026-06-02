@@ -106,17 +106,20 @@ public class EjemplarDisponibilidadFachadaAdapter : IEjemplarDisponibilidadFacha
 public class PrestamoServicioAdapter : IPrestamoServicio
 {
     private readonly HttpClient _http;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public PrestamoServicioAdapter(IHttpClientFactory factory)
+    public PrestamoServicioAdapter(IHttpClientFactory factory, IHttpContextAccessor httpContextAccessor)
     {
         _http = factory.CreateClient("ServicioPrestamo");
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public IEnumerable<PrestamoDto> Select(bool todos = false)
     {
         try
         {
-            var url = todos ? "api/prestamos?todos=true" : "api/prestamos";
+            EnsureAuthorizationHeader();
+            var url = todos ? "api/prestamos?incluirAnulados=true" : "api/prestamos";
             var response = _http.GetAsync(url).Result;
             if (!response.IsSuccessStatusCode) return new List<PrestamoDto>();
             return response.Content.ReadFromJsonAsync<List<PrestamoDto>>().Result ?? new List<PrestamoDto>();
@@ -131,6 +134,7 @@ public class PrestamoServicioAdapter : IPrestamoServicio
     {
         try
         {
+            EnsureAuthorizationHeader();
             var response = _http.DeleteAsync($"api/prestamos/{d.PrestamoId}").Result;
             return response.IsSuccessStatusCode
                 ? Result.Success()
@@ -146,6 +150,7 @@ public class PrestamoServicioAdapter : IPrestamoServicio
     {
         try
         {
+            EnsureAuthorizationHeader();
             var response = _http.GetAsync($"api/prestamos/{id}").Result;
             if (!response.IsSuccessStatusCode) return null;
             return response.Content.ReadFromJsonAsync<PrestamoDto>().Result;
@@ -154,6 +159,25 @@ public class PrestamoServicioAdapter : IPrestamoServicio
     }
 
     public Result ValidarPrestamo(PrestamoDto p) => Result.Success();
+
+    private void EnsureAuthorizationHeader()
+    {
+        try
+        {
+            var token = _httpContextAccessor?.HttpContext?.Session?.GetString(SessionKeys.JwtToken);
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                if (_http.DefaultRequestHeaders.Authorization == null || _http.DefaultRequestHeaders.Authorization.Parameter != token)
+                    _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+            else
+            {
+                _http.DefaultRequestHeaders.Authorization = null;
+            }
+        }
+        catch { }
+    }
+
     public int CountPrestamosActivos(int id) => 0;
     public int InsertAndReturnId(PrestamoDto p) => 0;
 }
@@ -161,10 +185,12 @@ public class PrestamoServicioAdapter : IPrestamoServicio
 public class DetalleServicioAdapter : IDetalleServicio
 {
     private readonly HttpClient _http;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public DetalleServicioAdapter(IHttpClientFactory factory)
+    public DetalleServicioAdapter(IHttpClientFactory factory, IHttpContextAccessor httpContextAccessor)
     {
         _http = factory.CreateClient("ServicioPrestamo");
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public IEnumerable<DetalleDto> Select()
@@ -176,6 +202,7 @@ public class DetalleServicioAdapter : IDetalleServicio
     {
         try
         {
+            EnsureAuthorizationHeader();
             var response = _http.GetAsync($"api/detalles/prestamo/{prestamoId}").Result;
             if (!response.IsSuccessStatusCode) return new List<DetalleDto>();
             return response.Content.ReadFromJsonAsync<List<DetalleDto>>().Result ?? new List<DetalleDto>();
@@ -187,6 +214,7 @@ public class DetalleServicioAdapter : IDetalleServicio
     {
         try
         {
+            EnsureAuthorizationHeader();
             var response = _http.GetAsync("api/detalles").Result;
             if (!response.IsSuccessStatusCode) return new List<DetalleDto>();
             return response.Content.ReadFromJsonAsync<List<DetalleDto>>().Result ?? new List<DetalleDto>();
@@ -195,4 +223,22 @@ public class DetalleServicioAdapter : IDetalleServicio
     }
 
     public Result CrearMultiples(IEnumerable<DetalleDto> d) => Result.Success();
+
+    private void EnsureAuthorizationHeader()
+    {
+        try
+        {
+            var token = _httpContextAccessor?.HttpContext?.Session?.GetString(SessionKeys.JwtToken);
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                if (_http.DefaultRequestHeaders.Authorization == null || _http.DefaultRequestHeaders.Authorization.Parameter != token)
+                    _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+            else
+            {
+                _http.DefaultRequestHeaders.Authorization = null;
+            }
+        }
+        catch { }
+    }
 }

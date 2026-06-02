@@ -35,7 +35,24 @@ public class EjemplarAdapter : IEjemplarServicio
         var libro = CallGet<LibroDto>($"api/libros/{id}");
         return libro != null && libro.Estado;
     }
-    public Dictionary<int, string> ObtenerEjemplaresDisponibles() => CallGet<Dictionary<int, string>>("api/ejemplares/disponibles") ?? new();
+    public Dictionary<int, string> ObtenerEjemplaresDisponibles()
+    {
+        try
+        {
+            EnsureAuthorizationHeader();
+            var response = _http.GetAsync("api/ejemplares/disponibles").Result;
+            if (!response.IsSuccessStatusCode) return new();
+            var ejemplares = response.Content.ReadFromJsonAsync<List<EjemplarDto>>().Result ?? new();
+            var titulos = ObtenerTitulosLibros();
+            return ejemplares.ToDictionary(
+                e => e.EjemplarId,
+                e => titulos.TryGetValue(e.LibroId, out var titulo)
+                    ? $"{titulo} ({e.CodigoInventario})"
+                    : $"Libro #{e.LibroId} ({e.CodigoInventario})"
+            );
+        }
+        catch { return new(); }
+    }
     public Result ValidarEjemplar(EjemplarDto e) => Result.Success();
 
     private T? CallGet<T>(string u) where T : class { try { EnsureAuthorizationHeader(); var r = _http.GetAsync(u).Result; r.EnsureSuccessStatusCode(); return r.Content.ReadFromJsonAsync<T>().Result; } catch { return null; } }

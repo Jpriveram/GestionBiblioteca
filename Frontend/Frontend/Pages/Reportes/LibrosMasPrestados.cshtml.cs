@@ -89,7 +89,7 @@ public class LibrosMasPrestadosModel : PageModel
                     ? ejemplar.LibroTitulo
                     : titulosLibros.TryGetValue(ejemplar.LibroId, out var tituloLibro)
                         ? tituloLibro
-                        : "Sin título";
+                        : "Sin tÃ­tulo";
 
                 if (resultado.ContainsKey(titulo))
                     resultado[titulo]++;

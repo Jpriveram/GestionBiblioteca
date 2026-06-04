@@ -3,123 +3,190 @@
 
 @{
     ViewData["Title"] = "Préstamos ordenados";
+
+    var totalRegistros = Model.Reporte.Count;
+    var totalActivos = Model.Reporte.Count(x => x.EstadoTexto == "Activo");
+    var totalDevueltos = Model.Reporte.Count(x => x.EstadoTexto == "Devuelto");
+    var totalAnulados = Model.Reporte.Count(x => x.EstadoTexto == "Anulado");
+    var periodoInicio = Model.FechaInicio?.ToString("dd/MM/yyyy") ?? "Todos";
+    var periodoFin = Model.FechaFin?.ToString("dd/MM/yyyy") ?? "Todos";
+    var estadoActual = string.IsNullOrWhiteSpace(Model.EstadoFiltro) ? "Todos" : Model.EstadoFiltro;
+    var excelRows = System.Text.Json.JsonSerializer.Serialize(Model.Reporte.Select(item => new object[]
+    {
+        item.FechaPrestamo.ToString("dd/MM/yyyy HH:mm"),
+        item.NombreLector,
+        item.TituloLibro,
+        item.CodigoInventario,
+        item.FechaDevolucionEsperada.ToString("dd/MM/yyyy"),
+        item.FechaDevolucionReal.HasValue ? item.FechaDevolucionReal.Value.ToString("dd/MM/yyyy HH:mm") : "Pendiente",
+        item.EstadoTexto
+    }));
 }
 
 @section Styles {
-    <link rel="stylesheet" href="~/css/pages/prestamo.css" />
+    <link rel="stylesheet" href="~/css/pages/reportes.css" />
 }
 
-<div class="prestamo-page">
-    <div class="prestamo-shell">
-
-        <div class="page-header">
-            <div class="titulo-logo">
-                <div class="page-icon-shell">
+<div class="report-page">
+    <div class="report-shell">
+        <header class="report-header">
+            <div class="report-title-group">
+                <div class="report-icon-shell">
                     <img src="~/assets/icons/library_books_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-                         class="icono-header"
+                         class="report-icon"
                          alt="Préstamos ordenados" />
                 </div>
                 <div>
-                    <h1>Reporte - Préstamos ordenados</h1>
-                    <p class="page-subtitle">
-                        Filtra, revisa y exporta el historial de préstamos según fechas y estado.
+                    <p class="report-kicker">Reportes</p>
+                    <h1>Préstamos ordenados</h1>
+                    <p class="report-subtitle">
+                        Filtra, revisa y exporta el historial de préstamos por fecha, lector, libro y estado.
                     </p>
                 </div>
             </div>
-        </div>
+        </header>
 
-        <div class="prestamo-panel prestamo-panel-compact">
-            <form method="get" class="mb-4 d-flex gap-2 align-items-center flex-wrap">
-                <label class="field-label">Fecha inicio</label>
-                <input type="date" asp-for="FechaInicio" class="input-form" style="width:auto;" />
+        <section class="report-summary report-summary-four" aria-label="Resumen del reporte">
+            <article class="summary-card">
+                <span class="summary-label">Registros encontrados</span>
+                <strong>@totalRegistros</strong>
+            </article>
+            <article class="summary-card">
+                <span class="summary-label">Activos</span>
+                <strong>@totalActivos</strong>
+            </article>
+            <article class="summary-card">
+                <span class="summary-label">Devueltos</span>
+                <strong>@totalDevueltos</strong>
+            </article>
+            <article class="summary-card">
+                <span class="summary-label">Anulados</span>
+                <strong>@totalAnulados</strong>
+            </article>
+        </section>
 
-                <label class="field-label">Fecha fin</label>
-                <input type="date" asp-for="FechaFin" class="input-form" style="width:auto;" />
-
-                <label class="field-label">Estado</label>
-                <select asp-for="EstadoFiltro" class="input-form" style="width:auto;">
-                    <option value="">Todos</option>
-                    <option value="Activo">Activo</option>
-                    <option value="Devuelto">Devuelto</option>
-                    <option value="Anulado">Anulado</option>
-                </select>
-
-                <button type="submit" class="btn btn-primary" style="font-weight:600; font-size:15px;">
-                    Generar reporte
-                </button>
-
-                <button type="button" class="btn btn-danger" style="font-weight:600; font-size:15px;" onclick="descargarPDF()">
-                    Descargar PDF
-                </button>
-
-                <button type="button" class="btn btn-success" style="font-weight:600; font-size:15px;" onclick="descargarExcel()">
-                    Descargar Excel
-                </button>
-            </form>
-        </div>
-
-        <div id="reporte-container" style="background:#ffffff; color:#000000; padding:24px; border-radius:14px; box-shadow:0 18px 45px rgba(0,0,0,.35); overflow:hidden;">
-            <header style="display:flex; align-items:center; justify-content:space-between; border-bottom:2px solid #222; padding-bottom:14px; margin-bottom:18px;">
-                <div>
-                    <h2 style="margin:0; font-weight:800;">Reporte de préstamos ordenados</h2>
-                    <p style="margin:4px 0 0;">Gestión bibliotecaria</p>
+        <section class="report-controls" aria-label="Filtros y acciones del reporte">
+            <form method="get" class="report-filter-form report-filter-form-wide">
+                <div class="field-group">
+                    <label for="FechaInicio">Fecha de inicio</label>
+                    <input id="FechaInicio" type="date" asp-for="FechaInicio" class="report-input" />
                 </div>
 
-                <img src="~/assets/images/blackLogoR.png" alt="Logo" style="height:90px;" />
-            </header>
+                <div class="field-group">
+                    <label for="FechaFin">Fecha de fin</label>
+                    <input id="FechaFin" type="date" asp-for="FechaFin" class="report-input" />
+                </div>
 
-            <section style="margin-bottom:18px; background:#f8fafc; padding:12px 14px; border-radius:8px; border:1px solid #e5e7eb;">
-                <strong>Filtros aplicados:</strong>
-                <span>
-                    Fecha inicio: @(Model.FechaInicio?.ToString("dd/MM/yyyy") ?? "Todos") |
-                    Fecha fin: @(Model.FechaFin?.ToString("dd/MM/yyyy") ?? "Todos") |
-                    Estado: @(string.IsNullOrWhiteSpace(Model.EstadoFiltro) ? "Todos" : Model.EstadoFiltro)
-                </span>
-            </section>
+                <div class="field-group">
+                    <label for="EstadoFiltro">Estado</label>
+                    <select id="EstadoFiltro" asp-for="EstadoFiltro" class="report-input">
+                        <option value="">Todos</option>
+                        <option value="Activo">Activo</option>
+                        <option value="Devuelto">Devuelto</option>
+                        <option value="Anulado">Anulado</option>
+                    </select>
+                </div>
 
-            <div style="overflow-x:auto;">
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Fecha préstamo</th>
-                            <th>Lector</th>
-                            <th>Libro</th>
-                            <th>Código ejemplar</th>
-                            <th>Fecha esperada</th>
-                            <th>Fecha devolución real</th>
-                            <th>Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model.Reporte)
-                        {
-                            <tr>
-                                <td>@item.FechaPrestamo.ToString("dd/MM/yyyy HH:mm")</td>
-                                <td>@item.NombreLector</td>
-                                <td>@item.TituloLibro</td>
-                                <td>@item.CodigoInventario</td>
-                                <td>@item.FechaDevolucionEsperada.ToString("dd/MM/yyyy")</td>
-                                <td>@(item.FechaDevolucionReal.HasValue ? item.FechaDevolucionReal.Value.ToString("dd/MM/yyyy HH:mm") : "Pendiente")</td>
-                                <td>@item.EstadoTexto</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+                <div class="report-actions">
+                    <button type="submit" class="report-btn report-btn-primary">
+                        <img src="~/assets/icons/bar_chart_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                             alt=""
+                             aria-hidden="true" />
+                        Generar reporte
+                    </button>
+                    <button type="button"
+                            class="report-btn report-btn-secondary"
+                            onclick="descargarPDF()"
+                            @(Model.Reporte.Count == 0 ? "disabled" : null)>
+                        Descargar PDF
+                    </button>
+                    <button type="button"
+                            class="report-btn report-btn-secondary"
+                            onclick="descargarExcel()"
+                            @(Model.Reporte.Count == 0 ? "disabled" : null)>
+                        Descargar Excel
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section id="reporte-container" class="report-output">
+            <div class="export-header">
+                <div>
+                    <p>StarBook Library</p>
+                    <h2>Reporte de préstamos ordenados</h2>
+                </div>
+                <img src="~/assets/images/blackLogoR.png" alt="StarBook Library" />
             </div>
 
-            <footer style="border-top:2px solid #222; margin-top:18px; padding-top:12px; display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;">
-                <span>Total de registros: @Model.Reporte.Count</span>
-                <span>Total activos: @Model.Reporte.Count(x => x.EstadoTexto == "Activo")</span>
-                <span>Total devueltos: @Model.Reporte.Count(x => x.EstadoTexto == "Devuelto")</span>
-                <span>Total anulados: @Model.Reporte.Count(x => x.EstadoTexto == "Anulado")</span>
-            </footer>
+            <div class="report-period">
+                <span><strong>Fecha de inicio:</strong> @periodoInicio</span>
+                <span><strong>Fecha de fin:</strong> @periodoFin</span>
+                <span><strong>Estado:</strong> @estadoActual</span>
+            </div>
 
-            <section style="border-top:1px solid #444; margin-top:18px; padding-top:14px; display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; font-size:14px;">
-                <span><strong>Fecha:</strong> @DateTime.Now.ToString("dd/MM/yyyy")</span>
-                <span><strong>Hora:</strong> @DateTime.Now.ToString("HH:mm")</span>
-            </section>
-        </div>
+            @if (Model.Reporte.Count == 0)
+            {
+                <div class="report-empty">
+                    <strong>No hay préstamos con los filtros seleccionados.</strong>
+                    <span>Ajusta las fechas o el estado para generar el reporte.</span>
+                </div>
+            }
+            else
+            {
+                <div class="report-table-panel report-table-panel-full">
+                    <div class="section-heading">
+                        <h2>Historial de préstamos</h2>
+                        <span>@totalRegistros registro@(totalRegistros == 1 ? "" : "s")</span>
+                    </div>
 
+                    <div class="report-table-wrapper">
+                        <table class="report-table report-table-wide">
+                            <thead>
+                                <tr>
+                                    <th>Fecha de préstamo</th>
+                                    <th>Lector</th>
+                                    <th>Libro</th>
+                                    <th>Código ejemplar</th>
+                                    <th>Fecha esperada</th>
+                                    <th>Devolución real</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.Reporte)
+                                {
+                                    var estadoClase = item.EstadoTexto.ToLowerInvariant();
+                                    <tr>
+                                        <td>@item.FechaPrestamo.ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td>@item.NombreLector</td>
+                                        <td>@item.TituloLibro</td>
+                                        <td>@item.CodigoInventario</td>
+                                        <td>@item.FechaDevolucionEsperada.ToString("dd/MM/yyyy")</td>
+                                        <td>@(item.FechaDevolucionReal.HasValue ? item.FechaDevolucionReal.Value.ToString("dd/MM/yyyy HH:mm") : "Pendiente")</td>
+                                        <td>
+                                            <span class="status-pill status-@estadoClase">@item.EstadoTexto</span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <footer class="report-totals">
+                        <span>Total de registros: <strong>@totalRegistros</strong></span>
+                        <span>Total activos: <strong>@totalActivos</strong></span>
+                        <span>Total devueltos: <strong>@totalDevueltos</strong></span>
+                        <span>Total anulados: <strong>@totalAnulados</strong></span>
+                    </footer>
+
+                    <section class="report-generated-at">
+                        <span><strong>Fecha:</strong> @DateTime.Now.ToString("dd/MM/yyyy")</span>
+                        <span><strong>Hora:</strong> @DateTime.Now.ToString("HH:mm")</span>
+                    </section>
+                </div>
+            }
+        </section>
     </div>
 </div>
 
@@ -129,19 +196,25 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <script>
+        const excelRows = @Html.Raw(excelRows);
+
         async function descargarPDF() {
+            if (!excelRows.length) return;
+
             const { jsPDF } = window.jspdf;
             const elemento = document.getElementById('reporte-container');
 
             const canvas = await html2canvas(elemento, {
                 scale: 2,
                 backgroundColor: '#ffffff',
-                useCORS: true
+                useCORS: true,
+                onclone: function (documento) {
+                    documento.body.classList.add('exporting-report');
+                }
             });
 
             const imgData = canvas.toDataURL('image/png');
             const pdf = new jsPDF('l', 'mm', 'a4');
-
             const margen = 10;
             const anchoPdf = 297 - (margen * 2);
             const altoPdf = (canvas.height * anchoPdf) / canvas.width;
@@ -151,26 +224,12 @@
         }
 
         function descargarExcel() {
+            if (!excelRows.length) return;
+
             const datos = [
-                ['Fecha préstamo', 'Lector', 'Libro', 'Código ejemplar', 'Fecha esperada', 'Fecha devolución real', 'Estado']
+                ['Fecha de préstamo', 'Lector', 'Libro', 'Código ejemplar', 'Fecha esperada', 'Devolución real', 'Estado'],
+                ...excelRows
             ];
-
-            @foreach (var item in Model.Reporte)
-            {
-                var fechaReal = item.FechaDevolucionReal.HasValue
-                    ? item.FechaDevolucionReal.Value.ToString("dd/MM/yyyy HH:mm")
-                    : "Pendiente";
-
-                @:datos.push([
-                @:'@item.FechaPrestamo.ToString("dd/MM/yyyy HH:mm")',
-                @:'@item.NombreLector.Replace("'", "\\'")',
-                @:'@item.TituloLibro.Replace("'", "\\'")',
-                @:'@item.CodigoInventario.Replace("'", "\\'")',
-                @:'@item.FechaDevolucionEsperada.ToString("dd/MM/yyyy")',
-                @:'@fechaReal',
-                @:'@item.EstadoTexto'
-                @:]);
-            }
 
             const hoja = XLSX.utils.aoa_to_sheet(datos);
             hoja['!cols'] = [
@@ -184,9 +243,8 @@
             ];
 
             const libro = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(libro, hoja, "Préstamos ordenados");
-
-            XLSX.writeFile(libro, "PrestamosOrdenados.xlsx");
+            XLSX.utils.book_append_sheet(libro, hoja, 'Préstamos ordenados');
+            XLSX.writeFile(libro, 'PrestamosOrdenados.xlsx');
         }
     </script>
 }

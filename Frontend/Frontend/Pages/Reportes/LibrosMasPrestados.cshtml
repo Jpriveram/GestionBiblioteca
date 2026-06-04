@@ -1,115 +1,243 @@
-﻿@page "/Reportes/LibrosMasPrestados"
+@page "/Reportes/LibrosMasPrestados"
 @model Frontend.Pages.Reportes.LibrosMasPrestadosModel
 
 @{
-    ViewData["Title"] = "Libros Más Prestados";
+    ViewData["Title"] = "Libros más prestados";
+
+    var totalPrestamos = Model.Reporte.Sum(x => x.CantidadPrestamos);
+    var totalLibros = Model.Reporte.Count;
+    var libroPrincipal = Model.Reporte.FirstOrDefault();
+    var periodoInicio = Model.FechaInicio?.ToString("dd/MM/yyyy") ?? "Todos";
+    var periodoFin = Model.FechaFin?.ToString("dd/MM/yyyy") ?? "Todos";
+    var chartLabels = System.Text.Json.JsonSerializer.Serialize(Model.Reporte.Select(x => x.TituloLibro));
+    var chartData = System.Text.Json.JsonSerializer.Serialize(Model.Reporte.Select(x => x.CantidadPrestamos));
+    var excelRows = System.Text.Json.JsonSerializer.Serialize(Model.Reporte.Select(x => new object[] { x.TituloLibro, x.CantidadPrestamos }));
 }
 
-<div class="container mt-4">
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/reportes.css" />
+}
 
-    <h1>Reporte - Libros Más Prestados</h1>
+<div class="report-page">
+    <div class="report-shell">
+        <header class="report-header">
+            <div class="report-title-group">
+                <div class="report-icon-shell">
+                    <img src="~/assets/icons/bar_chart_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                         class="report-icon"
+                         alt="Reporte" />
+                </div>
+                <div>
+                    <p class="report-kicker">Reportes</p>
+                    <h1>Libros más prestados</h1>
+                    <p class="report-subtitle">
+                        Consulta los títulos con mayor circulación y exporta el resultado por periodo.
+                    </p>
+                </div>
+            </div>
+        </header>
 
-    <form method="get" class="mb-4">
+        <section class="report-summary" aria-label="Resumen del reporte">
+            <article class="summary-card">
+                <span class="summary-label">Préstamos registrados</span>
+                <strong>@totalPrestamos</strong>
+            </article>
+            <article class="summary-card">
+                <span class="summary-label">Libros con movimiento</span>
+                <strong>@totalLibros</strong>
+            </article>
+            <article class="summary-card summary-card-wide">
+                <span class="summary-label">Título principal</span>
+                <strong>@(libroPrincipal?.TituloLibro ?? "Sin resultados")</strong>
+            </article>
+        </section>
 
-        <label>Fecha de inicio</label>
-        <input type="date" asp-for="FechaInicio" />
+        <section class="report-controls" aria-label="Filtros y acciones del reporte">
+            <form method="get" class="report-filter-form">
+                <div class="field-group">
+                    <label for="FechaInicio">Fecha de inicio</label>
+                    <input id="FechaInicio" type="date" asp-for="FechaInicio" class="report-input" />
+                </div>
 
-        <label>Fecha de fin</label>
-        <input type="date" asp-for="FechaFin" />
+                <div class="field-group">
+                    <label for="FechaFin">Fecha de fin</label>
+                    <input id="FechaFin" type="date" asp-for="FechaFin" class="report-input" />
+                </div>
 
-        <button type="submit">
-            Generar Reporte
-        </button>
+                <div class="report-actions">
+                    <button type="submit" class="report-btn report-btn-primary">
+                        <img src="~/assets/icons/bar_chart_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                             alt=""
+                             aria-hidden="true" />
+                        Generar reporte
+                    </button>
+                    <button type="button"
+                            class="report-btn report-btn-secondary"
+                            onclick="descargarPDF()"
+                            @(Model.Reporte.Count == 0 ? "disabled" : null)>
+                        Descargar PDF
+                    </button>
+                    <button type="button"
+                            class="report-btn report-btn-secondary"
+                            onclick="descargarExcel()"
+                            @(Model.Reporte.Count == 0 ? "disabled" : null)>
+                        Descargar Excel
+                    </button>
+                </div>
+            </form>
+        </section>
 
-        <button type="button" onclick="descargarPDF()">
-            Descargar PDF
-        </button>
+        <section id="reporte-container" class="report-output">
+            <div class="export-header">
+                <div>
+                    <p>StarBook Library</p>
+                    <h2>Reporte de libros más prestados</h2>
+                </div>
+                <img src="~/assets/images/blackLogoR.png" alt="StarBook Library" />
+            </div>
 
-        <button type="button" onclick="descargarExcel()">
-            Descargar Excel
-        </button>
+            <div class="report-period">
+                <span><strong>Fecha de inicio:</strong> @periodoInicio</span>
+                <span><strong>Fecha de fin:</strong> @periodoFin</span>
+                <span><strong>Total de préstamos:</strong> @totalPrestamos</span>
+            </div>
 
-    </form>
+            @if (Model.Reporte.Count == 0)
+            {
+                <div class="report-empty">
+                    <strong>No hay préstamos en el periodo seleccionado.</strong>
+                    <span>Ajusta las fechas para generar el reporte.</span>
+                </div>
+            }
+            else
+            {
+                <div class="report-grid">
+                    <div class="report-table-panel">
+                        <div class="section-heading">
+                            <h2>Detalle por libro</h2>
+                            <span>@totalLibros resultado@(totalLibros == 1 ? "" : "s")</span>
+                        </div>
 
-    <div id="reporte-container">
+                        <div class="report-table-wrapper">
+                            <table class="report-table">
+                                <thead>
+                                    <tr>
+                                        <th>Libro</th>
+                                        <th>Cantidad de préstamos</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.Reporte)
+                                    {
+                                        <tr>
+                                            <td>@item.TituloLibro</td>
+                                            <td><span class="loan-count">@item.CantidadPrestamos</span></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
 
-        <table class="table table-bordered">
-
-            <thead>
-                <tr>
-                    <th>Libro</th>
-                    <th>Cantidad de préstamos</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                @foreach (var item in Model.Reporte)
-                {
-                    <tr>
-                        <td>@item.TituloLibro</td>
-                        <td>@item.CantidadPrestamos</td>
-                    </tr>
-                }
-            </tbody>
-
-        </table>
-
-        <hr />
-
-        <div style="height:350px; max-width:900px; margin:30px auto;">
-            <canvas id="graficoLibros"></canvas>
-        </div>
-
+                    <div class="report-chart-panel">
+                        <div class="section-heading">
+                            <h2>Comparativa visual</h2>
+                            <span>Top de circulación</span>
+                        </div>
+                        <div class="chart-frame">
+                            <canvas id="graficoLibros"></canvas>
+                        </div>
+                    </div>
+                </div>
+            }
+        </section>
     </div>
-
 </div>
 
 @section Scripts {
-
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <script>
-        const labels = [
-            @Html.Raw(string.Join(",", Model.Reporte.Select(x => $"'{x.TituloLibro.Replace("'", "\\'")}'")))
-        ];
+        const labels = @Html.Raw(chartLabels);
+        const data = @Html.Raw(chartData);
+        const excelRows = @Html.Raw(excelRows);
 
-        const data = [
-            @string.Join(",", Model.Reporte.Select(x => x.CantidadPrestamos))
-        ];
-
-        new Chart(document.getElementById('graficoLibros'), {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Cantidad de préstamos',
-                    data: data
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false
-            }
-        });
+        if (labels.length > 0) {
+            new Chart(document.getElementById('graficoLibros'), {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Cantidad de préstamos',
+                        data,
+                        backgroundColor: 'rgba(16, 163, 127, 0.72)',
+                        borderColor: '#6ee7b7',
+                        borderWidth: 1,
+                        borderRadius: 8,
+                        maxBarThickness: 72
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#d1d5db',
+                                boxWidth: 12,
+                                boxHeight: 12,
+                                font: { size: 12, weight: '600' }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#111827',
+                            borderColor: '#374151',
+                            borderWidth: 1,
+                            titleColor: '#f9fafb',
+                            bodyColor: '#d1d5db'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255,255,255,0.04)' },
+                            ticks: { color: '#9ca3af' }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: '#9ca3af',
+                                precision: 0,
+                                stepSize: 1
+                            },
+                            grid: { color: 'rgba(255,255,255,0.08)' }
+                        }
+                    }
+                }
+            });
+        }
 
         async function descargarPDF() {
+            if (!excelRows.length) return;
+
             const { jsPDF } = window.jspdf;
             const elemento = document.getElementById('reporte-container');
 
             const canvas = await html2canvas(elemento, {
                 scale: 2,
-                backgroundColor: '#ffffff'
+                backgroundColor: '#ffffff',
+                useCORS: true,
+                onclone: function (documento) {
+                    documento.body.classList.add('exporting-report');
+                }
             });
 
             const imgData = canvas.toDataURL('image/png');
-
-            const pdf = new jsPDF('p', 'mm', 'a4');
-
+            const pdf = new jsPDF('l', 'mm', 'a4');
             const margen = 10;
-            const anchoPdf = 210 - (margen * 2);
+            const anchoPdf = 297 - (margen * 2);
             const altoPdf = (canvas.height * anchoPdf) / canvas.width;
 
             pdf.addImage(imgData, 'PNG', margen, margen, anchoPdf, altoPdf);
@@ -117,22 +245,19 @@
         }
 
         function descargarExcel() {
-            const datos = [
-                ['Libro', 'Cantidad de préstamos']
-            ];
+            if (!excelRows.length) return;
 
-            @foreach (var item in Model.Reporte)
-            {
-                    @:datos.push(['@item.TituloLibro.Replace("'", "\\'")', @item.CantidadPrestamos]);
-            }
+            const datos = [
+                ['Libro', 'Cantidad de préstamos'],
+                ...excelRows
+            ];
 
             const hoja = XLSX.utils.aoa_to_sheet(datos);
             hoja['!cols'] = [{ wch: 45 }, { wch: 25 }];
 
             const libro = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(libro, hoja, "Libros más prestados");
-
-            XLSX.writeFile(libro, "LibrosMasPrestados.xlsx");
+            XLSX.utils.book_append_sheet(libro, hoja, 'Libros más prestados');
+            XLSX.writeFile(libro, 'LibrosMasPrestados.xlsx');
         }
     </script>
 }

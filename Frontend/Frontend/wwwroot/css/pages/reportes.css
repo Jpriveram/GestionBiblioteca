@@ -68,6 +68,10 @@
     margin-bottom: 14px;
 }
 
+.report-summary-four {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .summary-card,
 .report-controls,
 .report-output,
@@ -114,6 +118,10 @@
     grid-template-columns: repeat(2, minmax(180px, 240px)) 1fr;
     align-items: end;
     gap: 12px;
+}
+
+.report-filter-form-wide {
+    grid-template-columns: repeat(3, minmax(170px, 220px)) 1fr;
 }
 
 .field-group {
@@ -252,6 +260,10 @@
     padding: 14px;
 }
 
+.report-table-panel-full {
+    width: 100%;
+}
+
 .section-heading {
     display: flex;
     justify-content: space-between;
@@ -283,6 +295,10 @@
     min-width: 520px;
     margin: 0;
     border-collapse: collapse;
+}
+
+.report-table-wide {
+    min-width: 1180px;
 }
 
 .report-table th,
@@ -326,6 +342,60 @@
     color: #6ee7b7;
     font-weight: 800;
     font-variant-numeric: tabular-nums;
+}
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 82px;
+    height: 30px;
+    padding: 0 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.status-activo {
+    background: rgba(16, 163, 127, 0.14);
+    color: #6ee7b7;
+}
+
+.status-devuelto {
+    background: rgba(59, 130, 246, 0.15);
+    color: #93c5fd;
+}
+
+.status-anulado {
+    background: rgba(239, 68, 68, 0.14);
+    color: #fca5a5;
+}
+
+.report-totals,
+.report-generated-at {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    color: #d1d5db;
+}
+
+.report-totals {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid #2a2a2a;
+}
+
+.report-totals strong,
+.report-generated-at strong {
+    color: #f3f4f6;
+}
+
+.report-generated-at {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #2a2a2a;
+    font-size: 13px;
 }
 
 .chart-frame {
@@ -420,10 +490,40 @@
     border-color: #e5e7eb;
 }
 
+.exporting-report .report-totals,
+.exporting-report .report-generated-at {
+    color: #374151;
+    border-color: #d1d5db;
+}
+
+.exporting-report .report-totals strong,
+.exporting-report .report-generated-at strong {
+    color: #111827;
+}
+
+.exporting-report .status-activo {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.exporting-report .status-devuelto {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.exporting-report .status-anulado {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
 @media (max-width: 1100px) {
     .report-filter-form,
     .report-grid {
         grid-template-columns: 1fr;
+    }
+
+    .report-summary-four {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .report-actions {

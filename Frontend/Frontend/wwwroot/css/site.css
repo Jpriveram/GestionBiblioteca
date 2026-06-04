@@ -114,6 +114,17 @@ body{
     color:#ffffff;
 }
 
+.dropdown-menu.custom-dropdown-menu .dropdown-item.custom-dropdown-item.logout-dropdown-item:hover,
+.dropdown-menu.custom-dropdown-menu .dropdown-item.custom-dropdown-item.logout-dropdown-item:focus{
+    background:#dc2626;
+    color:#ffffff;
+}
+
+.dropdown-menu.custom-dropdown-menu .dropdown-item.custom-dropdown-item.logout-dropdown-item:active{
+    background:#b91c1c;
+    color:#ffffff;
+}
+
 /* Hace que el botón Biblioteca quede marcado mientras el dropdown está abierto */
 .nav-item.dropdown.show .nav-btn,
 .nav-item.dropdown .nav-link.show{

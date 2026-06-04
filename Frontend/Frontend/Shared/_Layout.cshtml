@@ -137,7 +137,7 @@
                             </a>
                         </li>
                     }
-                    @if (esAdmin || esBibliotecario)
+                    @* @if (esAdmin || esBibliotecario)
                     {
                     <li class="nav-item dropdown">
                         <a class="nav-link nav-btn dropdown-toggle d-flex align-items-center gap-2"
@@ -160,7 +160,7 @@
                             <li><a class="dropdown-item custom-dropdown-item" href="#">Usuarios con retraso</a></li>
                         </ul>
                     </li>
-                    }
+                    } *@
                 </ul>
 
                 <ul class="navbar-nav">
@@ -195,7 +195,7 @@
                                 <li>
                                     <form method="post" action="/Login?handler=Logout">
                                         @Html.AntiForgeryToken()
-                                        <button type="submit" class="dropdown-item custom-dropdown-item">
+                                        <button type="submit" class="dropdown-item custom-dropdown-item logout-dropdown-item">
                                             Cerrar sesión
                                         </button>
                                     </form>

@@ -20,17 +20,24 @@ public class AutorAdapter : IAutorServicio
     public IEnumerable<AutorDto> Select(bool todos = false)
     {
         var url = todos ? "api/autores?todos=true" : "api/autores";
+
         EnsureAuthorizationHeader();
+
         var response = _http.GetAsync(url).Result;
         response.EnsureSuccessStatusCode();
-        return response.Content.ReadFromJsonAsync<List<AutorDto>>().Result ?? new();
+
+        return response.Content.ReadFromJsonAsync<List<AutorDto>>().Result ?? new List<AutorDto>();
     }
 
     public AutorDto? GetById(int id)
     {
         EnsureAuthorizationHeader();
+
         var response = _http.GetAsync($"api/autores/{id}").Result;
-        if (!response.IsSuccessStatusCode) return null;
+
+        if (!response.IsSuccessStatusCode)
+            return null;
+
         return response.Content.ReadFromJsonAsync<AutorDto>().Result;
     }
 
@@ -38,16 +45,19 @@ public class AutorAdapter : IAutorServicio
     {
         try
         {
-            dto.Nombres = dto.Nombres.ToDisplayName();
-            dto.Apellidos = dto.Apellidos.ToDisplayName();
+            dto.Nombres = NormalizarNombreObligatorio(dto.Nombres);
+            dto.Apellidos = NormalizarApellidoOpcional(dto.Apellidos);
+            dto.Nacionalidad = NormalizarTextoOpcional(dto.Nacionalidad);
 
             EnsureAuthorizationHeader();
+
             var response = _http.PostAsJsonAsync("api/autores", dto).Result;
 
             if (!response.IsSuccessStatusCode)
                 return Result<AutorDto>.Failure(new Error("Create", "Error al crear el autor."));
 
             var created = response.Content.ReadFromJsonAsync<AutorDto>().Result!;
+
             return Result<AutorDto>.Success(created);
         }
         catch (Exception ex)
@@ -60,10 +70,12 @@ public class AutorAdapter : IAutorServicio
     {
         try
         {
-            dto.Nombres = dto.Nombres.ToDisplayName();
-            dto.Apellidos = dto.Apellidos.ToDisplayName();
+            dto.Nombres = NormalizarNombreObligatorio(dto.Nombres);
+            dto.Apellidos = NormalizarApellidoOpcional(dto.Apellidos);
+            dto.Nacionalidad = NormalizarTextoOpcional(dto.Nacionalidad);
 
             EnsureAuthorizationHeader();
+
             var response = _http.PutAsJsonAsync($"api/autores/{dto.AutorId}", dto).Result;
 
             return response.IsSuccessStatusCode
@@ -86,6 +98,7 @@ public class AutorAdapter : IAutorServicio
                 url += $"?sid={usuarioSesionId.Value}";
 
             EnsureAuthorizationHeader();
+
             var response = _http.DeleteAsync(url).Result;
 
             return response.IsSuccessStatusCode
@@ -103,12 +116,14 @@ public class AutorAdapter : IAutorServicio
         try
         {
             EnsureAuthorizationHeader();
+
             var response = _http.GetAsync("api/autores/activos").Result;
 
             if (!response.IsSuccessStatusCode)
                 return new Dictionary<int, string>();
 
-            return response.Content.ReadFromJsonAsync<Dictionary<int, string>>().Result ?? new Dictionary<int, string>();
+            return response.Content.ReadFromJsonAsync<Dictionary<int, string>>().Result
+                   ?? new Dictionary<int, string>();
         }
         catch
         {
@@ -121,6 +136,7 @@ public class AutorAdapter : IAutorServicio
         try
         {
             EnsureAuthorizationHeader();
+
             var response = _http.GetAsync($"api/autores/{autorId}/existe").Result;
 
             if (!response.IsSuccessStatusCode)
@@ -139,10 +155,15 @@ public class AutorAdapter : IAutorServicio
         try
         {
             var token = _httpContextAccessor?.HttpContext?.Session?.GetString(SessionKeys.JwtToken);
+
             if (!string.IsNullOrWhiteSpace(token))
             {
-                if (_http.DefaultRequestHeaders.Authorization == null || _http.DefaultRequestHeaders.Authorization.Parameter != token)
-                    _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                if (_http.DefaultRequestHeaders.Authorization == null ||
+                    _http.DefaultRequestHeaders.Authorization.Parameter != token)
+                {
+                    _http.DefaultRequestHeaders.Authorization =
+                        new AuthenticationHeaderValue("Bearer", token);
+                }
             }
             else
             {
@@ -151,7 +172,97 @@ public class AutorAdapter : IAutorServicio
         }
         catch
         {
-            // ignore session/accessor errors
+            // Se ignoran errores de sesión para evitar romper el flujo del frontend.
         }
+    }
+
+    private static string NormalizarNombreObligatorio(string? value)
+    {
+        return FormatearNombrePropio(NormalizarEspacios(value));
+    }
+
+    private static string? NormalizarTextoOpcional(string? value)
+    {
+        var texto = FormatearNombrePropio(NormalizarEspacios(value));
+
+        return string.IsNullOrWhiteSpace(texto) ? null : texto;
+    }
+
+    private static string? NormalizarApellidoOpcional(string? value)
+    {
+        var texto = NormalizarEspacios(value);
+
+        if (string.IsNullOrWhiteSpace(texto))
+            return null;
+
+        texto = CorregirApellidosCompuestos(texto);
+
+        return FormatearNombrePropio(texto);
+    }
+
+    private static string NormalizarEspacios(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return string.Empty;
+
+        return string.Join(" ", value.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries));
+    }
+
+    private static string FormatearNombrePropio(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return string.Empty;
+
+        var palabras = value
+            .ToLowerInvariant()
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Select(CapitalizarPalabra);
+
+        return string.Join(" ", palabras);
+    }
+
+    private static string CapitalizarPalabra(string palabra)
+    {
+        if (string.IsNullOrWhiteSpace(palabra))
+            return string.Empty;
+
+        if (palabra.Length == 1)
+            return palabra.ToUpperInvariant();
+
+        return char.ToUpperInvariant(palabra[0]) + palabra[1..];
+    }
+
+    private static string CorregirApellidosCompuestos(string value)
+    {
+        var limpio = NormalizarEspacios(value);
+        var partes = limpio.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var partesCorregidas = partes.Select(CorregirParteApellidoCompuesto);
+
+        return string.Join(" ", partesCorregidas);
+    }
+
+    private static string CorregirParteApellidoCompuesto(string value)
+    {
+        var clave = value.ToLowerInvariant();
+
+        return clave switch
+        {
+            "delarosa" => "De La Rosa",
+            "delafuente" => "De La Fuente",
+            "delacruz" => "De La Cruz",
+            "delatorre" => "De La Torre",
+            "delvalle" => "Del Valle",
+            "delrio" => "Del Río",
+            "delrío" => "Del Río",
+            "delosrios" => "De Los Ríos",
+            "delosríos" => "De Los Ríos",
+            "delossantos" => "De Los Santos",
+            "delcastillo" => "Del Castillo",
+            "delcampo" => "Del Campo",
+            "delpilar" => "Del Pilar",
+            "delmonte" => "Del Monte",
+            "delpozo" => "Del Pozo",
+            _ => value
+        };
     }
 }

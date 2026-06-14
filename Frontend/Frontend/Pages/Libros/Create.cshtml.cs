@@ -58,7 +58,6 @@ public class CreateModel : PageModel
     {
         var rol = HttpContext.Session.GetString(SessionKeys.Rol);
 
-        return string.Equals(rol, Roles.Admin, StringComparison.OrdinalIgnoreCase)
-            || string.Equals(rol, Roles.Bibliotecario, StringComparison.OrdinalIgnoreCase);
+        return string.Equals(rol, Roles.Bibliotecario, StringComparison.OrdinalIgnoreCase);
     }
 }

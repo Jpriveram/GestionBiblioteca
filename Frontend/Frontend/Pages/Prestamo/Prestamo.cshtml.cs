@@ -657,8 +657,7 @@ public class PrestamoModel : PageModel
     private bool EsAdminOBibliotecario()
     {
         var rolSesion = HttpContext.Session.GetString(SessionKeys.Rol);
-        return string.Equals(rolSesion, Roles.Bibliotecario, StringComparison.OrdinalIgnoreCase)
-            || string.Equals(rolSesion, Roles.Admin, StringComparison.OrdinalIgnoreCase);
+        return string.Equals(rolSesion, Roles.Bibliotecario, StringComparison.OrdinalIgnoreCase);
     }
 
     private bool EsAdmin()

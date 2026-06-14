@@ -69,14 +69,16 @@
                 <span class="hero-kicker">Panel principal</span>
                 <h1>Hola, @nombreUsuario.ToDisplayName()</h1>
                 <p class="hero-description">
-                    Accede rápido a las operaciones más importantes del sistema y continúa tu trabajo desde el módulo que necesites.
+                    @(esAdmin
+                        ? "Administra usuarios, roles y accesos del sistema desde un solo módulo."
+                        : "Accede rápido a las operaciones más importantes del sistema y continúa tu trabajo desde el módulo que necesites.")
                 </p>
             </div>
 
             <div class="hero-status-card">
                 <span class="status-label">Sesión activa</span>
                 <strong>@rolSesion</strong>
-                <small>Acceso listo para operar en biblioteca.</small>
+                <small>@(esAdmin ? "Acceso listo para administrar usuarios." : "Acceso listo para operar en biblioteca.")</small>
             </div>
         </section>
 
@@ -98,12 +100,15 @@
                 </a>
             }
 
-            <a href="/Ejemplar" class="quick-card">
-                <img src="~/assets/icons/inventory_2_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="modulo-icon" alt="Gestionar ejemplares" />
-                <h2>Gestionar ejemplares</h2>
-                <p>Revisa disponibilidad, conservación y control físico del inventario.</p>
-                <span>Abrir inventario</span>
-            </a>
+            @if (esBibliotecario)
+            {
+                <a href="/Ejemplar" class="quick-card">
+                    <img src="~/assets/icons/inventory_2_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="modulo-icon" alt="Gestionar ejemplares" />
+                    <h2>Gestionar ejemplares</h2>
+                    <p>Revisa disponibilidad, conservación y control físico del inventario.</p>
+                    <span>Abrir inventario</span>
+                </a>
+            }
 
             @if (esAdmin)
             {

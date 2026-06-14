@@ -48,13 +48,20 @@ public class LibroRepository : IRepository<Libro, int>
 
     public IEnumerable<Libro> GetAll()
     {
+        return GetAll(false);
+    }
+
+    public IEnumerable<Libro> GetAll(bool todos)
+    {
         List<Libro> libros = new();
         try
         {
             using (var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection())
             {
                 connection.Open();
-                string query = "SELECT * FROM Libro WHERE Estado = true ORDER BY FechaRegistro DESC;";
+                string query = todos
+                    ? "SELECT * FROM Libro ORDER BY FechaRegistro DESC;"
+                    : "SELECT * FROM Libro WHERE Estado = true ORDER BY FechaRegistro DESC;";
                 using (MySqlCommand command = new MySqlCommand(query, connection))
                 {
                     using (MySqlDataReader reader = command.ExecuteReader())

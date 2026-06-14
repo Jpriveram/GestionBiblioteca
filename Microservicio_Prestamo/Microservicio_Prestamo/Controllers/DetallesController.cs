@@ -14,9 +14,9 @@ public class DetallesController : ControllerBase
     public DetallesController(IPrestamoRepository repo) => _repo = repo;
 
     [HttpGet]
-    public IActionResult GetAll()
+    public IActionResult GetAll([FromQuery] bool incluirAnulados = false)
     {
-        var prestamos = _repo.GetAll(false).ToList();
+        var prestamos = _repo.GetAll(!incluirAnulados).ToList();
         var allDetalles = new List<object>();
         foreach (var p in prestamos)
         {

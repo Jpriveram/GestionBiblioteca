@@ -58,7 +58,7 @@ public class PrestamosOrdenadosModel : PageModel
 
     private void CargarReporte()
     {
-        var prestamos = _prestamoServicio.Select();
+        var prestamos = _prestamoServicio.Select(todos: true);
 
         if (FechaInicio.HasValue)
         {
@@ -70,7 +70,7 @@ public class PrestamosOrdenadosModel : PageModel
             prestamos = prestamos.Where(x => x.FechaPrestamo.Date <= FechaFin.Value.Date).ToList();
         }
 
-        var detalles = _detalleServicio.ObtenerTodos();
+        var detalles = _detalleServicio.ObtenerTodos(todos: true);
         var titulosLibros = _ejemplarServicio.ObtenerTitulosLibros();
         var usuarios = _usuarioServicio.Select();
 

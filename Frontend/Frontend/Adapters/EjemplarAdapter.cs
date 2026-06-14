@@ -21,7 +21,7 @@ public class EjemplarAdapter : IEjemplarServicio
     public Result Delete(EjemplarDto d) => CallDeleteR($"api/ejemplares/{d.EjemplarId}");
     public Dictionary<int, string> ObtenerTitulosLibros()
     {
-        var libros = CallGet<List<LibroDto>>("api/libros") ?? new();
+        var libros = CallGet<List<LibroDto>>("api/libros?todos=true") ?? new();
 
         return libros.ToDictionary(
             l => l.LibroId,

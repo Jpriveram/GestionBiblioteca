@@ -11,7 +11,7 @@
     var periodoFin = Model.FechaFin?.ToString("dd/MM/yyyy") ?? "Todos";
     var chartLabels = System.Text.Json.JsonSerializer.Serialize(Model.Reporte.Select(x => x.TituloLibro));
     var chartData = System.Text.Json.JsonSerializer.Serialize(Model.Reporte.Select(x => x.CantidadPrestamos));
-    var excelRows = System.Text.Json.JsonSerializer.Serialize(Model.Reporte.Select(x => new object[] { x.TituloLibro, x.CantidadPrestamos }));
+    var excelRows = System.Text.Json.JsonSerializer.Serialize(Model.Reporte.Select(x => new object[] { x.TituloLibro, x.EstadoLibro, x.CantidadPrestamos }));
 }
 
 @section Styles {
@@ -99,6 +99,7 @@
             <div class="report-period">
                 <span><strong>Fecha de inicio:</strong> @periodoInicio</span>
                 <span><strong>Fecha de fin:</strong> @periodoFin</span>
+                <span><strong>Estados:</strong> Activos e inactivos</span>
                 <span><strong>Total de préstamos:</strong> @totalPrestamos</span>
             </div>
 
@@ -123,14 +124,17 @@
                                 <thead>
                                     <tr>
                                         <th>Libro</th>
+                                        <th>Estado</th>
                                         <th>Cantidad de préstamos</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach (var item in Model.Reporte)
                                     {
+                                        var estadoClase = item.EstadoLibro.ToLowerInvariant();
                                         <tr>
                                             <td>@item.TituloLibro</td>
+                                            <td><span class="status-pill status-@estadoClase">@item.EstadoLibro</span></td>
                                             <td><span class="loan-count">@item.CantidadPrestamos</span></td>
                                         </tr>
                                     }
@@ -248,12 +252,12 @@
             if (!excelRows.length) return;
 
             const datos = [
-                ['Libro', 'Cantidad de préstamos'],
+                ['Libro', 'Estado del libro', 'Cantidad de préstamos'],
                 ...excelRows
             ];
 
             const hoja = XLSX.utils.aoa_to_sheet(datos);
-            hoja['!cols'] = [{ wch: 45 }, { wch: 25 }];
+            hoja['!cols'] = [{ wch: 45 }, { wch: 18 }, { wch: 25 }];
 
             const libro = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(libro, hoja, 'Libros más prestados');

@@ -4,7 +4,7 @@ namespace ServicioLibroEjemplar.Application.Interfaces;
 
 public interface ILibroService
 {
-    Task<List<LibroDto>> GetAllAsync();
+    Task<List<LibroDto>> GetAllAsync(bool todos = false);
     Task<LibroDto?> GetByIdAsync(int id);
     Task<LibroDto?> GetByIsbnAsync(string isbn);
     Task<List<LibroDto>> GetByAutorIdAsync(int autorId);

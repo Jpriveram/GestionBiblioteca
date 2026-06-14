@@ -10,6 +10,7 @@ public class LibrosMasPrestadosModel : PageModel
     private readonly IPrestamoServicio _prestamoServicio;
     private readonly IDetalleServicio _detalleServicio;
     private readonly IEjemplarServicio _ejemplarServicio;
+    private readonly ILibroServicio _libroServicio;
 
     public List<ReporteLibro> Reporte { get; set; } = new();
 
@@ -22,11 +23,13 @@ public class LibrosMasPrestadosModel : PageModel
     public LibrosMasPrestadosModel(
         IPrestamoServicio prestamoServicio,
         IDetalleServicio detalleServicio,
-        IEjemplarServicio ejemplarServicio)
+        IEjemplarServicio ejemplarServicio,
+        ILibroServicio libroServicio)
     {
         _prestamoServicio = prestamoServicio;
         _detalleServicio = detalleServicio;
         _ejemplarServicio = ejemplarServicio;
+        _libroServicio = libroServicio;
     }
 
     public IActionResult OnGet()
@@ -52,7 +55,7 @@ public class LibrosMasPrestadosModel : PageModel
 
     private void CargarReporte()
     {
-        var prestamos = _prestamoServicio.Select();
+        var prestamos = _prestamoServicio.Select(todos: true);
 
         if (FechaInicio.HasValue)
         {
@@ -68,10 +71,11 @@ public class LibrosMasPrestadosModel : PageModel
                 .ToList();
         }
 
-        var detalles = _detalleServicio.ObtenerTodos();
+        var detalles = _detalleServicio.ObtenerTodos(todos: true);
         var titulosLibros = _ejemplarServicio.ObtenerTitulosLibros();
+        var libros = _libroServicio.Select(todos: true).ToDictionary(l => l.LibroId);
 
-        var resultado = new Dictionary<string, int>();
+        var resultado = new Dictionary<int, ReporteLibro>();
 
         foreach (var prestamo in prestamos)
         {
@@ -87,30 +91,45 @@ public class LibrosMasPrestadosModel : PageModel
 
                 var titulo = !string.IsNullOrWhiteSpace(ejemplar.LibroTitulo)
                     ? ejemplar.LibroTitulo
-                    : titulosLibros.TryGetValue(ejemplar.LibroId, out var tituloLibro)
+                    : libros.TryGetValue(ejemplar.LibroId, out var libro)
+                        ? libro.Titulo
+                        : titulosLibros.TryGetValue(ejemplar.LibroId, out var tituloLibro)
                         ? tituloLibro
                         : "Sin título";
 
-                if (resultado.ContainsKey(titulo))
-                    resultado[titulo]++;
+                var estadoLibro = libros.TryGetValue(ejemplar.LibroId, out var libroEstado) && libroEstado.Estado
+                    ? "Activo"
+                    : "Inactivo";
+
+                if (resultado.TryGetValue(ejemplar.LibroId, out var reporteLibro))
+                {
+                    reporteLibro.CantidadPrestamos++;
+                }
                 else
-                    resultado[titulo] = 1;
+                {
+                    resultado[ejemplar.LibroId] = new ReporteLibro
+                    {
+                        LibroId = ejemplar.LibroId,
+                        TituloLibro = titulo,
+                        EstadoLibro = estadoLibro,
+                        CantidadPrestamos = 1
+                    };
+                }
             }
         }
 
         Reporte = resultado
-            .Select(x => new ReporteLibro
-            {
-                TituloLibro = x.Key,
-                CantidadPrestamos = x.Value
-            })
+            .Select(x => x.Value)
             .OrderByDescending(x => x.CantidadPrestamos)
+            .ThenBy(x => x.TituloLibro)
             .ToList();
     }
 
     public class ReporteLibro
     {
+        public int LibroId { get; set; }
         public string TituloLibro { get; set; } = string.Empty;
+        public string EstadoLibro { get; set; } = string.Empty;
         public int CantidadPrestamos { get; set; }
     }
 }

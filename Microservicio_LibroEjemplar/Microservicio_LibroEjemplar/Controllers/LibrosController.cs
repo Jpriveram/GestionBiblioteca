@@ -18,9 +18,9 @@ public class LibrosController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<LibroDto>>> GetAllAsync()
+    public async Task<ActionResult<IEnumerable<LibroDto>>> GetAllAsync([FromQuery] bool todos = false)
     {
-        var libros = await _libroService.GetAllAsync();
+        var libros = await _libroService.GetAllAsync(todos);
         return Ok(libros);
     }
 

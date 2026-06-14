@@ -41,12 +41,10 @@ public class AutorService : IAutorService
     {
         ValidateCreateDto(dto);
 
-        var apellidos = NormalizeOptional(dto.Apellidos);
-
         var autor = new Autor
         {
             Nombres = NormalizeRequired(dto.Nombres),
-            PrimerApellido = apellidos,
+            PrimerApellido = NormalizeApellidoOptional(dto.Apellidos),
             SegundoApellido = null,
             Nacionalidad = NormalizeOptional(dto.Nacionalidad),
             FechaNacimiento = dto.FechaNacimiento,
@@ -69,10 +67,8 @@ public class AutorService : IAutorService
 
         ValidateUpdateDto(dto);
 
-        var apellidos = NormalizeOptional(dto.Apellidos);
-
         autor.Nombres = NormalizeRequired(dto.Nombres);
-        autor.PrimerApellido = apellidos;
+        autor.PrimerApellido = NormalizeApellidoOptional(dto.Apellidos);
         autor.SegundoApellido = null;
         autor.Nacionalidad = NormalizeOptional(dto.Nacionalidad);
         autor.FechaNacimiento = dto.FechaNacimiento;
@@ -143,26 +139,64 @@ public class AutorService : IAutorService
         DateTime? fechaNacimiento)
     {
         if (string.IsNullOrWhiteSpace(nombres))
-            throw new InvalidOperationException(AutorErrors.DatosObligatorios.Message);
+            throw new InvalidOperationException("Ingrese el nombre del autor.");
 
-        if (!ValidadorEntrada.TextoValido(nombres, 100) ||
-            !ValidadorEntrada.TextoValido(apellidos, 200) ||
-            !ValidadorEntrada.TextoValido(nacionalidad, 100))
-            throw new InvalidOperationException(AutorErrors.DatosInvalidos.Message);
+        if (!ValidadorEntrada.TextoValido(nombres, 100))
+            throw new InvalidOperationException("El nombre no debe superar los 100 caracteres.");
 
-        if (fechaNacimiento.HasValue && fechaNacimiento.Value.Date > DateTime.Now.Date)
-            throw new InvalidOperationException(AutorErrors.DatosInvalidos.Message);
+        if (!ValidadorEntrada.SoloLetrasYEspacios(nombres))
+            throw new InvalidOperationException("El nombre solo debe contener letras y espacios.");
+
+        if (ValidadorEntrada.TieneLetrasSeparadas(nombres))
+            throw new InvalidOperationException("No se permiten letras separadas por espacios.");
+
+        if (!string.IsNullOrWhiteSpace(apellidos))
+        {
+            if (!ValidadorEntrada.TextoValido(apellidos, 200))
+                throw new InvalidOperationException("Los apellidos no deben superar los 200 caracteres.");
+
+            if (!ValidadorEntrada.SoloLetrasYEspacios(apellidos))
+                throw new InvalidOperationException("Los apellidos solo deben contener letras y espacios.");
+
+            if (ValidadorEntrada.TieneLetrasSeparadas(apellidos))
+                throw new InvalidOperationException("No se permiten letras separadas por espacios en los apellidos.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(nacionalidad))
+        {
+            if (!ValidadorEntrada.TextoValido(nacionalidad, 100))
+                throw new InvalidOperationException("La nacionalidad no debe superar los 100 caracteres.");
+
+            if (!ValidadorEntrada.SoloLetrasYEspacios(nacionalidad))
+                throw new InvalidOperationException("La nacionalidad solo debe contener letras y espacios.");
+
+            if (ValidadorEntrada.TieneLetrasSeparadas(nacionalidad))
+                throw new InvalidOperationException("No se permiten letras separadas por espacios en la nacionalidad.");
+        }
+
+        if (!fechaNacimiento.HasValue)
+            throw new InvalidOperationException("Ingrese la fecha de nacimiento.");
+
+        if (fechaNacimiento.Value.Date > DateTime.Today)
+            throw new InvalidOperationException("La fecha de nacimiento no puede ser futura.");
+
+        if (!ValidadorEntrada.EsMayorDeEdad(fechaNacimiento.Value))
+            throw new InvalidOperationException("El autor debe ser mayor de edad.");
     }
 
     private static string NormalizeRequired(string value)
     {
-        return ValidadorEntrada.NormalizarEspacios(value);
+        return ValidadorEntrada.FormatearNombrePropio(value);
     }
 
     private static string? NormalizeOptional(string? value)
     {
-        var normalizedValue = ValidadorEntrada.NormalizarEspacios(value);
-        return string.IsNullOrWhiteSpace(normalizedValue) ? null : normalizedValue;
+        return ValidadorEntrada.FormatearTextoOpcional(value);
+    }
+
+    private static string? NormalizeApellidoOptional(string? value)
+    {
+        return ValidadorEntrada.FormatearApellidoOpcional(value);
     }
 
     private static string? BuildApellidos(string? primerApellido, string? segundoApellido)

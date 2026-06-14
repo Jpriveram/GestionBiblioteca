@@ -210,12 +210,13 @@ public class DetalleServicioAdapter : IDetalleServicio
         catch { return new List<DetalleDto>(); }
     }
 
-    public IEnumerable<DetalleDto> ObtenerTodos()
+    public IEnumerable<DetalleDto> ObtenerTodos(bool todos = false)
     {
         try
         {
             EnsureAuthorizationHeader();
-            var response = _http.GetAsync("api/detalles").Result;
+            var url = todos ? "api/detalles?incluirAnulados=true" : "api/detalles";
+            var response = _http.GetAsync(url).Result;
             if (!response.IsSuccessStatusCode) return new List<DetalleDto>();
             return response.Content.ReadFromJsonAsync<List<DetalleDto>>().Result ?? new List<DetalleDto>();
         }

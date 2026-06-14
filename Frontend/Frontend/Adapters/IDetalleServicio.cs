@@ -8,7 +8,7 @@ public interface IDetalleServicio
 {
     IEnumerable<DetalleDto> Select();
     IEnumerable<DetalleDto> ObtenerPorPrestamo(int prestamoId);
-    IEnumerable<DetalleDto> ObtenerTodos();
+    IEnumerable<DetalleDto> ObtenerTodos(bool todos = false);
     Result CrearMultiples(IEnumerable<DetalleDto> detalles);
 }
 

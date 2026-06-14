@@ -20,10 +20,9 @@ public class LibroService : ILibroService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public Task<List<LibroDto>> GetAllAsync()
+    public Task<List<LibroDto>> GetAllAsync(bool todos = false)
     {
-        var libros = _repositorio.GetAll()
-            .Where(l => l.Estado)
+        var libros = _repositorio.GetAll(todos)
             .Select(MapToDto)
             .ToList();
         return Task.FromResult(libros);

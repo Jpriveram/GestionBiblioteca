@@ -44,9 +44,9 @@ public class AutorModel : PageModel
 
         foreach (var autorDto in autores)
         {
-            autorDto.Nombres = LimpiarTexto(autorDto.Nombres).ToDisplayName();
-            autorDto.Apellidos = LimpiarTexto(autorDto.Apellidos).ToDisplayName();
-            autorDto.Nacionalidad = LimpiarTexto(autorDto.Nacionalidad);
+            autorDto.Nombres = FormatearObligatorio(autorDto.Nombres);
+            autorDto.Apellidos = FormatearApellidoOpcional(autorDto.Apellidos);
+            autorDto.Nacionalidad = FormatearTextoOpcional(autorDto.Nacionalidad);
 
             if (string.IsNullOrEmpty(autorDto.RouteToken))
                 autorDto.RouteToken = _routeTokenService.CrearToken(autorDto.AutorId);
@@ -75,9 +75,9 @@ public class AutorModel : PageModel
 
         ModalActivo = "crear";
 
-        AutorDto.Nombres = LimpiarTexto(AutorDto.Nombres).ToDisplayName();
-        AutorDto.Apellidos = LimpiarTexto(AutorDto.Apellidos).ToDisplayName();
-        AutorDto.Nacionalidad = LimpiarTexto(AutorDto.Nacionalidad);
+        AutorDto.Nombres = FormatearObligatorio(AutorDto.Nombres);
+        AutorDto.Apellidos = FormatearApellidoOpcional(AutorDto.Apellidos);
+        AutorDto.Nacionalidad = FormatearTextoOpcional(AutorDto.Nacionalidad);
         AutorDto.UsuarioSesionId = ObtenerUsuarioSesionId();
         AutorDto.Estado = true;
 
@@ -119,9 +119,9 @@ public class AutorModel : PageModel
         if (!_routeTokenService.TryObtenerId(token, out var id))
             return NotFound();
 
-        Nombres = LimpiarTexto(Nombres).ToDisplayName();
-        Apellidos = LimpiarTexto(Apellidos).ToDisplayName();
-        Nacionalidad = LimpiarTexto(Nacionalidad);
+        Nombres = FormatearObligatorio(Nombres);
+        Apellidos = FormatearApellidoOpcional(Apellidos);
+        Nacionalidad = FormatearTextoOpcional(Nacionalidad);
 
         ValidarAutorEditar(Nombres, Apellidos, Nacionalidad, FechaNacimiento);
 
@@ -133,6 +133,7 @@ public class AutorModel : PageModel
             ModelState.SetModelValue("Nacionalidad", new ValueProviderResult(Nacionalidad ?? ""));
             ModelState.SetModelValue("FechaNacimiento", new ValueProviderResult(FechaNacimiento?.ToString("yyyy-MM-dd") ?? ""));
             ModelState.SetModelValue("Estado", new ValueProviderResult("true"));
+
             CargarAutores();
             return Page();
         }
@@ -164,68 +165,121 @@ public class AutorModel : PageModel
 
     private void ValidarAutorCrear()
     {
-        ValidarCampoObligatorio("AutorDto.Nombres", AutorDto.Nombres, "Ingrese el nombre del autor.");
-        ValidarCampoObligatorio("AutorDto.Apellidos", AutorDto.Apellidos, "Ingrese los apellidos del autor.");
-        ValidarCampoObligatorio("AutorDto.Nacionalidad", AutorDto.Nacionalidad, "Seleccione una nacionalidad.");
+        if (AgregarErrorSiCampoVacio("AutorDto.Nombres", AutorDto.Nombres, "Ingrese el nombre del autor."))
+            return;
 
-        ValidarSoloLetras("AutorDto.Nombres", AutorDto.Nombres, "El nombre solo debe contener letras y espacios.");
-        ValidarSoloLetras("AutorDto.Apellidos", AutorDto.Apellidos, "Los apellidos solo deben contener letras y espacios.");
-        ValidarSoloLetras("AutorDto.Nacionalidad", AutorDto.Nacionalidad, "La nacionalidad solo debe contener letras y espacios.");
+        if (AgregarErrorSiNoSonLetras("AutorDto.Nombres", AutorDto.Nombres, "El nombre solo debe contener letras y espacios."))
+            return;
 
-        ValidarFecha("AutorDto.FechaNacimiento", AutorDto.FechaNacimiento);
+        if (AgregarErrorSiTieneLetrasSeparadas("AutorDto.Nombres", AutorDto.Nombres, "No se permiten letras separadas por espacios."))
+            return;
+
+        if (AgregarErrorSiNoSonLetras("AutorDto.Apellidos", AutorDto.Apellidos, "Los apellidos solo deben contener letras y espacios."))
+            return;
+
+        if (AgregarErrorSiTieneLetrasSeparadas("AutorDto.Apellidos", AutorDto.Apellidos, "No se permiten letras separadas por espacios en los apellidos."))
+            return;
+
+        if (AgregarErrorSiNoSonLetras("AutorDto.Nacionalidad", AutorDto.Nacionalidad, "La nacionalidad solo debe contener letras y espacios."))
+            return;
+
+        if (AgregarErrorSiTieneLetrasSeparadas("AutorDto.Nacionalidad", AutorDto.Nacionalidad, "No se permiten letras separadas por espacios en la nacionalidad."))
+            return;
+
+        AgregarErrorSiFechaInvalida("AutorDto.FechaNacimiento", AutorDto.FechaNacimiento);
     }
 
     private void ValidarAutorEditar(string nombres, string? apellidos, string? nacionalidad, DateTime? fechaNacimiento)
     {
-        ValidarCampoObligatorio("Nombres", nombres, "Ingrese el nombre del autor.");
-        ValidarCampoObligatorio("Apellidos", apellidos, "Ingrese los apellidos del autor.");
-        ValidarCampoObligatorio("Nacionalidad", nacionalidad, "Seleccione una nacionalidad.");
-
-        ValidarSoloLetras("Nombres", nombres, "El nombre solo debe contener letras y espacios.");
-        ValidarSoloLetras("Apellidos", apellidos, "Los apellidos solo deben contener letras y espacios.");
-        ValidarSoloLetras("Nacionalidad", nacionalidad, "La nacionalidad solo debe contener letras y espacios.");
-
-        ValidarFecha("FechaNacimiento", fechaNacimiento);
-    }
-
-    private void ValidarCampoObligatorio(string key, string? value, string message)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-            ModelState.AddModelError(key, message);
-    }
-
-    private void ValidarFechaObligatoria(string key, DateTime? value)
-    {
-        if (!value.HasValue)
-            ModelState.AddModelError(key, "Ingrese la fecha de nacimiento.");
-    }
-
-    private void ValidarSoloLetras(string key, string? value, string message)
-    {
-        if (string.IsNullOrWhiteSpace(value))
+        if (AgregarErrorSiCampoVacio("Nombres", nombres, "Ingrese el nombre del autor."))
             return;
+
+        if (AgregarErrorSiNoSonLetras("Nombres", nombres, "El nombre solo debe contener letras y espacios."))
+            return;
+
+        if (AgregarErrorSiTieneLetrasSeparadas("Nombres", nombres, "No se permiten letras separadas por espacios."))
+            return;
+
+        if (AgregarErrorSiNoSonLetras("Apellidos", apellidos, "Los apellidos solo deben contener letras y espacios."))
+            return;
+
+        if (AgregarErrorSiTieneLetrasSeparadas("Apellidos", apellidos, "No se permiten letras separadas por espacios en los apellidos."))
+            return;
+
+        if (AgregarErrorSiNoSonLetras("Nacionalidad", nacionalidad, "La nacionalidad solo debe contener letras y espacios."))
+            return;
+
+        if (AgregarErrorSiTieneLetrasSeparadas("Nacionalidad", nacionalidad, "No se permiten letras separadas por espacios en la nacionalidad."))
+            return;
+
+        AgregarErrorSiFechaInvalida("FechaNacimiento", fechaNacimiento);
+    }
+
+    private bool AgregarErrorSiCampoVacio(string key, string? value, string message)
+    {
+        if (!string.IsNullOrWhiteSpace(value))
+            return false;
+
+        ModelState.AddModelError(key, message);
+        return true;
+    }
+
+    private bool AgregarErrorSiNoSonLetras(string key, string? value, string message)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return false;
 
         var regex = new Regex(@"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$");
 
-        if (!regex.IsMatch(value))
-            ModelState.AddModelError(key, message);
+        if (regex.IsMatch(value))
+            return false;
+
+        ModelState.AddModelError(key, message);
+        return true;
     }
 
-    private void ValidarEspaciosInternosIncorrectos(string key, string? value, string message)
+    private bool AgregarErrorSiTieneLetrasSeparadas(string key, string? value, string message)
     {
         if (string.IsNullOrWhiteSpace(value))
-            return;
+            return false;
 
-        var partes = value.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var partes = LimpiarTexto(value)
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
-        if (partes.Length >= 3 && partes.Any(parte => parte.Length <= 2))
-            ModelState.AddModelError(key, message);
+        if (!partes.Any(parte => parte.Length == 1))
+            return false;
+
+        ModelState.AddModelError(key, message);
+        return true;
     }
 
-    private void ValidarFecha(string key, DateTime? fechaNacimiento)
+    private bool AgregarErrorSiFechaInvalida(string key, DateTime? fechaNacimiento)
     {
-        if (fechaNacimiento.HasValue && fechaNacimiento.Value.Date > DateTime.Today)
+        if (!fechaNacimiento.HasValue)
+        {
+            ModelState.AddModelError(key, "Ingrese la fecha de nacimiento.");
+            return true;
+        }
+
+        if (fechaNacimiento.Value.Date > DateTime.Today)
+        {
             ModelState.AddModelError(key, "La fecha de nacimiento no puede ser futura.");
+            return true;
+        }
+
+        var hoy = DateTime.Today;
+        var edad = hoy.Year - fechaNacimiento.Value.Year;
+
+        if (fechaNacimiento.Value.Date > hoy.AddYears(-edad))
+            edad--;
+
+        if (edad < 18)
+        {
+            ModelState.AddModelError(key, "El autor debe ser mayor de edad.");
+            return true;
+        }
+
+        return false;
     }
 
     private static string LimpiarTexto(string? value)
@@ -234,6 +288,97 @@ public class AutorModel : PageModel
             return string.Empty;
 
         return Regex.Replace(value.Trim(), @"\s+", " ");
+    }
+
+    private static string? LimpiarTextoOpcional(string? value)
+    {
+        var texto = LimpiarTexto(value);
+        return string.IsNullOrWhiteSpace(texto) ? null : texto;
+    }
+
+    private static string FormatearObligatorio(string? value)
+    {
+        return FormatearNombrePropio(LimpiarTexto(value));
+    }
+
+    private static string? FormatearTextoOpcional(string? value)
+    {
+        var texto = LimpiarTextoOpcional(value);
+
+        if (string.IsNullOrWhiteSpace(texto))
+            return null;
+
+        return FormatearNombrePropio(texto);
+    }
+
+    private static string? FormatearApellidoOpcional(string? value)
+    {
+        var texto = LimpiarTextoOpcional(value);
+
+        if (string.IsNullOrWhiteSpace(texto))
+            return null;
+
+        texto = CorregirApellidosCompuestos(texto);
+
+        return FormatearNombrePropio(texto);
+    }
+
+    private static string FormatearNombrePropio(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return string.Empty;
+
+        var palabras = value
+            .ToLowerInvariant()
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Select(CapitalizarPalabra);
+
+        return string.Join(" ", palabras);
+    }
+
+    private static string CapitalizarPalabra(string palabra)
+    {
+        if (string.IsNullOrWhiteSpace(palabra))
+            return string.Empty;
+
+        if (palabra.Length == 1)
+            return palabra.ToUpperInvariant();
+
+        return char.ToUpperInvariant(palabra[0]) + palabra[1..];
+    }
+
+    private static string CorregirApellidosCompuestos(string value)
+    {
+        var limpio = LimpiarTexto(value);
+        var partes = limpio.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var partesCorregidas = partes.Select(CorregirParteApellidoCompuesto);
+
+        return string.Join(" ", partesCorregidas);
+    }
+
+    private static string CorregirParteApellidoCompuesto(string value)
+    {
+        var clave = value.ToLowerInvariant();
+
+        return clave switch
+        {
+            "delarosa" => "De La Rosa",
+            "delafuente" => "De La Fuente",
+            "delacruz" => "De La Cruz",
+            "delatorre" => "De La Torre",
+            "delvalle" => "Del Valle",
+            "delrio" => "Del Río",
+            "delrío" => "Del Río",
+            "delosrios" => "De Los Ríos",
+            "delosríos" => "De Los Ríos",
+            "delossantos" => "De Los Santos",
+            "delcastillo" => "Del Castillo",
+            "delcampo" => "Del Campo",
+            "delpilar" => "Del Pilar",
+            "delmonte" => "Del Monte",
+            "delpozo" => "Del Pozo",
+            _ => value
+        };
     }
 
     private void AgregarError(Error error, bool esCrear = false)

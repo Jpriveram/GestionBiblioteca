@@ -227,7 +227,7 @@
             <input type="text"
                    id="editApellidos"
                    name="Apellidos"
-                   placeholder="Apellidos"
+                   placeholder="Apellidos opcional"
                    value="@editApellidos"
                    data-field="editApellidos" />
             <span class="text-error field-error"
@@ -237,7 +237,7 @@
             </span>
 
             <select id="editNacionalidad" name="Nacionalidad" data-field="editNacionalidad">
-                <option value="">Seleccione una nacionalidad</option>
+                <option value="">Nacionalidad opcional</option>
                 @foreach (var pais in paises)
                 {
                     <option value="@pais" selected="@(editNacionalidad == pais ? "selected" : null)">
@@ -299,7 +299,7 @@
             <input type="text"
                    id="createApellidos"
                    name="AutorDto.Apellidos"
-                   placeholder="Apellidos"
+                   placeholder="Apellidos opcional"
                    value="@createApellidos"
                    data-field="createApellidos" />
             <span class="text-error field-error"
@@ -311,7 +311,7 @@
             <select id="createNacionalidad"
                     name="AutorDto.Nacionalidad"
                     data-field="createNacionalidad">
-                <option value="">Seleccione una nacionalidad</option>
+                <option value="">Nacionalidad opcional</option>
                 @foreach (var pais in paises)
                 {
                     <option value="@pais" selected="@(createNacionalidad == pais ? "selected" : null)">
@@ -357,7 +357,7 @@
             var modalActivo = '@Model.ModalActivo';
 
             if (modalActivo === "crear") {
-                abrirModalCrear();
+                abrirModalCrear(false);
             }
 
             if (modalActivo === "editar") {
@@ -394,8 +394,11 @@
             modalEditar.style.display = "none";
         }
 
-        function abrirModalCrear() {
-            limpiarErrores(createAutorForm);
+        function abrirModalCrear(limpiar = true) {
+            if (limpiar) {
+                limpiarErrores(createAutorForm);
+            }
+
             modalCrear.style.display = "flex";
         }
 
@@ -434,6 +437,11 @@
             return valor.replace(/\s+/g, " ").trim();
         }
 
+        function tieneLetrasSeparadas(valor) {
+            const partes = normalizarTexto(valor).split(" ").filter(parte => parte.length > 0);
+            return partes.some(parte => parte.length === 1);
+        }
+
         function limpiarErrores(form) {
             if (!form) return;
 
@@ -458,16 +466,6 @@
             }
         }
 
-        function tieneEspaciosInternosInvalidos(valor, minimoPartes) {
-            const partes = valor.trim().split(" ").filter(parte => parte.length > 0);
-
-            if (partes.length < minimoPartes) {
-                return false;
-            }
-
-            return partes.some(parte => parte.length <= 2);
-        }
-
         function validarFormularioAutor(form, modo) {
             limpiarErrores(form);
 
@@ -490,42 +488,70 @@
             nombres.value = normalizarTexto(nombres.value);
             apellidos.value = normalizarTexto(apellidos.value);
 
-            let esValido = true;
             const soloLetras = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/;
 
             if (!nombres.value) {
                 mostrarError(nombres, "Ingrese el nombre del autor.");
-                esValido = false;
-            } else if (!soloLetras.test(nombres.value)) {
+                return false;
+            }
+
+            if (!soloLetras.test(nombres.value)) {
                 mostrarError(nombres, "El nombre solo debe contener letras y espacios.");
-                esValido = false;
+                return false;
             }
 
-            if (!apellidos.value) {
-                mostrarError(apellidos, "Ingrese los apellidos del autor.");
-                esValido = false;
-            } else if (!soloLetras.test(apellidos.value)) {
+            if (tieneLetrasSeparadas(nombres.value)) {
+                mostrarError(nombres, "No se permiten letras separadas por espacios.");
+                return false;
+            }
+
+            if (apellidos.value && !soloLetras.test(apellidos.value)) {
                 mostrarError(apellidos, "Los apellidos solo deben contener letras y espacios.");
-                esValido = false;
+                return false;
             }
 
-            if (!nacionalidad.value) {
-                mostrarError(nacionalidad, "Seleccione una nacionalidad.");
-                esValido = false;
+            if (apellidos.value && tieneLetrasSeparadas(apellidos.value)) {
+                mostrarError(apellidos, "No se permiten letras separadas por espacios en los apellidos.");
+                return false;
             }
 
-            if (fecha.value) {
-                const fechaIngresada = new Date(fecha.value + "T00:00:00");
-                const hoy = new Date();
-                hoy.setHours(0, 0, 0, 0);
-
-                if (fechaIngresada > hoy) {
-                    mostrarError(fecha, "La fecha de nacimiento no puede ser futura.");
-                    esValido = false;
-                }
+            if (nacionalidad.value && !soloLetras.test(nacionalidad.value)) {
+                mostrarError(nacionalidad, "La nacionalidad solo debe contener letras y espacios.");
+                return false;
             }
 
-            return esValido;
+            if (nacionalidad.value && tieneLetrasSeparadas(nacionalidad.value)) {
+                mostrarError(nacionalidad, "No se permiten letras separadas por espacios en la nacionalidad.");
+                return false;
+            }
+
+            if (!fecha.value) {
+                mostrarError(fecha, "Ingrese la fecha de nacimiento.");
+                return false;
+            }
+
+            const fechaIngresada = new Date(fecha.value + "T00:00:00");
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+
+            if (fechaIngresada > hoy) {
+                mostrarError(fecha, "La fecha de nacimiento no puede ser futura.");
+                return false;
+            }
+
+            let edad = hoy.getFullYear() - fechaIngresada.getFullYear();
+            const mes = hoy.getMonth() - fechaIngresada.getMonth();
+
+            if (mes < 0 || (mes === 0 && hoy.getDate() < fechaIngresada.getDate())) {
+                edad--;
+            }
+
+            if (edad < 18) {
+                mostrarError(fecha, "El autor debe ser mayor de edad.");
+                return false;
+            }
+
+            return true;
         }
 
         document.addEventListener("DOMContentLoaded", function () {

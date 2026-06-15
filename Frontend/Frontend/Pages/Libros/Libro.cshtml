@@ -284,7 +284,7 @@ else
                     </div>
                     <div class="select-dropdown">
                         <div class="select-options">
-                            @foreach (var autorRow in Model.Autores)
+                            @foreach (var autorRow in Model.Autores.OrderBy(autorRow => $"{(autorRow.Nombres ?? "").ToDisplayName()} {(autorRow.Apellidos ?? "").ToDisplayName()}"))
                             {
                                 var aId = autorRow.AutorId;
                                 var nombres = (autorRow.Nombres ?? "").ToDisplayName();
@@ -459,17 +459,16 @@ else
                 <label class="form-label-req">Autor <span class="req-star">*</span></label>
                 <input type="hidden" id="createAutorId" name="AutorId" />
                 <input type="hidden" id="createAutorNuevo" name="NombreAutorNuevo" />
-                <div class="custom-select custom-select-free" id="custom-select-autor-create">
+                <div class="custom-select" id="custom-select-autor-create">
                     <div class="select-trigger">
-                        <span id="createAutorText">Seleccione un autor...</span>
+                        <input type="text" id="createAutorText" class="select-trigger-input" placeholder="Seleccione un autor..." />
                         <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="6 9 12 15 18 9"></polyline>
                         </svg>
                     </div>
                     <div class="select-dropdown">
-                        <input type="text" class="select-search" id="autor-search-create" placeholder="Buscar o escribir autor..." />
                         <div class="select-options">
-                            @foreach (var autorRow in Model.Autores)
+                            @foreach (var autorRow in Model.Autores.OrderBy(autorRow => $"{(autorRow.Nombres ?? "").ToDisplayName()} {(autorRow.Apellidos ?? "").ToDisplayName()}"))
                             {
                                 if (!autorRow.Estado) continue;
                                 var aId = autorRow.AutorId;
@@ -490,13 +489,12 @@ else
                 <input type="hidden" id="createTituloHidden" name="Titulo" />
                 <div class="custom-select custom-select-free" id="custom-select-titulo-create">
                     <div class="select-trigger">
-                        <span id="createTituloText">Título del libro</span>
+                        <input type="text" id="createTituloText" class="select-trigger-input" placeholder="Título del libro" />
                         <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="6 9 12 15 18 9"></polyline>
                         </svg>
                     </div>
                     <div class="select-dropdown">
-                        <input type="text" class="select-search" id="titulo-search-create" placeholder="Escribe o busca título..." />
                         <div class="select-options">
                             @foreach (var tituloItem in titulosSugeridos.OrderBy(x => x))
                             {
@@ -740,7 +738,7 @@ else
     document.getElementById("dAutor").textContent = autor || "N/A";
     document.getElementById("dTitulo").textContent = titulo || "N/A";
     document.getElementById("dISBN").textContent = isbn || "N/A";
-    document.getElementById("dEditorial").textContent = editorial || "N/A";
+    document.getElementById("dEditorial").textContent = editorial || "N/a";
     document.getElementById("dGenero").textContent = genero || "N/A";
     document.getElementById("dEdicion").textContent = edicion || "N/A";
     document.getElementById("dAnio").textContent = anio || "N/A";
@@ -845,7 +843,7 @@ function filtrarCaracteresEspeciales(id) {
     if (!input) return;
 
     input.addEventListener('input', function() {
-        // Solo permite letras (incluyendo acentos), números, espacios y guiones
+        // Solo permite letras (acentos), números, espacios y guiones
         this.value = this.value.replace(/[^a-záéíóúñüA-ZÁÉÍÓÚÑÜ0-9\s\-]/g, '');
     });
 
@@ -870,9 +868,9 @@ function filtrarDescripcion(id) {
 
 function sincronizarCamposCrear() {
     const autorSelect = document.getElementById('custom-select-autor-create');
-    const autorSearchInput = document.getElementById('autor-search-create');
+    const autorSearchInput = document.getElementById('createAutorText');
     const tituloSelect = document.getElementById('custom-select-titulo-create');
-    const tituloSearchInput = document.getElementById('titulo-search-create');
+    const tituloSearchInput = document.getElementById('createTituloText');
     const generoSelect = document.getElementById('custom-select-genero-create');
     const generoSearchInput = document.getElementById('genero-search-create');
     const idiomaSelect = document.getElementById('custom-select-idioma-create');
@@ -881,13 +879,14 @@ function sincronizarCamposCrear() {
     const paisSearchInput = document.getElementById('pais-search-create');
 
     const createAutorId = document.getElementById('createAutorId');
+    const createAutorNuevo = document.getElementById('createAutorNuevo');
     const createTituloHidden = document.getElementById('createTituloHidden');
     const createGeneroHidden = document.getElementById('createGeneroHidden');
     const createIdiomaHidden = document.getElementById('createIdiomaHidden');
     const createPaisPublicacionHidden = document.getElementById('createPaisPublicacionHidden');
 
     if (autorSearchInput && autorSearchInput.value.trim() && !createAutorId.value) {
-        createAutorId.value = autorSearchInput.value.trim();
+        createAutorNuevo.value = autorSearchInput.value.trim();
     }
 
     if (tituloSearchInput && tituloSearchInput.value.trim()) {
@@ -1041,12 +1040,12 @@ function cargarAutoresActivosCrear() {
         .then(autores => {
             optionsContainer.innerHTML = "";
 
-            (autores || []).forEach(autor => {
-                const option = document.createElement("div");
-                option.className = "option";
-                option.dataset.value = autor.id;
-                option.textContent = autor.displayText || `${autor.nombres || ""} ${autor.apellidos || ""}`.trim();
-                optionsContainer.appendChild(option);
+            (autores || []).sort((a, b) => (a.displayText || "").localeCompare(b.displayText || "", 'es', { sensitivity: 'base' })).forEach(autor => {
+                 const option = document.createElement("div");
+                 option.className = "option";
+                 option.dataset.value = autor.id;
+                 option.textContent = autor.displayText || `${autor.nombres || ""} ${autor.apellidos || ""}`.trim();
+                 optionsContainer.appendChild(option);
             });
         })
         .catch(() => { });
@@ -1059,34 +1058,29 @@ function mostrarModalEditar() {
 function abrirModalCrear() {
     document.getElementById("createAutorId").value = "";
     document.getElementById("createAutorNuevo").value = "";
-    document.getElementById("createAutorText").textContent = "Seleccione un autor...";
-    document.getElementById("autor-search-create").value = "";
-
-    document.getElementById("createTituloHidden").value = "";
-    document.getElementById("createTituloText").textContent = "Título del libro";
-    document.getElementById("titulo-search-create").value = "";
-
-    document.getElementById("createISBN").value = "";
-    document.getElementById("createEditorial").value = "";
-
-    document.getElementById("createGeneroHidden").value = "";
-    document.getElementById("createGeneroText").textContent = "Género";
-    document.getElementById("genero-search-create").value = "";
-
-    document.getElementById("createEdicion").value = "";
-    document.getElementById("createEdicionText").textContent = "-- Seleccione una edición --";
-    document.getElementById("createAnioPublicacion").value = "";
-    document.getElementById("createNumeroPaginas").value = "";
-
-    document.getElementById("createIdiomaHidden").value = "";
-    document.getElementById("createIdiomaText").textContent = "Idioma";
-    document.getElementById("idioma-search-create").value = "";
-
-    document.getElementById("createPaisPublicacionHidden").value = "";
-    document.getElementById("createPaisPublicacionText").textContent = "País de publicación";
-    document.getElementById("pais-search-create").value = "";
-
-    document.getElementById("createDescripcion").value = "";
+    document.getElementById("createAutorText").value = "";
+ 
+     document.getElementById("createTituloHidden").value = "";
+     document.getElementById("createTituloText").value = "";
+ 
+     document.getElementById("createISBN").value = "";
+     document.getElementById("createEditorial").value = "";
+ 
+     document.getElementById("createGeneroHidden").value = "";
+     document.getElementById("createGeneroText").value = "";
+ 
+     document.getElementById("createEdicion").value = "";
+     document.getElementById("createEdicionText").value = "-- Seleccione una edición --";
+     document.getElementById("createAnioPublicacion").value = "";
+     document.getElementById("createNumeroPaginas").value = "";
+ 
+     document.getElementById("createIdiomaHidden").value = "";
+     document.getElementById("createIdiomaText").value = "";
+ 
+     document.getElementById("createPaisPublicacionHidden").value = "";
+     document.getElementById("createPaisPublicacionText").value = "";
+ 
+     document.getElementById("createDescripcion").value = "";
 
     limpiarErrores('create', ['AutorId', 'Titulo', 'ISBN', 'Editorial', 'Genero', 'Edicion', 'AñoPublicacion', 'NumeroPaginas', 'Idioma', 'PaisPublicacion', 'Descripcion']);
 
@@ -1096,17 +1090,17 @@ function abrirModalCrear() {
 }
 
 function abrirSelectorAutorCrear() {
-    const select = document.getElementById("custom-select-autor-create");
-    const search = document.getElementById("autor-search-create");
-
-    if (!select) return;
-
-    select.classList.add("active");
-
-    if (search) {
-        setTimeout(() => search.focus(), 50);
-    }
-}
+     const select = document.getElementById("custom-select-autor-create");
+     const search = document.getElementById("createAutorText");
+ 
+     if (!select) return;
+ 
+     select.classList.add("active");
+ 
+     if (search) {
+         setTimeout(() => search.focus(), 50);
+     }
+ }
 
 function cerrarModalCrear() {
     document.getElementById("modalCrear").style.display = "none";

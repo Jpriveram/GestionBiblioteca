@@ -1,5 +1,6 @@
 ﻿using System.Net.Http.Json;
 using System.Net.Http.Headers;
+using System.Text.RegularExpressions;
 using Frontend.Dtos;
 using Frontend.Helpers;
 using Microsoft.AspNetCore.Http;
@@ -195,6 +196,7 @@ public class AutorAdapter : IAutorServicio
         if (string.IsNullOrWhiteSpace(texto))
             return null;
 
+        texto = SepararPalabrasPegadasPorMayuscula(texto);
         texto = CorregirApellidosCompuestos(texto);
 
         return FormatearNombrePropio(texto);
@@ -208,8 +210,20 @@ public class AutorAdapter : IAutorServicio
         return string.Join(" ", value.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries));
     }
 
+    private static string SepararPalabrasPegadasPorMayuscula(string? value)
+    {
+        var texto = NormalizarEspacios(value);
+
+        if (string.IsNullOrWhiteSpace(texto))
+            return string.Empty;
+
+        return Regex.Replace(texto, @"(?<=[a-záéíóúñü])(?=[A-ZÁÉÍÓÚÑÜ])", " ");
+    }
+
     private static string FormatearNombrePropio(string value)
     {
+        value = SepararPalabrasPegadasPorMayuscula(value);
+
         if (string.IsNullOrWhiteSpace(value))
             return string.Empty;
 

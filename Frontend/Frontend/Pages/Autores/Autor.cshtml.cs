@@ -229,9 +229,10 @@ public class AutorModel : PageModel
         if (string.IsNullOrWhiteSpace(value))
             return false;
 
+        var texto = SepararPalabrasPegadasPorMayuscula(value);
         var regex = new Regex(@"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$");
 
-        if (regex.IsMatch(value))
+        if (regex.IsMatch(texto))
             return false;
 
         ModelState.AddModelError(key, message);
@@ -256,10 +257,7 @@ public class AutorModel : PageModel
     private bool AgregarErrorSiFechaInvalida(string key, DateTime? fechaNacimiento)
     {
         if (!fechaNacimiento.HasValue)
-        {
-            ModelState.AddModelError(key, "Ingrese la fecha de nacimiento.");
-            return true;
-        }
+            return false;
 
         if (fechaNacimiento.Value.Date > DateTime.Today)
         {
@@ -290,6 +288,16 @@ public class AutorModel : PageModel
         return Regex.Replace(value.Trim(), @"\s+", " ");
     }
 
+    private static string SepararPalabrasPegadasPorMayuscula(string? value)
+    {
+        var texto = LimpiarTexto(value);
+
+        if (string.IsNullOrWhiteSpace(texto))
+            return string.Empty;
+
+        return Regex.Replace(texto, @"(?<=[a-záéíóúñü])(?=[A-ZÁÉÍÓÚÑÜ])", " ");
+    }
+
     private static string? LimpiarTextoOpcional(string? value)
     {
         var texto = LimpiarTexto(value);
@@ -298,7 +306,7 @@ public class AutorModel : PageModel
 
     private static string FormatearObligatorio(string? value)
     {
-        return FormatearNombrePropio(LimpiarTexto(value));
+        return FormatearNombrePropio(SepararPalabrasPegadasPorMayuscula(value));
     }
 
     private static string? FormatearTextoOpcional(string? value)
@@ -318,6 +326,7 @@ public class AutorModel : PageModel
         if (string.IsNullOrWhiteSpace(texto))
             return null;
 
+        texto = SepararPalabrasPegadasPorMayuscula(texto);
         texto = CorregirApellidosCompuestos(texto);
 
         return FormatearNombrePropio(texto);
@@ -325,6 +334,8 @@ public class AutorModel : PageModel
 
     private static string FormatearNombrePropio(string value)
     {
+        value = SepararPalabrasPegadasPorMayuscula(value);
+
         if (string.IsNullOrWhiteSpace(value))
             return string.Empty;
 

@@ -304,8 +304,8 @@
                     </div>
 
                     <div class="field-block">
-                        <label asp-for="NuevoLector.Email" class="field-label">Correo electrónico <span class="required-mark">*</span></label>
-                        <input type="email" asp-for="NuevoLector.Email" class="input-form" id="NuevoLector_Email" />
+                        <label asp-for="NuevoLector.Email" class="field-label">Correo electrónico</label>
+                        <input type="email" asp-for="NuevoLector.Email" class="input-form" id="NuevoLector_Email" value="@(string.IsNullOrEmpty(Model.NuevoLector.Email) ? "sin-correo@biblioteca.com" : Model.NuevoLector.Email)" />
                         <div id="error-NuevoLector_Email" class="field-error"></div>
                     </div>
                 </div>
@@ -1007,10 +1007,7 @@
                 setFieldError('error-NuevoLector_PrimerApellido', 'El primer apellido es obligatorio.');
             }
 
-            if (!email) {
-                errores.push('El correo electrónico es obligatorio.');
-                setFieldError('error-NuevoLector_Email', 'El correo electrónico es obligatorio.');
-            } else {
+            if (email) {
                 const emailValido = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(email);
                 if (!emailValido) {
                     errores.push('Introduce un correo electrónico válido.');

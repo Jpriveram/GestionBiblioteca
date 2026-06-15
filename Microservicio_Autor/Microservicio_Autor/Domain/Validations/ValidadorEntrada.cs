@@ -1,4 +1,6 @@
-﻿namespace Microservicio_Autor.Domain.Validations;
+﻿using System.Text.RegularExpressions;
+
+namespace Microservicio_Autor.Domain.Validations;
 
 public static class ValidadorEntrada
 {
@@ -10,9 +12,19 @@ public static class ValidadorEntrada
         return string.Join(" ", value.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries));
     }
 
-    public static string FormatearNombrePropio(string? value)
+    public static string SepararPalabrasPegadasPorMayuscula(string? value)
     {
         var texto = NormalizarEspacios(value);
+
+        if (string.IsNullOrWhiteSpace(texto))
+            return string.Empty;
+
+        return Regex.Replace(texto, @"(?<=[a-záéíóúñü])(?=[A-ZÁÉÍÓÚÑÜ])", " ");
+    }
+
+    public static string FormatearNombrePropio(string? value)
+    {
+        var texto = SepararPalabrasPegadasPorMayuscula(value);
 
         if (string.IsNullOrWhiteSpace(texto))
             return string.Empty;
@@ -38,6 +50,7 @@ public static class ValidadorEntrada
         if (string.IsNullOrWhiteSpace(texto))
             return null;
 
+        texto = SepararPalabrasPegadasPorMayuscula(texto);
         texto = CorregirApellidosCompuestos(texto);
 
         return FormatearNombrePropio(texto);
@@ -56,7 +69,7 @@ public static class ValidadorEntrada
         if (string.IsNullOrWhiteSpace(value))
             return true;
 
-        var texto = NormalizarEspacios(value);
+        var texto = SepararPalabrasPegadasPorMayuscula(value);
 
         return texto.All(c => char.IsLetter(c) || char.IsWhiteSpace(c));
     }

@@ -122,7 +122,7 @@
                         <td>@nombresDisplay</td>
                         <td>@apellidosDisplay</td>
                         <td>@nacionalidad</td>
-                        <td>@fecha</td>
+                        <td>@(string.IsNullOrWhiteSpace(fecha) ? "Sin fecha" : fecha)</td>
 
                         <td>
                             @if (estado)
@@ -178,7 +178,6 @@
     </div>
 </div>
 
-<!-- MODAL ELIMINAR -->
 <div id="modalEliminar" class="modal">
     <div class="modal-box modal-box-small">
 
@@ -202,7 +201,6 @@
     </div>
 </div>
 
-<!-- MODAL EDITAR -->
 <div id="modalEditar" class="modal">
     <div class="modal-box">
         <h2>Editar Autor</h2>
@@ -276,7 +274,6 @@
     </div>
 </div>
 
-<!-- MODAL CREAR -->
 <div id="modalCrear" class="modal">
     <div class="modal-box">
         <h2>Nuevo Autor</h2>
@@ -380,8 +377,8 @@
 
         function abrirModalEditar(t, n, a, na, f) {
             editToken.value = t;
-            editNombres.value = normalizarTexto(n || "");
-            editApellidos.value = normalizarTexto(a || "");
+            editNombres.value = formatearNombrePropio(n || "");
+            editApellidos.value = formatearNombrePropio(a || "");
             editNacionalidad.value = na || "";
             editFechaNacimiento.value = f || "";
             editEstado.value = "true";
@@ -437,6 +434,25 @@
             return valor.replace(/\s+/g, " ").trim();
         }
 
+        function separarPalabrasPegadasPorMayuscula(valor) {
+            return normalizarTexto(valor).replace(/([a-záéíóúñü])([A-ZÁÉÍÓÚÑÜ])/g, "$1 $2");
+        }
+
+        function formatearNombrePropio(valor) {
+            valor = separarPalabrasPegadasPorMayuscula(valor);
+
+            if (!valor) {
+                return "";
+            }
+
+            return valor
+                .toLowerCase()
+                .split(" ")
+                .filter(parte => parte.length > 0)
+                .map(parte => parte.charAt(0).toUpperCase() + parte.slice(1))
+                .join(" ");
+        }
+
         function tieneLetrasSeparadas(valor) {
             const partes = normalizarTexto(valor).split(" ").filter(parte => parte.length > 0);
             return partes.some(parte => parte.length === 1);
@@ -485,8 +501,8 @@
                 ? document.getElementById("createFechaNacimiento")
                 : document.getElementById("editFechaNacimiento");
 
-            nombres.value = normalizarTexto(nombres.value);
-            apellidos.value = normalizarTexto(apellidos.value);
+            nombres.value = formatearNombrePropio(nombres.value);
+            apellidos.value = formatearNombrePropio(apellidos.value);
 
             const soloLetras = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/;
 
@@ -526,8 +542,7 @@
             }
 
             if (!fecha.value) {
-                mostrarError(fecha, "Ingrese la fecha de nacimiento.");
-                return false;
+                return true;
             }
 
             const fechaIngresada = new Date(fecha.value + "T00:00:00");

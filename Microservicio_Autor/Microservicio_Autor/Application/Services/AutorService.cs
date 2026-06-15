@@ -175,7 +175,7 @@ public class AutorService : IAutorService
         }
 
         if (!fechaNacimiento.HasValue)
-            throw new InvalidOperationException("Ingrese la fecha de nacimiento.");
+            return;
 
         if (fechaNacimiento.Value.Date > DateTime.Today)
             throw new InvalidOperationException("La fecha de nacimiento no puede ser futura.");

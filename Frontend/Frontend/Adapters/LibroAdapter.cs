@@ -179,20 +179,64 @@ public class LibroAdapter : ILibroServicio
         try
         {
             using var json = JsonDocument.Parse(content);
+            var root = json.RootElement;
 
-            var code = json.RootElement.TryGetProperty("code", out var codeElement)
+            if (root.TryGetProperty("errors", out var errorsElement)
+                && errorsElement.ValueKind == JsonValueKind.Object)
+            {
+                foreach (var fieldError in errorsElement.EnumerateObject())
+                {
+                    if (fieldError.Value.ValueKind != JsonValueKind.Array
+                        || fieldError.Value.GetArrayLength() == 0)
+                    {
+                        continue;
+                    }
+
+                    var message = fieldError.Value[0].GetString();
+                    if (!string.IsNullOrWhiteSpace(message))
+                    {
+                        return new Error(fieldError.Name, message);
+                    }
+                }
+            }
+
+            var code = root.TryGetProperty("code", out var codeElement)
                 ? codeElement.GetString()
                 : fallbackCode;
 
-            var message = json.RootElement.TryGetProperty("error", out var errorElement)
-                ? errorElement.GetString()
-                : content;
+            if (root.TryGetProperty("error", out var errorElement))
+            {
+                var message = errorElement.GetString();
+                if (!string.IsNullOrWhiteSpace(message))
+                {
+                    return new Error(code ?? fallbackCode, message);
+                }
+            }
 
-            return new Error(code ?? fallbackCode, message ?? "Error al procesar.");
+            if (root.TryGetProperty("message", out var messageElement))
+            {
+                var message = messageElement.GetString();
+                if (!string.IsNullOrWhiteSpace(message))
+                {
+                    return new Error(code ?? fallbackCode, message);
+                }
+            }
+
+            if (root.TryGetProperty("title", out var titleElement))
+            {
+                var title = titleElement.GetString();
+                if (!string.IsNullOrWhiteSpace(title)
+                    && !string.Equals(title, "One or more validation errors occurred.", StringComparison.OrdinalIgnoreCase))
+                {
+                    return new Error(code ?? fallbackCode, title);
+                }
+            }
         }
         catch
         {
             return new Error(fallbackCode, content);
         }
+
+        return new Error(fallbackCode, "Error al procesar la solicitud.");
     }
 }

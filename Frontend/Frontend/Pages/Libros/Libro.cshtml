@@ -299,36 +299,10 @@ else
                 <span class="text-error" id="error-edit-AutorId"></span>
             </div>
 
-            <div class="custom-select-wrapper">
+            <div class="input-group">
                 <label class="form-label-req">Título <span class="req-star">*</span></label>
-                <input type="hidden" id="editTituloHidden" name="Titulo" />
-                <div class="custom-select custom-select-free" id="custom-select-titulo-edit">
-                    <div class="select-trigger">
-                        <input type="text" id="editTituloText" class="select-trigger-input" placeholder="Título del libro" />
-                        <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
-                    </div>
-                    <div class="select-dropdown">
-                        <div class="select-options">
-                            @foreach (var tituloItem in titulosSugeridos.OrderBy(x => x))
-                            {
-                                <div class="option" data-value="@tituloItem">@tituloItem</div>
-                            }
-                        </div>
-                    </div>
-                </div>
+                <input type="text" id="editTituloText" name="Titulo" placeholder="Título del libro" autocomplete="off" spellcheck="false" />
                 <span class="text-error" id="error-edit-Titulo"></span>
-            </div>
-
-            <div class="input-group">
-                <input type="text" id="editISBN" name="ISBN" placeholder="ISBN (10 o 13 dígitos)" maxlength="17" />
-                <span class="text-error" id="error-edit-ISBN"></span>
-            </div>
-
-            <div class="input-group">
-                <input type="text" id="editEditorial" name="Editorial" placeholder="Editorial" inputmode="text" />
-                <span class="text-error" id="error-edit-Editorial"></span>
             </div>
 
             <div class="custom-select-wrapper">
@@ -341,15 +315,25 @@ else
                         </svg>
                     </div>
                     <div class="select-dropdown">
-                        <div class="select-options">
-                            @foreach (var generoItem in generosSugeridos.OrderBy(x => x))
-                            {
-                                <div class="option" data-value="@generoItem">@generoItem</div>
-                            }
-                        </div>
+                         <div class="select-options">
+                             @foreach (var generoItem in generosSugeridos.OrderBy(x => x))
+                             {
+                                 <div class="option" data-value="@generoItem">@generoItem</div>
+                             }
+                         </div>
                     </div>
                 </div>
                 <span class="text-error" id="error-edit-Genero"></span>
+            </div>
+
+            <div class="input-group">
+                <input type="text" id="editISBN" name="ISBN" placeholder="ISBN (10 o 13 dígitos)" maxlength="17" />
+                <span class="text-error" id="error-edit-ISBN"></span>
+            </div>
+
+            <div class="input-group">
+                <input type="text" id="editEditorial" name="Editorial" placeholder="Editorial" inputmode="text" />
+                <span class="text-error" id="error-edit-Editorial"></span>
             </div>
 
             <div class="custom-select-wrapper">
@@ -486,24 +470,29 @@ else
 
             <div class="custom-select-wrapper">
                 <label class="form-label-req">Título <span class="req-star">*</span></label>
-                <input type="hidden" id="createTituloHidden" name="Titulo" />
-                <div class="custom-select custom-select-free" id="custom-select-titulo-create">
+                <input type="text" id="createTituloText" name="Titulo" placeholder="Título del libro" autocomplete="off" spellcheck="false" />
+                <span class="text-error" id="error-create-Titulo"></span>
+            </div>
+
+            <div class="custom-select-wrapper">
+                <input type="hidden" id="createGeneroHidden" name="Genero" />
+                <div class="custom-select custom-select-free" id="custom-select-genero-create">
                     <div class="select-trigger">
-                        <input type="text" id="createTituloText" class="select-trigger-input" placeholder="Título del libro" />
+                        <input type="text" id="createGeneroText" class="select-trigger-input" placeholder="Género" />
                         <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="6 9 12 15 18 9"></polyline>
                         </svg>
                     </div>
                     <div class="select-dropdown">
                         <div class="select-options">
-                            @foreach (var tituloItem in titulosSugeridos.OrderBy(x => x))
+                            @foreach (var generoItem in generosSugeridos.OrderBy(x => x))
                             {
-                                <div class="option" data-value="@tituloItem">@tituloItem</div>
+                                <div class="option" data-value="@generoItem">@generoItem</div>
                             }
                         </div>
                     </div>
                 </div>
-                <span class="text-error" id="error-create-Titulo"></span>
+                <span class="text-error" id="error-create-Genero"></span>
             </div>
 
             <div class="input-group">
@@ -517,51 +506,18 @@ else
             </div>
 
             <div class="custom-select-wrapper">
-                <input type="hidden" id="createGeneroHidden" name="Genero" />
-                <div class="custom-select custom-select-free" id="custom-select-genero-create">
-                    <div class="select-trigger">
-                        <span id="createGeneroText">Género</span>
-                        <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
-                    </div>
-                    <div class="select-dropdown">
-                        <input type="text" class="select-search" id="genero-search-create" placeholder="Escribe o busca género..." />
-                        <div class="select-options">
-                            @foreach (var generoItem in generosSugeridos.OrderBy(x => x))
-                            {
-                                <div class="option" data-value="@generoItem">@generoItem</div>
-                            }
-                        </div>
-                    </div>
-                </div>
-                <span class="text-error" id="error-create-Genero"></span>
-            </div>
-
-            <div class="custom-select-wrapper">
                 <input type="hidden" id="createEdicion" name="Edicion" />
                 <div class="custom-select" id="custom-select-edicion-create">
                     <div class="select-trigger">
-                        <span id="createEdicionText">-- Seleccione una edición --</span>
+                        <input type="text" id="createEdicionText" class="select-trigger-input" placeholder="-- Seleccione una edición --" />
                         <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="6 9 12 15 18 9"></polyline>
                         </svg>
                     </div>
                     <div class="select-dropdown">
-                        <input type="text" class="select-search" id="edicion-search-create" placeholder="Buscar edición..." />
                         <div class="select-options">
                             <div class="option" data-value="1ra Edición">1ra Edición</div>
                             <div class="option" data-value="2da Edición">2da Edición</div>
-                            <div class="option" data-value="3ra Edición">3ra Edición</div>
-                            <div class="option" data-value="4ta Edición">4ta Edición</div>
-                            <div class="option" data-value="5ta Edición">5ta Edición</div>
-                            <div class="option" data-value="6ta Edición">6ta Edición</div>
-                            <div class="option" data-value="7ma Edición">7ma Edición</div>
-                            <div class="option" data-value="8va Edición">8va Edición</div>
-                            <div class="option" data-value="9na Edición">9na Edición</div>
-                            <div class="option" data-value="10ma Edición">10ma Edición</div>
-                            <div class="option" data-value="11va Edición">11va Edición</div>
-                            <div class="option" data-value="12va Edición">12va Edición</div>
                         </div>
                     </div>
                 </div>
@@ -643,7 +599,6 @@ else
     </div>
 </div>
 
-@* Modal de detalle (solo lectura) *@
 <!-- MODAL DETALLE -->
 <div id="modalDetalle" class="modal">
 
@@ -738,7 +693,7 @@ else
     document.getElementById("dAutor").textContent = autor || "N/A";
     document.getElementById("dTitulo").textContent = titulo || "N/A";
     document.getElementById("dISBN").textContent = isbn || "N/A";
-    document.getElementById("dEditorial").textContent = editorial || "N/a";
+    document.getElementById("dEditorial").textContent = editorial || "N/A";
     document.getElementById("dGenero").textContent = genero || "N/A";
     document.getElementById("dEdicion").textContent = edicion || "N/A";
     document.getElementById("dAnio").textContent = anio || "N/A";
@@ -843,7 +798,7 @@ function filtrarCaracteresEspeciales(id) {
     if (!input) return;
 
     input.addEventListener('input', function() {
-        // Solo permite letras (acentos), números, espacios y guiones
+        // Solo permite letras (incluyendo acentos), números, espacios y guiones
         this.value = this.value.replace(/[^a-záéíóúñüA-ZÁÉÍÓÚÑÜ0-9\s\-]/g, '');
     });
 
@@ -869,10 +824,9 @@ function filtrarDescripcion(id) {
 function sincronizarCamposCrear() {
     const autorSelect = document.getElementById('custom-select-autor-create');
     const autorSearchInput = document.getElementById('createAutorText');
-    const tituloSelect = document.getElementById('custom-select-titulo-create');
     const tituloSearchInput = document.getElementById('createTituloText');
     const generoSelect = document.getElementById('custom-select-genero-create');
-    const generoSearchInput = document.getElementById('genero-search-create');
+    const generoSearchInput = document.getElementById('createGeneroText');
     const idiomaSelect = document.getElementById('custom-select-idioma-create');
     const idiomaSearchInput = document.getElementById('idioma-search-create');
     const paisSelect = document.getElementById('custom-select-pais-create');
@@ -880,17 +834,12 @@ function sincronizarCamposCrear() {
 
     const createAutorId = document.getElementById('createAutorId');
     const createAutorNuevo = document.getElementById('createAutorNuevo');
-    const createTituloHidden = document.getElementById('createTituloHidden');
     const createGeneroHidden = document.getElementById('createGeneroHidden');
     const createIdiomaHidden = document.getElementById('createIdiomaHidden');
     const createPaisPublicacionHidden = document.getElementById('createPaisPublicacionHidden');
 
     if (autorSearchInput && autorSearchInput.value.trim() && !createAutorId.value) {
         createAutorNuevo.value = autorSearchInput.value.trim();
-    }
-
-    if (tituloSearchInput && tituloSearchInput.value.trim()) {
-        createTituloHidden.value = tituloSearchInput.value.trim();
     }
 
     if (generoSearchInput && generoSearchInput.value.trim()) {
@@ -925,17 +874,16 @@ function sincronizarCamposCrear() {
 function sincronizarCamposEditar() {
     const autorSelect = document.getElementById('custom-select-autor-edit');
     const autorSearchInput = document.getElementById('autor-search-edit');
-    const tituloSelect = document.getElementById('custom-select-titulo-edit');
-    const tituloSearchInput = document.getElementById('titulo-search-edit');
+    const tituloSearchInput = document.getElementById('editTituloText');
     const generoSelect = document.getElementById('custom-select-genero-edit');
-    const generoSearchInput = document.getElementById('genero-search-edit');
+    const generoSearchInput = document.getElementById('editGeneroText');
     const idiomaSelect = document.getElementById('custom-select-idioma-edit');
     const idiomaSearchInput = document.getElementById('idioma-search-edit');
     const paisSelect = document.getElementById('custom-select-pais-edit');
     const paisSearchInput = document.getElementById('pais-search-edit');
 
     const editAutorId = document.getElementById('editAutorId');
-    const editTituloHidden = document.getElementById('editTituloHidden');
+    const editTituloText = document.getElementById('editTituloText');
     const editGeneroHidden = document.getElementById('editGeneroHidden');
     const editIdiomaHidden = document.getElementById('editIdiomaHidden');
     const editPaisPublicacionHidden = document.getElementById('editPaisPublicacionHidden');
@@ -945,7 +893,7 @@ function sincronizarCamposEditar() {
     }
 
     if (tituloSearchInput && tituloSearchInput.value.trim()) {
-        editTituloHidden.value = tituloSearchInput.value.trim();
+        editTituloText.value = tituloSearchInput.value.trim();
     }
 
     if (generoSearchInput && generoSearchInput.value.trim()) {
@@ -987,29 +935,28 @@ function cerrarModalEliminar() {
 }
 
 function abrirModalEditar(libroToken, autorId, titulo, isbn, editorial, genero, edicion, anioPublicacion, numeroPaginas, idioma, paisPublicacion, descripcion, estado) {
-    document.getElementById("editToken").value = libroToken || "";
-    document.getElementById("editAutorId").value = autorId || "";
-    document.getElementById("editTituloHidden").value = titulo || "";
-    document.getElementById("editISBN").value = isbn || "";
-    document.getElementById("editEditorial").value = editorial || "";
-    document.getElementById("editGeneroHidden").value = genero || "";
-    document.getElementById("editEdicion").value = edicion || "";
-    document.getElementById("editAnioPublicacion").value = anioPublicacion || "";
-    document.getElementById("editNumeroPaginas").value = numeroPaginas || "";
-    document.getElementById("editIdiomaHidden").value = idioma || "";
-    document.getElementById("editPaisPublicacionHidden").value = paisPublicacion || "";
-    document.getElementById("editDescripcion").value = descripcion || "";
+    setValueIfExists("editToken", libroToken || "");
+    setValueIfExists("editAutorId", autorId || "");
+    setValueIfExists("editISBN", isbn || "");
+    setValueIfExists("editEditorial", editorial || "");
+    setValueIfExists("editGeneroHidden", genero || "");
+    setValueIfExists("editEdicion", edicion || "");
+    setValueIfExists("editAnioPublicacion", anioPublicacion || "");
+    setValueIfExists("editNumeroPaginas", numeroPaginas || "");
+    setValueIfExists("editIdiomaHidden", idioma || "");
+    setValueIfExists("editPaisPublicacionHidden", paisPublicacion || "");
+    setValueIfExists("editDescripcion", descripcion || "");
 
-    document.getElementById("editEstado").value = (String(estado).toLowerCase() === "true") ? "true" : "false";
+    setValueIfExists("editEstado", (String(estado).toLowerCase() === "true") ? "true" : "false");
 
-    document.getElementById("editAutorText").value = (autorId && autorId !== "") ? 
-        (document.querySelector(`#custom-select-autor-edit .select-options .option[data-value="${autorId}"]`)?.textContent || "-- Seleccione un autor --") : 
-        "-- Seleccione un autor --";
-    document.getElementById("editTituloText").value = titulo || "";
-    document.getElementById("editGeneroText").value = genero || "";
-    document.getElementById("editIdiomaText").value = idioma || "";
-    document.getElementById("editEdicionText").value = edicion || "";
-    document.getElementById("editPaisPublicacionText").value = paisPublicacion || "";
+    setValueIfExists("editAutorText", (autorId && autorId !== "") ? 
+         (document.querySelector(`#custom-select-autor-edit .select-options .option[data-value="${autorId}"]`)?.textContent || "-- Seleccione un autor --") : 
+        "-- Seleccione un autor --");
+    setValueIfExists("editTituloText", titulo || "");
+    setValueIfExists("editGeneroText", genero || "");
+    setValueIfExists("editIdiomaText", idioma || "");
+    setValueIfExists("editEdicionText", edicion || "");
+    setValueIfExists("editPaisPublicacionText", paisPublicacion || "");
 
     const autorSearchEdit = document.getElementById("autor-search-edit");
     if (autorSearchEdit) autorSearchEdit.value = "";
@@ -1055,32 +1002,35 @@ function mostrarModalEditar() {
     document.getElementById("modalEditar").style.display = "flex";
 }
 
+function setValueIfExists(id, value) {
+    const element = document.getElementById(id);
+    if (element) element.value = value;
+}
+
 function abrirModalCrear() {
-    document.getElementById("createAutorId").value = "";
-    document.getElementById("createAutorNuevo").value = "";
-    document.getElementById("createAutorText").value = "";
+    setValueIfExists("createAutorId", "");
+    setValueIfExists("createAutorNuevo", "");
+    setValueIfExists("createAutorText", "");
  
-     document.getElementById("createTituloHidden").value = "";
-     document.getElementById("createTituloText").value = "";
+    setValueIfExists("createTituloText", "");
+    setValueIfExists("createGeneroHidden", "");
+    setValueIfExists("createGeneroText", "");
  
-     document.getElementById("createISBN").value = "";
-     document.getElementById("createEditorial").value = "";
+    setValueIfExists("createISBN", "");
+    setValueIfExists("createEditorial", "");
  
-     document.getElementById("createGeneroHidden").value = "";
-     document.getElementById("createGeneroText").value = "";
+    setValueIfExists("createEdicion", "");
+    setValueIfExists("createEdicionText", "-- Seleccione una edición --");
+    setValueIfExists("createAnioPublicacion", "");
+    setValueIfExists("createNumeroPaginas", "");
  
-     document.getElementById("createEdicion").value = "";
-     document.getElementById("createEdicionText").value = "-- Seleccione una edición --";
-     document.getElementById("createAnioPublicacion").value = "";
-     document.getElementById("createNumeroPaginas").value = "";
+    setValueIfExists("createIdiomaHidden", "");
+    setValueIfExists("createIdiomaText", "");
  
-     document.getElementById("createIdiomaHidden").value = "";
-     document.getElementById("createIdiomaText").value = "";
+    setValueIfExists("createPaisPublicacionHidden", "");
+    setValueIfExists("createPaisPublicacionText", "");
  
-     document.getElementById("createPaisPublicacionHidden").value = "";
-     document.getElementById("createPaisPublicacionText").value = "";
- 
-     document.getElementById("createDescripcion").value = "";
+    setValueIfExists("createDescripcion", "");
 
     limpiarErrores('create', ['AutorId', 'Titulo', 'ISBN', 'Editorial', 'Genero', 'Edicion', 'AñoPublicacion', 'NumeroPaginas', 'Idioma', 'PaisPublicacion', 'Descripcion']);
 
@@ -1144,7 +1094,7 @@ function validarCamposCrear() {
     const errores = [];
     
     const autorId = document.getElementById('createAutorId').value.trim();
-    const titulo = document.getElementById('createTituloHidden').value.trim();
+    const titulo = document.getElementById('createTituloText').value.trim();
     const isbn = document.getElementById('createISBN').value.trim();
     const editorial = document.getElementById('createEditorial').value.trim();
     const numPaginas = document.getElementById('createNumeroPaginas').value.trim();
@@ -1245,7 +1195,7 @@ function validarCamposEditar() {
     const errores = [];
     
     const autorId = document.getElementById('editAutorId').value.trim();
-    const titulo = document.getElementById('editTituloHidden').value.trim();
+    const titulo = document.getElementById('editTituloText').value.trim();
     const isbn = document.getElementById('editISBN').value.trim();
     const editorial = document.getElementById('editEditorial').value.trim();
     const numPaginas = document.getElementById('editNumeroPaginas').value.trim();
@@ -1298,7 +1248,7 @@ function mostrarErroresCrear(errors) {
         // Procesar el nombre del campo
         let nombreCampo = campo
             .replace('Libro.', '')
-            .replace('A\uFFFDoPublicacion', 'AñoPublicacion')
+            .replace('A\uFFFDDoPublicacion', 'AñoPublicacion')
             .trim();
         
         console.log(`Campo procesado: "${campo}" -> "${nombreCampo}"`);
@@ -1377,7 +1327,7 @@ function mostrarErroresEditar(errors) {
         // Procesar el nombre del campo
         let nombreCampo = campo
             .replace('Libro.', '')
-            .replace('A\uFFFDoPublicacion', 'AñoPublicacion')
+            .replace('A\uFFFDDoPublicacion', 'AñoPublicacion')
             .trim();
         
         console.log(`Campo procesado: "${campo}" -> "${nombreCampo}"`);
@@ -1550,16 +1500,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     filtrarCaracteresEspeciales("createEditorial");
     filtrarCaracteresEspeciales("editEditorial");
-    filtrarCaracteresEspeciales("genero-search-create");
-    filtrarCaracteresEspeciales("genero-search-edit");
-    filtrarDescripcion("createDescripcion");
-    filtrarDescripcion("editDescripcion");
-    initCustomSelect({ selectId: 'custom-select-autor-create', hiddenInputId: 'createAutorId', textId: 'createAutorText', defaultText: 'Seleccione un autor...' });
-    initCustomSelect({ selectId: 'custom-select-titulo-create', hiddenInputId: 'createTituloHidden', textId: 'createTituloText', defaultText: 'Título del libro' });
-    initCustomSelect({ selectId: 'custom-select-genero-create', hiddenInputId: 'createGeneroHidden', textId: 'createGeneroText', defaultText: 'Género' });
-    initCustomSelect({ selectId: 'custom-select-edicion-create', hiddenInputId: 'createEdicion', textId: 'createEdicionText', defaultText: '-- Seleccione una edición --' });
-    initCustomSelect({ selectId: 'custom-select-idioma-create', hiddenInputId: 'createIdiomaHidden', textId: 'createIdiomaText', defaultText: 'Idioma' });
-    initCustomSelect({ selectId: 'custom-select-pais-create', hiddenInputId: 'createPaisPublicacionHidden', textId: 'createPaisPublicacionText', defaultText: 'País de publicación' });
+     filtrarDescripcion("createDescripcion");
+     filtrarDescripcion("editDescripcion");
+     initCustomSelect({ selectId: 'custom-select-autor-create', hiddenInputId: 'createAutorId', textId: 'createAutorText', defaultText: 'Seleccione un autor...' });
+     initCustomSelect({ selectId: 'custom-select-titulo-create', hiddenInputId: 'createTituloHidden', textId: 'createTituloText', defaultText: 'Título del libro' });
+     initCustomSelect({ selectId: 'custom-select-genero-create', hiddenInputId: 'createGeneroHidden', textId: 'createGeneroText', defaultText: 'Género' });
+     initCustomSelect({ selectId: 'custom-select-edicion-create', hiddenInputId: 'createEdicion', textId: 'createEdicionText', defaultText: '-- Seleccione una edición --' });
+     initCustomSelect({ selectId: 'custom-select-idioma-create', hiddenInputId: 'createIdiomaHidden', textId: 'createIdiomaText', defaultText: 'Idioma' });
+     initCustomSelect({ selectId: 'custom-select-pais-create', hiddenInputId: 'createPaisPublicacionHidden', textId: 'createPaisPublicacionText', defaultText: 'País de publicación' });
 
     initCustomSelect({ selectId: 'custom-select-autor-edit', hiddenInputId: 'editAutorId', textId: 'editAutorText', defaultText: '-- Seleccione un autor --' });
     initCustomSelect({ selectId: 'custom-select-titulo-edit', hiddenInputId: 'editTituloHidden', textId: 'editTituloText', defaultText: 'Título del libro' });

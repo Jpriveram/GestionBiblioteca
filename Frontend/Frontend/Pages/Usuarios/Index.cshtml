@@ -199,7 +199,7 @@
                                 class="input-form"
                                 id="RolNuevoUsuario">
                             <option value="@Roles.Bibliotecario">Bibliotecario</option>
-                            <option value="@Roles.Admin">Admin</option>
+                            @*<option value="@Roles.Admin">Admin</option>*@ 
                             <option value="@Roles.Lector">Lector</option>
                         </select>
                         <div id="errorRolUsuario" class="field-error">@ViewData.ModelState["RolNuevoUsuario"]?.Errors.FirstOrDefault()?.ErrorMessage</div>

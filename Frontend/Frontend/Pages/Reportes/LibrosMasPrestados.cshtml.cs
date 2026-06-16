@@ -97,10 +97,6 @@ public class LibrosMasPrestadosModel : PageModel
                         ? tituloLibro
                         : "Sin título";
 
-                var estadoLibro = libros.TryGetValue(ejemplar.LibroId, out var libroEstado) && libroEstado.Estado
-                    ? "Activo"
-                    : "Inactivo";
-
                 if (resultado.TryGetValue(ejemplar.LibroId, out var reporteLibro))
                 {
                     reporteLibro.CantidadPrestamos++;
@@ -111,7 +107,6 @@ public class LibrosMasPrestadosModel : PageModel
                     {
                         LibroId = ejemplar.LibroId,
                         TituloLibro = titulo,
-                        EstadoLibro = estadoLibro,
                         CantidadPrestamos = 1
                     };
                 }
@@ -129,7 +124,6 @@ public class LibrosMasPrestadosModel : PageModel
     {
         public int LibroId { get; set; }
         public string TituloLibro { get; set; } = string.Empty;
-        public string EstadoLibro { get; set; } = string.Empty;
         public int CantidadPrestamos { get; set; }
     }
 }

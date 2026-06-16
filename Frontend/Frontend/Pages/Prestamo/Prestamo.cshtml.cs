@@ -599,28 +599,10 @@ public class PrestamoModel : PageModel
         {
             var usuarioSesionId = ObtenerUsuarioSesionId();
 
-            string motivo = "Anulado por el UsuarioDto";
-
-            if (usuarioSesionId.HasValue)
-            {
-                var usuarioSesion = _usuarioServicio.Select()
-                    .FirstOrDefault(u => u.UsuarioId == usuarioSesionId.Value);
-
-                if (usuarioSesion != null)
-                {
-                    var nombreCompleto = $"{usuarioSesion.Nombres} {usuarioSesion.PrimerApellido} {usuarioSesion.SegundoApellido ?? ""}".Trim();
-
-                    if (!string.IsNullOrWhiteSpace(nombreCompleto))
-                    {
-                        motivo = $"Anulado por el UsuarioDto {nombreCompleto}";
-                    }
-                }
-            }
-
             var resultado = _anulacionFachada.AnularPrestamo(
                 prestamoId,
                 usuarioSesionId,
-                motivo
+                string.Empty
             );
 
             if (resultado.IsFailure)

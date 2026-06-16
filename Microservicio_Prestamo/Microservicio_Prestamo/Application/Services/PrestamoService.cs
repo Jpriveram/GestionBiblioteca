@@ -69,7 +69,9 @@ public class PrestamoService : IPrestamoService
 
         prestamo.Estado = 0;
         prestamo.UsuarioSesionId = usuarioSesionId;
-        prestamo.ObservacionesEntrada = motivo;
+        prestamo.ObservacionesEntrada = string.IsNullOrWhiteSpace(motivo)
+            ? prestamo.ObservacionesSalida
+            : motivo;
         prestamo.UltimaActualizacion = DateTime.Now;
         _repo.Update(prestamo);
     }

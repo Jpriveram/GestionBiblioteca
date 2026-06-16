@@ -33,6 +33,8 @@ public class SagaConsumer : BackgroundService
                 channel.ExchangeDeclare("saga-events", ExchangeType.Topic, durable: true);
                 channel.QueueDeclare("prestamo-creado-queue", durable: true, exclusive: false, autoDelete: false);
                 channel.QueueBind("prestamo-creado-queue", "saga-events", "prestamo.creado");
+                channel.QueueDeclare("prestamo-anulado-queue", durable: true, exclusive: false, autoDelete: false);
+                channel.QueueBind("prestamo-anulado-queue", "saga-events", "prestamo.anulado");
 
                 var consumer = new EventingBasicConsumer(channel);
                 consumer.Received += async (_, ea) =>
@@ -46,7 +48,8 @@ public class SagaConsumer : BackgroundService
                     try
                     {
                         var http = _httpFactory.CreateClient("ServicioLibroEjemplar");
-                        var response = await http.PostAsJsonAsync("api/ejemplares/reservar-lote", new
+                        var endpoint = ea.RoutingKey == "prestamo.anulado" ? "api/ejemplares/liberar-lote" : "api/ejemplares/reservar-lote";
+                        var response = await http.PostAsJsonAsync(endpoint, new
                         {
                             EjemplarIds = msg.EjemplarIds,
                             UsuarioSesionId = 0
@@ -71,6 +74,7 @@ public class SagaConsumer : BackgroundService
                 };
 
                 channel.BasicConsume("prestamo-creado-queue", false, consumer);
+                channel.BasicConsume("prestamo-anulado-queue", false, consumer);
                 Console.WriteLine("[SagaOrquestador] Esperando mensajes...");
 
                 // Bloquear hasta cancelación

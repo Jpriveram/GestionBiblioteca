@@ -58,7 +58,8 @@ public class OutboxProcessor : BackgroundService
                         props.MessageId = msg.MessageId;
                         props.Persistent = true;
 
-                        _channel.BasicPublish("saga-events", "prestamo.creado", props, body);
+                        var routingKey = msg.EventType == "PrestamoAnulado" ? "prestamo.anulado" : "prestamo.creado";
+                        _channel.BasicPublish("saga-events", routingKey, props, body);
                         _outboxRepo.MarkAsProcessed(msg.Id);
                         System.Diagnostics.Debug.WriteLine($"[Outbox] Publicado: {msg.MessageId}");
                     }

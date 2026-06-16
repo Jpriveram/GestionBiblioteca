@@ -84,6 +84,31 @@ public class EjemplaresController : ControllerBase
         }
     }
 
+    [HttpPost("liberar-lote")]
+    [AllowAnonymous]
+    public IActionResult LiberarLote([FromBody] ReservarLoteRequest request)
+    {
+        try
+        {
+            foreach (var id in request.EjemplarIds)
+            {
+                var ejemplar = _ejemplarRepo.GetById(id);
+                if (ejemplar is null)
+                    return BadRequest(new { message = $"Ejemplar {id} no encontrado" });
+
+                ejemplar.Disponible = true;
+                ejemplar.UsuarioSesionId = request.UsuarioSesionId;
+                ejemplar.UltimaActualizacion = DateTime.Now;
+                _ejemplarRepo.Update(ejemplar);
+            }
+            return Ok(new { message = "Ejemplares liberados" });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = ex.Message });
+        }
+    }
+
     [HttpPost]
     public async Task<ActionResult<EjemplarDto>> CreateAsync([FromBody] CreateEjemplarDto dto)
     {

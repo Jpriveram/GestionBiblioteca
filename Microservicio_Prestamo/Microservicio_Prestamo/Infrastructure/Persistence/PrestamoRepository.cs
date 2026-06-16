@@ -90,24 +90,96 @@ public class PrestamoRepository : IPrestamoRepository
     {
         using var connection = ConfigurationSingleton.Instancia.GetConnection();
         connection.Open();
-        string query = @"UPDATE prestamo SET Estado = @Estado, ObservacionesEntrada = @ObsEntrada,
-                         UsuarioSesionId = @Usr, UltimaActualizacion = NOW() WHERE PrestamoId = @Id;";
-        using var cmd = new MySqlCommand(query, connection);
-        cmd.Parameters.AddWithValue("@Id", p.PrestamoId);
-        cmd.Parameters.AddWithValue("@Estado", p.Estado);
-        cmd.Parameters.AddWithValue("@ObsEntrada", p.ObservacionesEntrada ?? (object)DBNull.Value);
-        cmd.Parameters.AddWithValue("@Usr", p.UsuarioSesionId ?? (object)DBNull.Value);
-        cmd.ExecuteNonQuery();
+        using var transaction = connection.BeginTransaction();
+        try
+        {
+            string query = @"UPDATE prestamo SET Estado = @Estado, ObservacionesEntrada = @ObsEntrada,
+                             UsuarioSesionId = @Usr, UltimaActualizacion = NOW() WHERE PrestamoId = @Id;";
+            using var cmd = new MySqlCommand(query, connection, transaction);
+            cmd.Parameters.AddWithValue("@Id", p.PrestamoId);
+            cmd.Parameters.AddWithValue("@Estado", p.Estado);
+            cmd.Parameters.AddWithValue("@ObsEntrada", p.ObservacionesEntrada ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@Usr", p.UsuarioSesionId ?? (object)DBNull.Value);
+            cmd.ExecuteNonQuery();
+
+            if (p.Estado == 0)
+            {
+                AnularDetallesYPublicarEvento(connection, transaction, p.PrestamoId, p.UsuarioSesionId, p.ObservacionesEntrada);
+            }
+
+            transaction.Commit();
+        }
+        catch
+        {
+            transaction.Rollback();
+            throw;
+        }
     }
 
     public void Delete(Prestamo p)
     {
         using var connection = ConfigurationSingleton.Instancia.GetConnection();
         connection.Open();
-        using var cmd = new MySqlCommand("UPDATE prestamo SET Estado = 0, UsuarioSesionId = @Usr, UltimaActualizacion = NOW() WHERE PrestamoId = @Id;", connection);
-        cmd.Parameters.AddWithValue("@Id", p.PrestamoId);
-        cmd.Parameters.AddWithValue("@Usr", p.UsuarioSesionId ?? (object)DBNull.Value);
-        cmd.ExecuteNonQuery();
+        using var transaction = connection.BeginTransaction();
+        try
+        {
+            using var cmd = new MySqlCommand("UPDATE prestamo SET Estado = 0, UsuarioSesionId = @Usr, UltimaActualizacion = NOW() WHERE PrestamoId = @Id;", connection, transaction);
+            cmd.Parameters.AddWithValue("@Id", p.PrestamoId);
+            cmd.Parameters.AddWithValue("@Usr", p.UsuarioSesionId ?? (object)DBNull.Value);
+            cmd.ExecuteNonQuery();
+
+            AnularDetallesYPublicarEvento(connection, transaction, p.PrestamoId, p.UsuarioSesionId, p.ObservacionesEntrada);
+
+            transaction.Commit();
+        }
+        catch
+        {
+            transaction.Rollback();
+            throw;
+        }
+    }
+
+    private static void AnularDetallesYPublicarEvento(MySqlConnection connection, MySqlTransaction transaction, int prestamoId, int? usuarioSesionId, string? observacionesEntrada)
+    {
+        var ejemplarIds = new List<int>();
+        using (var selectCmd = new MySqlCommand("SELECT EjemplarId FROM detalle WHERE PrestamoId = @Id AND EstadoDetalle = 1;", connection, transaction))
+        {
+            selectCmd.Parameters.AddWithValue("@Id", prestamoId);
+            using var reader = selectCmd.ExecuteReader();
+            while (reader.Read()) ejemplarIds.Add(reader.GetInt32("EjemplarId"));
+        }
+
+        using (var detalleCmd = new MySqlCommand(@"UPDATE detalle SET EstadoDetalle = 0, ObservacionesEntrada = @ObsEntrada,
+                                                  UsuarioSesionId = @Usr, UltimaActualizacion = NOW()
+                                                  WHERE PrestamoId = @Id AND EstadoDetalle = 1;", connection, transaction))
+        {
+            detalleCmd.Parameters.AddWithValue("@Id", prestamoId);
+            detalleCmd.Parameters.AddWithValue("@ObsEntrada", observacionesEntrada ?? (object)DBNull.Value);
+            detalleCmd.Parameters.AddWithValue("@Usr", usuarioSesionId ?? (object)DBNull.Value);
+            detalleCmd.ExecuteNonQuery();
+        }
+
+        if (ejemplarIds.Count == 0) return;
+
+        var outboxMsg = new OutboxMessage
+        {
+            MessageId = Guid.NewGuid().ToString(),
+            EventType = "PrestamoAnulado",
+            Payload = JsonSerializer.Serialize(new
+            {
+                PrestamoId = prestamoId,
+                EjemplarIds = ejemplarIds
+            }),
+            CreatedAt = DateTime.UtcNow
+        };
+
+        using var outboxCmd = new MySqlCommand(@"INSERT INTO outbox_messages (MessageId, EventType, Payload, CreatedAt, Processed)
+                                                VALUES (@Mid, @Type, @Payload, @Created, false);", connection, transaction);
+        outboxCmd.Parameters.AddWithValue("@Mid", outboxMsg.MessageId);
+        outboxCmd.Parameters.AddWithValue("@Type", outboxMsg.EventType);
+        outboxCmd.Parameters.AddWithValue("@Payload", outboxMsg.Payload);
+        outboxCmd.Parameters.AddWithValue("@Created", outboxMsg.CreatedAt);
+        outboxCmd.ExecuteNonQuery();
     }
 
     public int CrearPrestamoTransaccional(Prestamo prestamo, IEnumerable<Detalle> detalles, int? usuarioSesionId)

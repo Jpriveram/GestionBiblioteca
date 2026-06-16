@@ -119,6 +119,22 @@ public class LibroModel : PageModel
             return Page();
         }
 
+        if (AutorId is null or <= 0)
+        {
+            ModelState.AddModelError("AutorId", "Debe seleccionar un autor válido.");
+        }
+
+        if (!ModelState.IsValid)
+        {
+            if (EsAjax())
+            {
+                return new JsonResult(new { success = false, errors = ObtenerErroresJson() });
+            }
+
+            CargarDatos();
+            return Page();
+        }
+
         var dto = new LibroDto
         {
             LibroId = id,
@@ -196,6 +212,22 @@ public class LibroModel : PageModel
         }
 
         NombreAutorNuevo = string.IsNullOrWhiteSpace(NombreAutorNuevo) ? null : NombreAutorNuevo.Trim();
+
+        if (AutorId is null or <= 0)
+        {
+            ModelState.AddModelError("AutorId", "Debe seleccionar un autor válido.");
+        }
+
+        if (!ModelState.IsValid)
+        {
+            if (EsAjax())
+            {
+                return new JsonResult(new { success = false, errors = ObtenerErroresJson() });
+            }
+
+            CargarDatos();
+            return Page();
+        }
 
         var dto = new LibroDto
         {

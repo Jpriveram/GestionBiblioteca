@@ -396,7 +396,7 @@ else
                 <input type="hidden" id="editPaisPublicacionHidden" name="PaisPublicacion" />
                 <div class="custom-select" id="custom-select-pais-edit">
                     <div class="select-trigger">
-                        <input type="text" id="editPaisPublicacionText" class="select-trigger-input" placeholder="País de publicación" />
+                        <input type="text" id="editPaisPublicacionText" class="select-trigger-input" placeholder="País de publicación" autocomplete="off" />
                         <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="6 9 12 15 18 9"></polyline>
                         </svg>
@@ -566,13 +566,12 @@ else
                 <input type="hidden" id="createPaisPublicacionHidden" name="PaisPublicacion" />
                 <div class="custom-select" id="custom-select-pais-create">
                     <div class="select-trigger">
-                        <span id="createPaisPublicacionText">País de publicación</span>
+                        <input type="text" id="createPaisPublicacionText" class="select-trigger-input" placeholder="País de publicación" autocomplete="off" />
                         <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="6 9 12 15 18 9"></polyline>
                         </svg>
                     </div>
                     <div class="select-dropdown">
-                        <input type="text" class="select-search" id="pais-search-create" placeholder="Buscar país..." />
                         <div class="select-options">
                             @foreach (var paisItem in paisesSugeridos.OrderBy(x => x))
                             {
@@ -829,8 +828,7 @@ function sincronizarCamposCrear() {
     const generoSearchInput = document.getElementById('createGeneroText');
     const idiomaSelect = document.getElementById('custom-select-idioma-create');
     const idiomaSearchInput = document.getElementById('idioma-search-create');
-    const paisSelect = document.getElementById('custom-select-pais-create');
-    const paisSearchInput = document.getElementById('pais-search-create');
+    const paisTextInput = document.getElementById('createPaisPublicacionText');
 
     const createAutorId = document.getElementById('createAutorId');
     const createAutorNuevo = document.getElementById('createAutorNuevo');
@@ -838,8 +836,8 @@ function sincronizarCamposCrear() {
     const createIdiomaHidden = document.getElementById('createIdiomaHidden');
     const createPaisPublicacionHidden = document.getElementById('createPaisPublicacionHidden');
 
-    if (autorSearchInput && autorSearchInput.value.trim() && !createAutorId.value) {
-        createAutorNuevo.value = autorSearchInput.value.trim();
+    if (createAutorNuevo) {
+        createAutorNuevo.value = '';
     }
 
     if (generoSearchInput && generoSearchInput.value.trim()) {
@@ -850,7 +848,9 @@ function sincronizarCamposCrear() {
         createIdiomaHidden.value = idiomaSearchInput.value.trim();
     }
 
-    // El pais solo se toma de la lista (no se acepta texto libre)
+    if (paisTextInput && createPaisPublicacionHidden) {
+        sincronizarPaisDesdeTexto('custom-select-pais-create', 'createPaisPublicacionHidden', 'createPaisPublicacionText');
+    }
 
     // Sincronizar estado del checkbox
     const estadoCheckbox = document.getElementById('createEstadoActivo');
@@ -879,8 +879,7 @@ function sincronizarCamposEditar() {
     const generoSearchInput = document.getElementById('editGeneroText');
     const idiomaSelect = document.getElementById('custom-select-idioma-edit');
     const idiomaSearchInput = document.getElementById('idioma-search-edit');
-    const paisSelect = document.getElementById('custom-select-pais-edit');
-    const paisSearchInput = document.getElementById('pais-search-edit');
+    const paisTextInput = document.getElementById('editPaisPublicacionText');
 
     const editAutorId = document.getElementById('editAutorId');
     const editTituloText = document.getElementById('editTituloText');
@@ -904,7 +903,9 @@ function sincronizarCamposEditar() {
         editIdiomaHidden.value = idiomaSearchInput.value.trim();
     }
 
-    // El pais solo se toma de la lista (no se acepta texto libre)
+    if (paisTextInput && editPaisPublicacionHidden) {
+        sincronizarPaisDesdeTexto('custom-select-pais-edit', 'editPaisPublicacionHidden', 'editPaisPublicacionText');
+    }
 
     // Sincronizar estado del checkbox
     const estadoCheckbox = document.getElementById('editEstadoActivo');
@@ -925,6 +926,86 @@ function sincronizarCamposEditar() {
     });
 }
 
+function esAutorValido(selectId, hiddenId) {
+    const hidden = document.getElementById(hiddenId);
+    if (!hidden) return false;
+
+    const val = hidden.value.trim();
+    if (!val || !/^\d+$/.test(val) || parseInt(val, 10) <= 0) return false;
+
+    const select = document.getElementById(selectId);
+    if (!select) return false;
+
+    return select.querySelector(`.select-options .option[data-value="${val}"]`) != null;
+}
+
+let editFormCache = null;
+
+function guardarEstadoEditar() {
+    return {
+        token: document.getElementById('editToken')?.value || '',
+        autorId: document.getElementById('editAutorId')?.value || '',
+        autorText: document.getElementById('editAutorText')?.value || '',
+        titulo: document.getElementById('editTituloText')?.value || '',
+        isbn: document.getElementById('editISBN')?.value || '',
+        editorial: document.getElementById('editEditorial')?.value || '',
+        genero: document.getElementById('editGeneroHidden')?.value || '',
+        generoText: document.getElementById('editGeneroText')?.value || '',
+        edicion: document.getElementById('editEdicion')?.value || '',
+        edicionText: document.getElementById('editEdicionText')?.value || '',
+        anioPublicacion: document.getElementById('editAnioPublicacion')?.value || '',
+        numeroPaginas: document.getElementById('editNumeroPaginas')?.value || '',
+        idioma: document.getElementById('editIdiomaHidden')?.value || '',
+        idiomaText: document.getElementById('editIdiomaText')?.value || '',
+        pais: document.getElementById('editPaisPublicacionHidden')?.value || '',
+        paisText: document.getElementById('editPaisPublicacionText')?.value || '',
+        descripcion: document.getElementById('editDescripcion')?.value || '',
+        estado: document.getElementById('editEstado')?.value || 'true'
+    };
+}
+
+function restaurarEstadoEditar(state) {
+    setValueIfExists('editToken', state.token);
+    setValueIfExists('editAutorId', state.autorId);
+    setValueIfExists('editAutorText', state.autorText);
+    setValueIfExists('editTituloText', state.titulo);
+    setValueIfExists('editISBN', state.isbn);
+    setValueIfExists('editEditorial', state.editorial);
+    setValueIfExists('editGeneroHidden', state.genero);
+    setValueIfExists('editGeneroText', state.generoText);
+    setValueIfExists('editEdicion', state.edicion);
+    setValueIfExists('editEdicionText', state.edicionText);
+    setValueIfExists('editAnioPublicacion', state.anioPublicacion);
+    setValueIfExists('editNumeroPaginas', state.numeroPaginas);
+    setValueIfExists('editIdiomaHidden', state.idioma);
+    setValueIfExists('editIdiomaText', state.idiomaText);
+    setValueIfExists('editPaisPublicacionHidden', state.pais);
+    setValueIfExists('editPaisPublicacionText', state.paisText);
+    setValueIfExists('editDescripcion', state.descripcion);
+    setValueIfExists('editEstado', state.estado);
+}
+
+function limpiarFormularioCrear() {
+    setValueIfExists("createAutorId", "");
+    setValueIfExists("createAutorNuevo", "");
+    setValueIfExists("createAutorText", "");
+    setValueIfExists("createTituloText", "");
+    setValueIfExists("createGeneroHidden", "");
+    setValueIfExists("createGeneroText", "");
+    setValueIfExists("createISBN", "");
+    setValueIfExists("createEditorial", "");
+    setValueIfExists("createEdicion", "");
+    setValueIfExists("createEdicionText", "-- Seleccione una edición --");
+    setValueIfExists("createAnioPublicacion", "");
+    setValueIfExists("createNumeroPaginas", "");
+    setValueIfExists("createIdiomaHidden", "");
+    const createIdiomaText = document.getElementById("createIdiomaText");
+    if (createIdiomaText) createIdiomaText.textContent = "Idioma";
+    setValueIfExists("createPaisPublicacionHidden", "");
+    setValueIfExists("createPaisPublicacionText", "");
+    setValueIfExists("createDescripcion", "");
+}
+
 function abrirModalEliminar(token) {
     document.getElementById("libroTokenInput").value = token;
     document.getElementById("modalEliminar").style.display = "flex";
@@ -935,28 +1016,33 @@ function cerrarModalEliminar() {
 }
 
 function abrirModalEditar(libroToken, autorId, titulo, isbn, editorial, genero, edicion, anioPublicacion, numeroPaginas, idioma, paisPublicacion, descripcion, estado) {
-    setValueIfExists("editToken", libroToken || "");
-    setValueIfExists("editAutorId", autorId || "");
-    setValueIfExists("editISBN", isbn || "");
-    setValueIfExists("editEditorial", editorial || "");
-    setValueIfExists("editGeneroHidden", genero || "");
-    setValueIfExists("editEdicion", edicion || "");
-    setValueIfExists("editAnioPublicacion", anioPublicacion || "");
-    setValueIfExists("editNumeroPaginas", numeroPaginas || "");
-    setValueIfExists("editIdiomaHidden", idioma || "");
-    setValueIfExists("editPaisPublicacionHidden", paisPublicacion || "");
-    setValueIfExists("editDescripcion", descripcion || "");
+    if (editFormCache && editFormCache.token === libroToken) {
+        restaurarEstadoEditar(editFormCache);
+    } else {
+        editFormCache = null;
+        setValueIfExists("editToken", libroToken || "");
+        setValueIfExists("editAutorId", autorId || "");
+        setValueIfExists("editISBN", isbn || "");
+        setValueIfExists("editEditorial", editorial || "");
+        setValueIfExists("editGeneroHidden", genero || "");
+        setValueIfExists("editEdicion", edicion || "");
+        setValueIfExists("editAnioPublicacion", anioPublicacion || "");
+        setValueIfExists("editNumeroPaginas", numeroPaginas || "");
+        setValueIfExists("editIdiomaHidden", idioma || "");
+        setValueIfExists("editPaisPublicacionHidden", paisPublicacion || "");
+        setValueIfExists("editDescripcion", descripcion || "");
 
-    setValueIfExists("editEstado", (String(estado).toLowerCase() === "true") ? "true" : "false");
+        setValueIfExists("editEstado", (String(estado).toLowerCase() === "true") ? "true" : "false");
 
-    setValueIfExists("editAutorText", (autorId && autorId !== "") ? 
-         (document.querySelector(`#custom-select-autor-edit .select-options .option[data-value="${autorId}"]`)?.textContent || "-- Seleccione un autor --") : 
-        "-- Seleccione un autor --");
-    setValueIfExists("editTituloText", titulo || "");
-    setValueIfExists("editGeneroText", genero || "");
-    setValueIfExists("editIdiomaText", idioma || "");
-    setValueIfExists("editEdicionText", edicion || "");
-    setValueIfExists("editPaisPublicacionText", paisPublicacion || "");
+        setValueIfExists("editAutorText", (autorId && autorId !== "") ?
+             (document.querySelector(`#custom-select-autor-edit .select-options .option[data-value="${autorId}"]`)?.textContent || "-- Seleccione un autor --") :
+            "-- Seleccione un autor --");
+        setValueIfExists("editTituloText", titulo || "");
+        setValueIfExists("editGeneroText", genero || "");
+        setValueIfExists("editIdiomaText", idioma || "");
+        setValueIfExists("editEdicionText", edicion || "");
+        setValueIfExists("editPaisPublicacionText", paisPublicacion || "");
+    }
 
     const autorSearchEdit = document.getElementById("autor-search-edit");
     if (autorSearchEdit) autorSearchEdit.value = "";
@@ -969,6 +1055,7 @@ function abrirModalEditar(libroToken, autorId, titulo, isbn, editorial, genero, 
 }
 
 function cerrarModalEditar() {
+    editFormCache = guardarEstadoEditar();
     document.getElementById("modalEditar").style.display = "none";
 }
 
@@ -1008,30 +1095,6 @@ function setValueIfExists(id, value) {
 }
 
 function abrirModalCrear() {
-    setValueIfExists("createAutorId", "");
-    setValueIfExists("createAutorNuevo", "");
-    setValueIfExists("createAutorText", "");
- 
-    setValueIfExists("createTituloText", "");
-    setValueIfExists("createGeneroHidden", "");
-    setValueIfExists("createGeneroText", "");
- 
-    setValueIfExists("createISBN", "");
-    setValueIfExists("createEditorial", "");
- 
-    setValueIfExists("createEdicion", "");
-    setValueIfExists("createEdicionText", "-- Seleccione una edición --");
-    setValueIfExists("createAnioPublicacion", "");
-    setValueIfExists("createNumeroPaginas", "");
- 
-    setValueIfExists("createIdiomaHidden", "");
-    setValueIfExists("createIdiomaText", "");
- 
-    setValueIfExists("createPaisPublicacionHidden", "");
-    setValueIfExists("createPaisPublicacionText", "");
- 
-    setValueIfExists("createDescripcion", "");
-
     limpiarErrores('create', ['AutorId', 'Titulo', 'ISBN', 'Editorial', 'Genero', 'Edicion', 'AñoPublicacion', 'NumeroPaginas', 'Idioma', 'PaisPublicacion', 'Descripcion']);
 
     mostrarModalCrear();
@@ -1076,11 +1139,15 @@ function enviarFormularioCrearAjax(formulario) {
     })
     .then(response => response.json())
     .then(data => {
-        if (data.success) {
+        if (data && data.success) {
+            limpiarFormularioCrear();
             cerrarModalCrear();
             location.reload();
-        } else {
+        } else if (data && data.errors) {
             mostrarErroresCrear(data.errors);
+        } else {
+            errorSummary.style.display = 'block';
+            errorSummary.textContent = 'Error al procesar la solicitud';
         }
     })
     .catch(error => {
@@ -1093,15 +1160,14 @@ function enviarFormularioCrearAjax(formulario) {
 function validarCamposCrear() {
     const errores = [];
     
-    const autorId = document.getElementById('createAutorId').value.trim();
     const titulo = document.getElementById('createTituloText').value.trim();
     const isbn = document.getElementById('createISBN').value.trim();
     const editorial = document.getElementById('createEditorial').value.trim();
     const numPaginas = document.getElementById('createNumeroPaginas').value.trim();
     const anioPublicacion = document.getElementById('createAnioPublicacion').value.trim();
     
-    if (!autorId) {
-        errores.push({ campo: 'AutorId', mensaje: 'El autor es requerido' });
+    if (!esAutorValido('custom-select-autor-create', 'createAutorId')) {
+        errores.push({ campo: 'AutorId', mensaje: 'Debe seleccionar un autor válido.' });
     }
     
     if (!titulo) {
@@ -1177,11 +1243,15 @@ function enviarFormularioEditarAjax(formulario) {
     })
     .then(response => response.json())
     .then(data => {
-        if (data.success) {
-            cerrarModalEditar();
+        if (data && data.success) {
+            editFormCache = null;
+            document.getElementById("modalEditar").style.display = "none";
             location.reload();
-        } else {
+        } else if (data && data.errors) {
             mostrarErroresEditar(data.errors);
+        } else {
+            errorSummary.style.display = 'block';
+            errorSummary.textContent = 'Error al procesar la solicitud';
         }
     })
     .catch(error => {
@@ -1194,15 +1264,14 @@ function enviarFormularioEditarAjax(formulario) {
 function validarCamposEditar() {
     const errores = [];
     
-    const autorId = document.getElementById('editAutorId').value.trim();
     const titulo = document.getElementById('editTituloText').value.trim();
     const isbn = document.getElementById('editISBN').value.trim();
     const editorial = document.getElementById('editEditorial').value.trim();
     const numPaginas = document.getElementById('editNumeroPaginas').value.trim();
     const anioPublicacion = document.getElementById('editAnioPublicacion').value.trim();
     
-    if (!autorId) {
-        errores.push({ campo: 'AutorId', mensaje: 'El autor es requerido' });
+    if (!esAutorValido('custom-select-autor-edit', 'editAutorId')) {
+        errores.push({ campo: 'AutorId', mensaje: 'Debe seleccionar un autor válido.' });
     }
     
     if (!titulo) {
@@ -1281,9 +1350,15 @@ function mostrarErroresCrear(errors) {
                     elementoError.style.display = 'block';
                     tieneErrores = true;
                 }
+            } else if (mensajeLower.includes('autor')) {
+                const elementoError = document.getElementById('error-create-AutorId');
+                if (elementoError) {
+                    elementoError.textContent = mensajeError;
+                    elementoError.style.display = 'block';
+                    tieneErrores = true;
+                }
             } else if (mensajeLower.includes('válido') || mensajeLower.includes('valido')) {
-                // Error genérico de validación, mostrar en el primero disponible
-                const elementoError = document.getElementById('error-create-ISBN');
+                const elementoError = document.getElementById('error-create-AutorId');
                 if (elementoError) {
                     elementoError.textContent = mensajeError;
                     elementoError.style.display = 'block';
@@ -1360,9 +1435,15 @@ function mostrarErroresEditar(errors) {
                     elementoError.style.display = 'block';
                     tieneErrores = true;
                 }
+            } else if (mensajeLower.includes('autor')) {
+                const elementoError = document.getElementById('error-edit-AutorId');
+                if (elementoError) {
+                    elementoError.textContent = mensajeError;
+                    elementoError.style.display = 'block';
+                    tieneErrores = true;
+                }
             } else if (mensajeLower.includes('válido') || mensajeLower.includes('valido')) {
-                // Error genérico de validación, mostrar en el primero disponible
-                const elementoError = document.getElementById('error-edit-ISBN');
+                const elementoError = document.getElementById('error-edit-AutorId');
                 if (elementoError) {
                     elementoError.textContent = mensajeError;
                     elementoError.style.display = 'block';
@@ -1389,6 +1470,46 @@ function mostrarErroresEditar(errors) {
     }
 }
 
+function sincronizarPaisDesdeTexto(selectId, hiddenId, textId) {
+    const hidden = document.getElementById(hiddenId);
+    const textInput = document.getElementById(textId);
+    const select = document.getElementById(selectId);
+    if (!hidden || !textInput || !select) return;
+
+    const trimmed = textInput.value.trim();
+    if (!trimmed) {
+        hidden.value = '';
+        return;
+    }
+
+    if (hidden.value && hidden.value === trimmed) return;
+
+    const options = select.querySelectorAll('.select-options .option');
+    const match = Array.from(options).find(opt =>
+        opt.dataset.value === trimmed || opt.textContent.trim() === trimmed
+    );
+
+    if (match) {
+        hidden.value = match.dataset.value;
+        textInput.value = match.textContent.trim();
+    } else {
+        hidden.value = '';
+    }
+}
+
+function normalizarTextoBusqueda(texto) {
+    return (texto || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+}
+
+function establecerValorSelectDisplay(elemento, valor) {
+    if (!elemento) return;
+    if (elemento.tagName === 'INPUT') {
+        elemento.value = valor || '';
+    } else {
+        elemento.textContent = valor || '';
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function () {
 
     function initCustomSelect(config) {
@@ -1401,63 +1522,122 @@ document.addEventListener('DOMContentLoaded', function () {
         const optionsContainer = customSelect.querySelector('.select-options');
         const hiddenInput = document.getElementById(config.hiddenInputId);
         const selectText = document.getElementById(config.textId);
+        const maxSuggestions = config.maxSuggestions || 5;
         let isOpen = false;
 
-        // Si es un input editable (nuevo patron), el trigger-input es el campo de busqueda
         const isEditable = !!triggerInput;
         const searchField = isEditable ? triggerInput : search;
 
+        function abrirDropdown() {
+            isOpen = true;
+            customSelect.classList.add('active');
+        }
+
+        function cerrarDropdown() {
+            isOpen = false;
+            customSelect.classList.remove('active');
+        }
+
+        function filtrarOpciones(searchTerm) {
+            if (!optionsContainer) return;
+
+            const termino = normalizarTextoBusqueda(searchTerm);
+            const allOptions = optionsContainer.querySelectorAll('.option');
+            let visible = 0;
+
+            allOptions.forEach(function (option) {
+                const text = normalizarTextoBusqueda(option.textContent);
+                const match = termino === '' || text.includes(termino);
+                if (match && visible < maxSuggestions) {
+                    option.classList.remove('hidden');
+                    visible++;
+                } else {
+                    option.classList.add('hidden');
+                }
+            });
+        }
+
+        function findOptionByValue(value) {
+            if (!value) return null;
+            return Array.from(optionsContainer.querySelectorAll('.option'))
+                .find(option => option.dataset.value === value);
+        }
+
+        function restaurarSeleccionPais() {
+            if (!config.optionsOnly || !hiddenInput || !searchField) return;
+
+            const selectedOption = findOptionByValue(hiddenInput.value);
+            if (selectedOption) {
+                establecerValorSelectDisplay(searchField, selectedOption.textContent.trim());
+                return;
+            }
+
+            hiddenInput.value = '';
+            establecerValorSelectDisplay(searchField, '');
+        }
+
         trigger.addEventListener('click', function (e) {
+            if (triggerInput && e.target === triggerInput) return;
             e.stopPropagation();
-            isOpen = !isOpen;
-            customSelect.classList.toggle('active', isOpen);
-            if (isOpen && searchField) {
-                setTimeout(function () { searchField.focus(); }, 50);
+            if (isOpen) {
+                cerrarDropdown();
+            } else {
+                abrirDropdown();
+                if (searchField) {
+                    setTimeout(function () { searchField.focus(); }, 50);
+                }
             }
         });
 
-        // Click en el input tambien abre/cierra el dropdown
         if (triggerInput) {
             triggerInput.addEventListener('click', function (e) {
                 e.stopPropagation();
-                isOpen = !isOpen;
-                customSelect.classList.toggle('active', isOpen);
-                if (isOpen) this.focus();
+                abrirDropdown();
+                this.focus();
+            });
+
+            triggerInput.addEventListener('focus', function () {
+                abrirDropdown();
+                filtrarOpciones(this.value);
             });
         }
 
         document.addEventListener('click', function closeOnClickOutside(e) {
             if (!customSelect.contains(e.target) && isOpen) {
-                isOpen = false;
-                customSelect.classList.remove('active');
-                if (hiddenInput && searchField) {
+                cerrarDropdown();
+                if (config.optionsOnly) {
+                    restaurarSeleccionPais();
+                } else if (hiddenInput && searchField) {
                     const val = searchField.value.trim();
-                    if (val) { hiddenInput.value = val; if (selectText && selectText !== searchField) selectText.value = val; }
+                    if (val) {
+                        hiddenInput.value = val;
+                        if (selectText && selectText !== searchField) {
+                            establecerValorSelectDisplay(selectText, val);
+                        }
+                    }
                 }
             }
         }, { capture: false });
 
         if (searchField && optionsContainer) {
             searchField.addEventListener('input', function () {
-                const searchTerm = this.value.toLowerCase();
-                hiddenInput.value = this.value;
-                // Solo actualiza selectText si es distinto al searchField (evita borrar espacios al escribir)
-                if (selectText && selectText !== searchField) {
-                    selectText.value = this.value.trim() || config.defaultText;
+                if (!isOpen) abrirDropdown();
+
+                const searchTerm = this.value;
+                if (!config.optionsOnly) {
+                    hiddenInput.value = searchTerm;
+                } else {
+                    const selectedOption = findOptionByValue(hiddenInput.value);
+                    if (!selectedOption || selectedOption.textContent.trim() !== searchTerm.trim()) {
+                        hiddenInput.value = '';
+                    }
                 }
 
-                const allOptions = optionsContainer.querySelectorAll('.option');
-                let visible = 0;
-                allOptions.forEach(function (option) {
-                    const text = option.textContent.toLowerCase();
-                    const match = text.includes(searchTerm);
-                    if (match && visible < 5) {
-                        option.classList.remove('hidden');
-                        visible++;
-                    } else {
-                        option.classList.add('hidden');
-                    }
-                });
+                if (selectText && selectText !== searchField) {
+                    establecerValorSelectDisplay(selectText, searchTerm.trim() || config.defaultText);
+                }
+
+                filtrarOpciones(searchTerm);
             });
 
             searchField.addEventListener('click', function (e) { e.stopPropagation(); });
@@ -1466,13 +1646,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 const option = e.target.closest('.option');
                 if (!option || !optionsContainer.contains(option)) return;
                 e.stopPropagation();
+
                 const value = option.dataset.value;
                 const text = option.textContent.trim();
                 hiddenInput.value = value;
-                if (selectText && selectText !== searchField) selectText.value = text;
-                if (searchField) searchField.value = text;
-                isOpen = false;
-                customSelect.classList.remove('active');
+                establecerValorSelectDisplay(searchField, text);
+                if (selectText && selectText !== searchField) {
+                    establecerValorSelectDisplay(selectText, text);
+                }
+                cerrarDropdown();
             });
         }
     }
@@ -1502,19 +1684,19 @@ document.addEventListener('DOMContentLoaded', function () {
     filtrarCaracteresEspeciales("editEditorial");
      filtrarDescripcion("createDescripcion");
      filtrarDescripcion("editDescripcion");
-     initCustomSelect({ selectId: 'custom-select-autor-create', hiddenInputId: 'createAutorId', textId: 'createAutorText', defaultText: 'Seleccione un autor...' });
+     initCustomSelect({ selectId: 'custom-select-autor-create', hiddenInputId: 'createAutorId', textId: 'createAutorText', defaultText: 'Seleccione un autor...', optionsOnly: true });
      initCustomSelect({ selectId: 'custom-select-titulo-create', hiddenInputId: 'createTituloHidden', textId: 'createTituloText', defaultText: 'Título del libro' });
      initCustomSelect({ selectId: 'custom-select-genero-create', hiddenInputId: 'createGeneroHidden', textId: 'createGeneroText', defaultText: 'Género' });
      initCustomSelect({ selectId: 'custom-select-edicion-create', hiddenInputId: 'createEdicion', textId: 'createEdicionText', defaultText: '-- Seleccione una edición --' });
      initCustomSelect({ selectId: 'custom-select-idioma-create', hiddenInputId: 'createIdiomaHidden', textId: 'createIdiomaText', defaultText: 'Idioma' });
-     initCustomSelect({ selectId: 'custom-select-pais-create', hiddenInputId: 'createPaisPublicacionHidden', textId: 'createPaisPublicacionText', defaultText: 'País de publicación' });
+     initCustomSelect({ selectId: 'custom-select-pais-create', hiddenInputId: 'createPaisPublicacionHidden', textId: 'createPaisPublicacionText', defaultText: 'País de publicación', optionsOnly: true, maxSuggestions: 8 });
 
-    initCustomSelect({ selectId: 'custom-select-autor-edit', hiddenInputId: 'editAutorId', textId: 'editAutorText', defaultText: '-- Seleccione un autor --' });
+    initCustomSelect({ selectId: 'custom-select-autor-edit', hiddenInputId: 'editAutorId', textId: 'editAutorText', defaultText: '-- Seleccione un autor --', optionsOnly: true });
     initCustomSelect({ selectId: 'custom-select-titulo-edit', hiddenInputId: 'editTituloHidden', textId: 'editTituloText', defaultText: 'Título del libro' });
     initCustomSelect({ selectId: 'custom-select-genero-edit', hiddenInputId: 'editGeneroHidden', textId: 'editGeneroText', defaultText: 'Género' });
     initCustomSelect({ selectId: 'custom-select-edicion-edit', hiddenInputId: 'editEdicion', textId: 'editEdicionText', defaultText: '-- Seleccione una edición --' });
     initCustomSelect({ selectId: 'custom-select-idioma-edit', hiddenInputId: 'editIdiomaHidden', textId: 'editIdiomaText', defaultText: 'Idioma' });
-    initCustomSelect({ selectId: 'custom-select-pais-edit', hiddenInputId: 'editPaisPublicacionHidden', textId: 'editPaisPublicacionText', defaultText: 'País de publicación' });
+    initCustomSelect({ selectId: 'custom-select-pais-edit', hiddenInputId: 'editPaisPublicacionHidden', textId: 'editPaisPublicacionText', defaultText: 'País de publicación', optionsOnly: true, maxSuggestions: 8 });
 });
 
 const modalBackdropStateLibro = {};

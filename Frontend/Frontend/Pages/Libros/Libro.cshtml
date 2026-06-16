@@ -277,7 +277,7 @@ else
                 <input type="hidden" id="editAutorId" name="AutorId" />
                 <div class="custom-select" id="custom-select-autor-edit">
                     <div class="select-trigger">
-                        <input type="text" id="editAutorText" class="select-trigger-input" placeholder="-- Seleccione un autor --" readonly />
+                        <input type="text" id="editAutorText" class="select-trigger-input" placeholder="-- Seleccione un autor --" />
                         <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="6 9 12 15 18 9"></polyline>
                         </svg>
@@ -538,13 +538,16 @@ else
                 <input type="hidden" id="createIdiomaHidden" name="Idioma" />
                 <div class="custom-select" id="custom-select-idioma-create">
                     <div class="select-trigger">
-                        <span id="createIdiomaText">Idioma</span>
-                        <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
-                    </div>
+    <input type="text"
+           id="createIdiomaText"
+           class="select-trigger-input"
+           placeholder="Idioma" />
+    <svg class="select-arrow" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2">
+        <polyline points="6 9 12 15 18 9"></polyline>
+    </svg>
+</div>
                     <div class="select-dropdown">
-                        <input type="text" class="select-search" id="idioma-search-create" placeholder="Buscar idioma..." />
                         <div class="select-options">
                             <div class="option" data-value="Español">Español</div>
                             <div class="option" data-value="Inglés">Inglés</div>
@@ -807,6 +810,36 @@ function filtrarCaracteresEspeciales(id) {
         if (!/[a-záéíóúñüA-ZÁÉÍÓÚÑÜ0-9\s\-]/.test(char)) {
             e.preventDefault();
         }
+    });
+}
+function filtrarSoloTexto(id) {
+    const input = document.getElementById(id);
+    if (!input) return;
+
+    input.addEventListener('input', function () {
+
+        this.value = this.value
+            .replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, '')
+            .replace(/\s+/g, ' ');
+    });
+
+    input.addEventListener('blur', function () {
+        this.value = this.value.trim();
+    });
+}
+function filtrarTextoConNumeros(id) {
+    const input = document.getElementById(id);
+    if (!input) return;
+
+    input.addEventListener('input', function () {
+
+        this.value = this.value
+            .replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ0-9\s]/g, '')
+            .replace(/\s+/g, ' ');
+    });
+
+    input.addEventListener('blur', function () {
+        this.value = this.value.trim();
     });
 }
 
@@ -1682,6 +1715,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
     filtrarCaracteresEspeciales("createEditorial");
     filtrarCaracteresEspeciales("editEditorial");
+    // Género
+filtrarSoloTexto("createGeneroText");
+filtrarSoloTexto("editGeneroText");
+
+// Idioma
+filtrarSoloTexto("createIdiomaText");
+filtrarSoloTexto("editIdiomaText");
+
+// País de publicación
+filtrarSoloTexto("createPaisPublicacionText");
+filtrarSoloTexto("editPaisPublicacionText");
+
+filtrarTextoConNumeros("createEdicionText");
+filtrarTextoConNumeros("editEdicionText");
+
      filtrarDescripcion("createDescripcion");
      filtrarDescripcion("editDescripcion");
      initCustomSelect({ selectId: 'custom-select-autor-create', hiddenInputId: 'createAutorId', textId: 'createAutorText', defaultText: 'Seleccione un autor...', optionsOnly: true });
